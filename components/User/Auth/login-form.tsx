@@ -42,8 +42,6 @@ export const LoginForm = () => {
         defaultValues: {
             orgId: "",
             phone: "",
-            email: '',
-            password: ""
         },
     })
 
