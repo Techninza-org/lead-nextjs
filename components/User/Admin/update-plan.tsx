@@ -8,7 +8,7 @@ import { useState } from "react";
 
 export const CompanyPlan = ({ row }: { row: any }) => {
 
-    const companyId = row.Company.id
+    const companyId = row.id
     const { plans } = useSubscription()
     const { toast } = useToast()
     const [updateCompanySubscription] = useMutation(companyMutation.UPDATE_COMPANY_SUBSCRIPTION);

@@ -6,7 +6,8 @@ mutation createLead(
   $alternatePhone: String, 
   $phone: String!, 
   $remark: String!, 
-  $department: String!
+  $department: String,
+  $dynamicFieldValues: JSON!
 ) {
   createLead(
     input: {
@@ -16,14 +17,10 @@ mutation createLead(
       alternatePhone: $alternatePhone,
       phone: $phone,
       remark: $remark,
-      department: $department
+      department: $department,
+      dynamicFieldValues: $dynamicFieldValues
     }
-  ) {
-    lead {
-      id
-      name
-    }
-  }
+  ) 
 }
 `;
 
@@ -58,11 +55,12 @@ mutation createProspect(
 
 const LEAD_ASSIGN_TO = `
   mutation leadAssignTo(
-    $leadIds: [String!]!
+    $leadIds: [String!]
     $userIds: [String!]!
     $deptId: String
     $companyId: String!
     $description: String
+    $type: String
   ) {
     leadAssignTo(
       leadIds: $leadIds
@@ -70,14 +68,8 @@ const LEAD_ASSIGN_TO = `
       deptId: $deptId
       companyId: $companyId
       description: $description
-    ) {
-      name
-      leadMember { 
-          member { 
-              name
-          }
-      }
-    }
+      type: $type
+    ) 
   }
 `;
 const PROSPECT_ASSIGN_TO = `
@@ -108,7 +100,6 @@ const PROSPECT_ASSIGN_TO = `
 const SUBMIT_LEAD = `
   mutation SubmitFeedback(
     $nextFollowUpDate: String,
-    $deptId: String!,
     $leadId: String!,
     $callStatus: String!,
     $paymentStatus: String!,
@@ -121,7 +112,6 @@ const SUBMIT_LEAD = `
   ) {
     submitFeedback(
       nextFollowUpDate: $nextFollowUpDate,
-      deptId: $deptId,
       leadId: $leadId,
       callStatus: $callStatus,
       paymentStatus: $paymentStatus,
@@ -216,10 +206,7 @@ const UPDATE_FOLLOWUP = `
       customerResponse: $customerResponse,
       remark: $remark,
       feedback: $feedback
-    ) {
-      id
-      name
-    }
+    ) 
   }
 `
 const UPDATE_FOLLOWUP_PROSPECT = `
@@ -238,10 +225,7 @@ const UPDATE_FOLLOWUP_PROSPECT = `
       customerResponse: $customerResponse,
       remark: $remark,
       feedback: $feedback
-    ) {
-      id
-      name
-    }
+    ) 
   }
 `
 

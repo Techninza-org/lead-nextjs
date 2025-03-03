@@ -3,7 +3,7 @@
 import { useContext } from "react";
 import { GraphQLClient, ClientContext } from 'graphql-hooks'
 
-const graphqlUrl = process.env.NEXT_PUBLIC_BACKEND_GRAPHQL_API || 'http://localhost:8080';
+export const graphqlUrl = process.env.NEXT_PUBLIC_BACKEND_GRAPHQL_API || 'http://localhost:8080';
 
 function GraphqlProvider({ children }: { children: React.ReactNode }) {
 

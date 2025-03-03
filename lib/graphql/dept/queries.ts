@@ -36,11 +36,7 @@ const GET_COMPANY_DEPT_FIELDS = `
           name
           fieldType
           ddOptionId
-          options {
-              label
-              value
-              colorCode
-          }
+          options 
           isDisabled
           isRequired
           imgLimit

@@ -25,7 +25,7 @@ export function TopNav({ toggle }: { toggle: () => void }) {
                     <AlignJustify size={19} />
 
                 </div>
-                <div className="px-10 w-full md:w-1/3">
+                {/* <div className="px-10 w-full md:w-1/3">
                     <SearchBar
                         data={[
                             {
@@ -40,7 +40,7 @@ export function TopNav({ toggle }: { toggle: () => void }) {
                             },
                         ]}
                     />
-                </div>
+                </div> */}
                 <div className="flex items-center space-x-4">
 
                     <Separator orientation="vertical" className="w-[1px] bg-gray-400" />

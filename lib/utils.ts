@@ -375,3 +375,25 @@ export const genHardCodedFields = (formName: string) => {
       return [];
   }
 }
+
+export const formatPermissions = (permissions: any[]): any[] => {
+  const resourceMap = new Map<string, any>();
+
+  permissions.forEach(perm => {
+    if (!resourceMap.has(perm.resource)) {
+      resourceMap.set(perm.resource, {
+        name: perm.resource,
+        permissions: {}
+      });
+    }
+
+    const resource = resourceMap.get(perm.resource)!;
+    resource.permissions[perm.actions] = {
+      id: perm.id,
+      name: perm.name,
+      actions: perm.actions
+    };
+  });
+
+  return Array.from(resourceMap.values());
+};

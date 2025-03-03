@@ -38,9 +38,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import FollowUpForm from "../Lead/follow-up-form";
 import FollowUpsData from "../Lead/follow-ups-data";
+import AdvancedDataTable from "../Table/advance-table/advance-data-table";
 
 
 export const EnquiryDetailsModal = () => {
@@ -49,7 +50,7 @@ export const EnquiryDetailsModal = () => {
     const user = useAtomValue(userAtom)
     const { isOpen, onClose, type, data: modalData } = useModal();
 
-    const { lead } = modalData;
+    const { lead, table } = modalData;
     const { companyDeptMembers } = useCompany()
     const [submitFeedback, { loading: feedBackLoading }] = useMutation(leadMutation.SUBMIT_LEAD);
     const [transferLead, { loading }] = useMutation(leadMutation.TRANSFER_LEAD);
@@ -58,6 +59,7 @@ export const EnquiryDetailsModal = () => {
 
     const isModalOpen = isOpen && type === "enquiryDetails";
 
+
     const FollowUpSchema = z.object({
         followUpDate: z.date().optional()
     })
@@ -65,6 +67,9 @@ export const EnquiryDetailsModal = () => {
     const form = useForm<z.infer<typeof FollowUpSchema>>({
         resolver: zodResolver(FollowUpSchema),
     });
+    if (!lead && !table) return
+
+    const { changeView } = table;
 
 
     const myrole = user?.role?.name;
@@ -140,6 +145,8 @@ export const EnquiryDetailsModal = () => {
             title: "Lead Transferred Successfully!",
         });
     }
+
+    console.log(lead, table, "lead")
 
     return (
 
@@ -227,106 +234,45 @@ export const EnquiryDetailsModal = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="p-4">
-                        {!!lead?.submittedForm && lead?.submittedForm?.map(({ feedback, member, imageUrls }) => (
-                            <>
-                                {member && <div className="flex justify-between pb-4 items-center">
-                                    <div className="flex items-center">
-                                        <span className="text-sm font-semibold">Submitted By:</span>
-                                    </div>
-                                    <span className="text-sm font-semibold capitalize">{member.name}
-                                        <Badge className="ml-2" color={member.role.name === "MANAGER" ? "primary" : "secondary"}>
-                                            {member.role.name}
-                                        </Badge>
-                                    </span>
-                                </div>}
-
-                                {
-                                    feedback?.map((item: any) => {
-                                        const isValidUrl = (url: string) => {
-                                            const pattern = new RegExp('^(https?:\\/\\/)' + // protocol
-                                                '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name and extension
-                                                'localhost|' + // localhost
-                                                '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-                                                '(\\:\\d+)?' + // port
-                                                '(\\/[-a-z\\d%_.~+\\s]*)*' + // path
-                                                '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-                                                '(\\#[-a-z\\d_]*)?$', 'i'); // fragment locator
-                                            return !!pattern.test(url);
-                                        };
-
-                                        return (
-                                            <div key={item.id} className="flex justify-between items-center">
-                                                <div className="flex items-center">
-                                                    <span className="text-sm font-semibold">{item.name}</span>
-                                                </div>
-                                                {isValidUrl(item.value) ? (
-                                                    <Link href={item.value} target="_blank" className="my-1">
-                                                        <Image src={item.value} alt={item.name} height={250} width={250} className="rounded-sm h-24 w-24 object-cover" />
-                                                    </Link>
-                                                ) : (
-                                                    <span className="text-sm font-semibold capitalize">{item.value}</span>
-                                                )}
+                    <ScrollArea className="max-h-full w-full rounded-md border">
+                        <div className="p-4">
+                            {lead && (
+                                <div>
+                                    {changeView.map((item: any) => (
+                                        <div key={item} className="flex justify-between pb-4 items-center">
+                                            <span className="text-sm font-semibold capitalize">{item}</span>
+                                            <div className="flex items-center">
+                                                <span className="text-sm font-semibold capitalize mr-2">{lead?.[item] as string}</span>
                                             </div>
-                                        );
-                                    })
-                                }
-
-                                <div className="grid grid-cols-3 mt-3 justify-between gap-3 ">
-                                    {
-                                        imageUrls?.map((url, i) => (
-                                            <Link
-                                                key={i}
-                                                target="_blank"
-                                                href={url || "#"}
-
-                                            >
-                                                {url ? <Image
-                                                    key={i}
-                                                    src={url}
-                                                    alt="Feedback Image"
-                                                    loading="lazy"
-                                                    height={100}
-                                                    width={100}
-                                                    className="rounded-md text-xs w-56 h-56 object-cover"
-                                                /> :
-                                                    <ImageOffIcon className="w-10 h-10" />
-                                                }
-                                            </Link>
-                                        ))
-                                    }
-                                </div>
-                            </>
-                        ))}
-                        { lead?.bids && lead?.bids?.length > 0 &&
-                            <ScrollArea className="h-44 w-full rounded-md border">
-                                <div className="p-4">
-                                    <h4 className="mb-4 text-sm font-medium leading-none">All Bids</h4>
-                                    {!!lead?.bids && lead?.bids?.map((bid: any) => (
-                                        <>
-                                            <div key={bid?.id} className="text-sm grid-cols-2 grid">
-                                                <span>{bid?.Member?.name || ""}</span>
-                                                <span>{formatCurrencyForIndia(bid?.bidAmount || 0)}</span>
-                                            </div>
-                                            <Separator className="my-2" />
-                                        </>
+                                        </div>
                                     ))}
+                                    <Separator className="my-2" />
                                 </div>
-                            </ScrollArea>
-                        }
-                        <div>
-                            <FollowUpsData lead={lead} />
-                            <div className="my-4 grid place-items-end grid-flow-col">
-                                <Button
-                                    size="sm"
-                                    variant="default"
-                                    disabled={isFollowUpActive}
-                                    onClick={() => setIsFollowUpActive(!isFollowUpActive)}
-                                >Add Follow Up</Button>
-                            </div>
-                            {isFollowUpActive && <FollowUpForm forLead={false} lead={lead} isFollowUpActive={isFollowUpActive} setIsFollowUpActive={setIsFollowUpActive} />}
+                            )}
+
+                            {
+                                Object.entries(lead?.children || {}).map(([key, value]: any[]) => {
+                                    console.log(key, value, "key, value")
+                                    return (
+                                        <Fragment key={key}>
+                                            <h3 className="font-medium text-xl pl-2 pt-2 capitalize">{key}</h3>
+
+                                            <AdvancedDataTable
+                                                columnNames={Object.keys(value?.[0] || {})}
+                                                dependentCols={[]}
+                                                data={Array.isArray(value) ? value : []}
+                                                showTools={false}
+                                                tableName={key}
+                                            />
+
+                                        </Fragment>
+                                    )
+                                })
+                            }
+
+
                         </div>
-                    </div>
+                    </ScrollArea>
                 </ScrollArea>
             </DialogContent>
         </Dialog>

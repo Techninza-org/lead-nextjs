@@ -23,4 +23,3 @@ export const CompanyDeptFieldSchema = z.object({
     name: z.string(),
     subDeptFields: z.array(SubDeptFieldSchema),
 });
-

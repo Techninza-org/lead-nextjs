@@ -48,6 +48,11 @@ export function UserAvatar() {
                             Settings
                         </DropdownMenuItem>
                     </Link>
+                    <Link href="/departments">
+                        <DropdownMenuItem>
+                            Form Builder
+                        </DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem onClick={logout} className="text-red-500">
                         Log out
                     </DropdownMenuItem>

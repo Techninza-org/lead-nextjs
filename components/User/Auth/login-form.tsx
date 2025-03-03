@@ -40,6 +40,7 @@ export const LoginForm = () => {
     const form = useForm<z.infer<typeof loginViaPhoneFormSchema>>({
         resolver: zodResolver(loginViaPhoneFormSchema),
         defaultValues: {
+            orgId: "",
             phone: "",
             email: '',
             password: ""
@@ -51,38 +52,42 @@ export const LoginForm = () => {
     const onSubmit = async (data: z.infer<typeof loginViaPhoneFormSchema>) => {
         const { data: value, error } = await loginUser({
             variables: {
-                email: data.email,
-                password: data.password,
+                orgId: data.orgId,
+                phone: data.phone,
+                otp: data.otp,
             },
         })
         handleUserLogin({ user: value?.loginUser?.user, error: error })
     }
 
-    // const genrateOTP = async () => {
-    //     const phoneValue = getValues('phone');
-    //     if (phoneValue.length === 10) {
-    //         const { error } = await generateOTP({
-    //             variables: {
-    //                 phone: phoneValue
-    //             }
-    //         })
-    //         if (error) {
-    //             const message = error?.graphQLErrors?.map((e: any) => e.message).join(", ")
-    //             setError('phone', {
-    //                 type: 'manual',
-    //                 message: message || "Something went wrong",
-    //             });
-    //             return;
-    //         }
-    //         setIsOTPFormVisible(true);
-    //         setTimer(45);
-    //     } else {
-    //         setError('phone', {
-    //             type: 'manual',
-    //             message: 'Please enter a valid 10-digit phone number',
-    //         });
-    //     };
-    // }
+    const genrateOTP = async () => {
+        const orgId = getValues('orgId');
+        const phoneValue = getValues('phone');
+
+        if (phoneValue.length === 10) {
+            const { error } = await generateOTP({
+                variables: {
+                    orgId: orgId,
+                    phone: phoneValue
+                }
+            })
+            if (error) {
+                const message = error?.graphQLErrors?.map((e: any) => e.message).join(", ")
+                setError('phone', {
+                    type: 'manual',
+                    message: message || "Something went wrong",
+                });
+                return;
+            }
+            setIsOTPFormVisible(true);
+            setTimer(45);
+        } else {
+            setError('phone', {
+                type: 'manual',
+                message: 'Please enter a valid 10-digit phone number',
+            });
+        };
+    }
 
     useEffect(() => {
         if (timer > 0) {
@@ -97,45 +102,43 @@ export const LoginForm = () => {
         <>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
-                    {/* {!isOTPFormVisible ? <div className="space-y-4"> */}
-                    <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">Email</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0"
-                                        placeholder="Enter Email"
-                                        disabled={loading}
-                                        {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">password</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        {...field}
-                                        className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0"
-                                        placeholder="Enter password"
-                                        disabled={loading}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <Button className="mt-6 w-full">Login</Button>
-                    {/* <Button type="button" disabled={genratingOTP} onClick={() => genrateOTP()} className="mt-6 w-full">Send OTP</Button>
-                    </div> : <OTPForm form={form} timer={timer} setTimer={setTimer} resendOTP={genrateOTP} />} */}
+                    {!isOTPFormVisible ? <div className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="orgId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">Org Id</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0"
+                                            placeholder="Enter Org Id"
+                                            disabled={loading}
+                                            {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                           <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">Phone</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0"
+                                            placeholder="Enter Phone"
+                                            disabled={loading}
+                                            {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="button" disabled={genratingOTP} onClick={() => genrateOTP()} className="mt-6 w-full">Send OTP</Button>
+                    </div> : <OTPForm form={form} timer={timer} setTimer={setTimer} resendOTP={genrateOTP} />}
                 </form>
             </Form>
 

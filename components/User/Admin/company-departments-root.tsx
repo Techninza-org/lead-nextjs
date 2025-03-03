@@ -43,7 +43,7 @@ const CompanyDepartmentsRoot = () => {
 
   if (loading) return <div>Loading...</div>;
 
-  const groupFormOnCategoryName = data?.getCompanyDepts?.[0].companyForms &&  Object.groupBy(
+  const groupFormOnCategoryName = data?.getCompanyDepts?.[0]?.companyForms &&  Object.groupBy(
     data?.getCompanyDepts?.[0].companyForms ?? [],
     (form: any) => form?.category?.name || "Uncategorized"
   );

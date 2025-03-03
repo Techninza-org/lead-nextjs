@@ -1,6 +1,6 @@
 import React from 'react'
 
-import AdvancedDataTable from '../advance-data-table'
+import AdvancedDataTable from '../Table/advance-table/advance-data-table'
 import { formatDyamicTableData } from '@/lib/utils'
 
 const FollowUpsData = ({ lead }: { lead: any }) => {

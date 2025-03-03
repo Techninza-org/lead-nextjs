@@ -9,18 +9,17 @@ import { PlusCircle, Upload, UploadIcon } from "lucide-react";
 import { useCompany } from "../providers/CompanyProvider";
 import { useModal } from "@/hooks/use-modal-store";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import AdvancedDataTable from "../advance-data-table";
-import { LeadColDefs } from "./lead-table-col";
 import { leadMutation } from "@/lib/graphql/lead/mutation";
+import AdvanceDataTable from "../Table/advance-table";
 
 export const LeadTable = () => {
     const { onOpen } = useModal()
-    const [leadInfo] = useAtom(leads)
+    const [leadInfo]: any = useAtom(leads)
     const colsName = [
         'name',
         'email',
-        'phone',
-        'alternatePhone',
+        // 'phone',
+        // 'alternatePhone',
     ]
     const addLeadForm = useCompany().optForms?.find((x: any) => x.name === "Lead")
 
@@ -68,11 +67,15 @@ export const LeadTable = () => {
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <AdvancedDataTable
-                    leadProspectCols={LeadColDefs}
-                    columnNames={colsName}
-                    data={leadInfo as any || []}
+                <AdvanceDataTable
+                    filterOption={leadInfo?.filterOptions || {}}
+                    optOutFields={leadInfo?.optOutFields || []}
+                    changeView={leadInfo?.changeView}
+                    columnNames={leadInfo?.listView}
+                    data={leadInfo?.data as any || []}
                     MoreInfo={MoreInfoLead}
+                    tableName="Lead"
+                    pagination={leadInfo?.pagination}
                 />
             </CardContent>
         </Card >

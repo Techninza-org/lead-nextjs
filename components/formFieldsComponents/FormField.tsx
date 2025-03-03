@@ -69,7 +69,7 @@ export const IFormField: React.FC<FormFieldProps> = ({ field, fieldName, validat
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {field.options.map((option: any) => (
+                                    {field.options.value.map((option: any) => (
                                         <SelectItem key={option.value} value={option.value}>
                                             {option.label}
                                         </SelectItem>
@@ -129,7 +129,7 @@ export const IFormField: React.FC<FormFieldProps> = ({ field, fieldName, validat
                                     defaultValue={field.value}
                                     className="flex flex-col space-y-1"
                                 >
-                                    {field.options.map((option: any) => (
+                                    {field.options.value.map((option: any) => (
                                         <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
                                             <FormControl>
                                                 <RadioGroupItem value={option.value} />

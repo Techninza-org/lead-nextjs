@@ -20,6 +20,10 @@ import { CreateDeptFormModal } from "../modals/create-dept-form-modal";
 import { EditLeadFormValueModal } from "../modals/edit-lead-form-value-modal";
 import { ViewProspectInfoModal } from "../modals/view-prospect-info-modal";
 import { AssignFormModal } from "../modals/assign-form-modal";
+import { RolePerimssionFilterListConfig } from "../modals/role-permission-filter-list-config-modal";
+import { ChildDetailsModal } from "../modals/child-form-table-modal";
+import { CreateRoleModal } from "../modals/create-role-modal";
+import { BulkOperationModal } from "../modals/bulk-operation-modal";
 
 
 export const ModalProvider = () => {
@@ -34,6 +38,9 @@ export const ModalProvider = () => {
 
   return (
     <>
+      <ChildDetailsModal />
+      <BulkOperationModal />
+      <CreateRoleModal />
       <AssignFormModal />
       <AssignMemberModal />
       <ViewProspectInfoModal />
@@ -51,6 +58,7 @@ export const ModalProvider = () => {
       <UpdateGlobalBroadcastModal />
       <UploadProspectModal />
       <UploadLeadModal />
+      <RolePerimssionFilterListConfig />
       <EditLeadFormValueModal />
     </>
   );

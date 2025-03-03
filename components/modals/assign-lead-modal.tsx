@@ -41,11 +41,13 @@ import {
     MultiSelectorTrigger,
 } from "@/components/multiselect-input";
 import { useCompany } from "../providers/CompanyProvider"
+import { useSearchParams } from "next/navigation"
 
 
 export const AssignLeadModal = () => {
 
     const userInfo = useAtomValue(userAtom)
+    const searchParms = useSearchParams()
     const [, setCompanyDeptMembers] = useAtom(companyDeptMembersAtom)
 
     const { isOpen, onClose, type, data: modalData } = useModal();
@@ -92,7 +94,8 @@ export const AssignLeadModal = () => {
                 ...data,
                 deptId: userInfo?.deptId,
                 companyId: userInfo?.companyId,
-                leadIds: leadIds
+                leadIds: leadIds,
+                type: searchParms.get('apiType')?.split("_")?.[1] ?? null
             }
         })
 
@@ -120,15 +123,15 @@ export const AssignLeadModal = () => {
 
     return (
         <Dialog open={isModalOpen} onOpenChange={handleClose}>
-            <DialogContent className="text-black max-w-screen-md min-h-[620px]">
+            <DialogContent className="text-black max-w-screen-md min-h-[500px]">
                 <DialogHeader className="pt-6">
                     <DialogTitle className="text-2xl text-center font-bold">
                         Assign {formName}
                     </DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="max-h-40 w-full rounded-md border">
+                <ScrollArea className="h-60 w-full rounded-md border">
                     <div className="p-4">
-                        <h4 className="mb-4 text-sm font-medium leading-none">Selected {formName}</h4>
+                        <h4 className="mb-4 text-sm font-medium leading-none">Selected {formName} <Badge className="ml-2" variant={'secondary'} >{searchParms.get("size")}</Badge></h4>
                         {leads && leads.map((lead) => (
                             <>
                                 <div key={lead.id} className="text-sm grid-cols-2 grid">
@@ -140,6 +143,9 @@ export const AssignLeadModal = () => {
                         ))}
                     </div>
                 </ScrollArea>
+                <div>
+                   {searchParms.get('apiType')?.split("_")?.[2] && <Button variant={'ghost'} size={'sm'}>And Others {searchParms.get('apiType')?.split("_")?.[2]} Selected...</Button>}
+                </div>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
                         <div className="grid grid-flow-col place-content-end h-1">
@@ -153,7 +159,7 @@ export const AssignLeadModal = () => {
                             name="userIds"
                             render={({ field }) => (
                                 <FormItem className="w-full">
-                                    <FormLabel>Invite people</FormLabel>
+                                    <FormLabel>Select Employee to Assign Lead</FormLabel>
                                     <MultiSelector
                                         onValuesChange={field.onChange}
                                         values={field.value}

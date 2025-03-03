@@ -24,22 +24,7 @@ const GET_MEMBERS = `
 
 const GET_COMPANIES = `
   query getRootUsers {
-    getRootUsers {
-      id
-      name
-      Company { 
-        id
-        name
-        phone
-        email
-        Subscriptions {
-            planId
-            plan{
-              name
-            }
-        }
-    }
-    }
+    getRootUsers 
   }
 `;
 
@@ -128,6 +113,109 @@ const GET_DEPT_OPT_FIELDS = `
   }
 `;
 
+const GET_ROLES = `
+  query GetRoles($companyId: String!) {
+    getRoles(companyId: $companyId) {
+      id
+      name
+      companyId
+      department
+      activeFrom
+      activeTo
+      isActive
+      type
+      permissions
+    }
+  }
+`;
+
+const GET_PERMISSIONS = `
+  query GetPermissions {
+    getPermissions {
+      id
+      name
+      resource
+      actions
+      filters
+    }
+  }
+`;
+
+const CREATE_ROLE = `
+  mutation CreateRole($input: CreateRoleInput!) {
+    createRole(input: $input) {
+      id
+      name
+      companyId
+      department
+      activeFrom
+      activeTo
+      isActive
+      type
+    }
+  }
+`;
+
+const UPDATE_ROLE = `
+  mutation UpdateRole($id: String!, $input: UpdateRoleInput!) {
+    updateRole(id: $id, input: $input) {
+      id
+      name
+      companyId
+      department
+      activeFrom
+      activeTo
+      isActive
+      type
+    }
+  }
+`;
+
+const DELETE_ROLE = `
+  mutation DeleteRole($id: String!) {
+    deleteRole(id: $id)
+  }
+`;
+
+const CREATE_PERMISSION = `
+  mutation CreatePermission($input: CreatePermissionInput!) {
+    createPermission(input: $input) {
+      id
+      name
+      resource
+      actions
+    }
+  }
+`;
+
+const UPDATE_PERMISSION = `
+  mutation UpdatePermission($id: String!, $input: UpdatePermissionInput!) {
+    updatePermission(id: $id, input: $input) {
+      id
+      name
+      resource
+      actions
+    }
+  }
+`;
+
+const DELETE_PERMISSION = `
+  mutation DeletePermission($id: String!) {
+    deletePermission(id: $id)
+  }
+`;
+
+const COMPANY_RESOURCES = `
+  query PermissioResources {
+    permissioResources 
+  }
+`;
+
+const UPDATE_PERMISSION_FILTER = `
+  mutation UpdatePermissionFilter($resourceName: String!, $data: JSON) {
+    updatePermissionFilter(resourceName: $resourceName, data: $data)
+  }
+`
 export const userQueries = {
   GET_COMPANY_DEPT_MEMBERS,
   GET_COMPANIES,
@@ -135,5 +223,15 @@ export const userQueries = {
   GET_MEMBER_LOCATION,
   GET_PLANS,
   GET_DEPT_FIELDS,
-  GET_DEPT_OPT_FIELDS
+  GET_DEPT_OPT_FIELDS,
+  GET_ROLES,
+  GET_PERMISSIONS,
+  CREATE_ROLE,
+  UPDATE_ROLE,
+  DELETE_ROLE,
+  CREATE_PERMISSION,
+  UPDATE_PERMISSION,
+  DELETE_PERMISSION,
+  COMPANY_RESOURCES,
+  UPDATE_PERMISSION_FILTER,
 };

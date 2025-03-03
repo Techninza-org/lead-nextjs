@@ -25,7 +25,19 @@ const GET_DEPT_FIELDS = `
   }
 `;
 
+const ASSIGNFORMTOROOT = `
+  mutation assignFormC2C(
+      $sourceValue: String
+      $destinationRootId: String
+  ) {
+      assignFormC2C(
+          sourceValue: $sourceValue
+          destinationRootId: $destinationRootId
+      )
+  }
+`
 
 export const adminQueries = {
-    GET_DEPT_FIELDS,
+  GET_DEPT_FIELDS,
+  ASSIGNFORMTOROOT,
 };

@@ -35,7 +35,7 @@ export function AssignedLeadTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const { onOpen } = useModal()
   const user = useAtomValue(userAtom)
-  const { companyForm, optForms, companyMemberRoles } = useCompany()
+  const { companyForm, companyDeptFields, optForms, companyMemberRoles } = useCompany()
 
   const OptFormNames = optForms?.map((form: any) => form.name)
 
@@ -43,7 +43,7 @@ export function AssignedLeadTableRowActions<TData>({
   const assignedFormsName = assignedForms.map((x: any) => x.name)
 
   const formFields = companyForm.filter((x: any) => !OptFormNames.includes(x.name) && assignedFormsName.includes(x.name)) || []
-  const formateFields = updateDependentFields(formFields || [])
+  const formateFields = updateDependentFields(companyDeptFields || [])
 
   return (
     <DropdownMenu>

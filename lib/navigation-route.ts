@@ -134,13 +134,18 @@ export const ADMIN_NAV_LINKS = [
         href: "/admin/companies",
     },
     {
-        title: "Settings",
-        icon: Settings,
-        href: "/admin/settings",
+        title: "Assign Forms",
+        icon: FileTextIcon,
+        href: "/admin/assign-forms",
     },
-    {
-        title: "Departments",
-        icon: Pencil,
-        href: "/admin/depts",
-    },
+    // {
+    //     title: "Settings",
+    //     icon: Settings,
+    //     href: "/admin/settings",
+    // },
+    // {
+    //     title: "Departments",
+    //     icon: Pencil,
+    //     href: "/admin/depts",
+    // },
 ]

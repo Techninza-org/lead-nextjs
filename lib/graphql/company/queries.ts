@@ -20,10 +20,7 @@ const GET_COMPANY_DEPT_FIELDS = `
         name
         fieldType
         ddOptionId
-        options {
-            label
-            value
-        }
+        options 
         isDisabled
         isRequired
         imgLimit
@@ -169,6 +166,12 @@ const GET_SUBMITTED_FORM_VALUE = `
     }
 `
 
+const GET_TABLE_FILTER_OPTIONS = `
+    query getTableFilterOptions($searchValue: String!, $colId: String!) {
+      getTableFilterOptions(searchValue: $searchValue, colId: $colId)
+    }
+`
+
 export const companyQueries = {
   XCHANGE_CUSTOMER_LIST,
   GET_ALL_ROLES,
@@ -182,4 +185,5 @@ export const companyQueries = {
   GET_XCHANGE_LEAD_IMGS,
   GET_LEADS_PHOTOS,
   GET_SUBMITTED_FORM_VALUE,
+  GET_TABLE_FILTER_OPTIONS
 }

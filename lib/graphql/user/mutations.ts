@@ -1,6 +1,6 @@
 export const LOGIN_USER = `
-  mutation loginUser($phone: String, $otp: String, $email: String, $password: String) {
-    loginUser(phone: $phone, otp: $otp, email: $email, password: $password) {
+  mutation loginUser($orgId: String, $phone: String!, $otp: String!) {
+    loginUser(orgId: $orgId, phone: $phone, otp: $otp) {
      user {
         id
         name
@@ -115,8 +115,8 @@ export const CREATE_OR_UPDATE_MANAGER = `
 `;
 
 export const GENRATE_OTP = `
-  mutation generateOTP($phone: String!) {
-    generateOTP(phone: $phone) {
+  mutation generateOTP($orgId: String, ,$phone: String!) {
+    generateOTP(phone: $phone, orgId: $orgId) {
       otpExpiry
     }
   }

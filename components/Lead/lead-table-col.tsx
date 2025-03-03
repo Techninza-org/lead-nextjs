@@ -10,7 +10,7 @@ import { leadMutation } from "@/lib/graphql/lead/mutation";
 import { AssignedLeadTableRowActions } from "../User/Lead/assigned-lead-row-action";
 import { useToast } from "../ui/use-toast";
 import { useEffect } from "react";
-import { multiSelectFilter } from "../advance-data-table";
+import { multiSelectFilter } from "../Table/advance-table/advance-data-table";
 
 export const LeadColDefs: ColumnDef<z.infer<typeof leadSchema>>[] = [
     {
@@ -58,32 +58,32 @@ export const LeadColDefs: ColumnDef<z.infer<typeof leadSchema>>[] = [
         },
         filterFn: multiSelectFilter,
     },
-    {
-        header: 'Phone',
-        accessorKey: 'phone',
-        cell: ({ row }) => {
-            return (
-                <div className="flex items-center">
-                    <span>{row.getValue("phone")}</span>
-                </div>
-            )
+    // {
+    //     header: 'Phone',
+    //     accessorKey: 'phone',
+    //     cell: ({ row }) => {
+    //         return (
+    //             <div className="flex items-center">
+    //                 <span>{row.getValue("phone")}</span>
+    //             </div>
+    //         )
 
-        },
-        filterFn: multiSelectFilter,
-    },
-    {
-        header: 'Alternate Phone',
-        accessorKey: 'alternatePhone',
-        cell: ({ row }) => {
-            return (
-                <div className="flex items-center">
-                    <span>{row.getValue("alternatePhone")}</span>
-                </div>
-            )
+    //     },
+    //     filterFn: multiSelectFilter,
+    // },
+    // {
+    //     header: 'Alternate Phone',
+    //     accessorKey: 'alternatePhone',
+    //     cell: ({ row }) => {
+    //         return (
+    //             <div className="flex items-center">
+    //                 <span>{row.getValue("alternatePhone")}</span>
+    //             </div>
+    //         )
 
-        },
-        filterFn: multiSelectFilter,
-    },
+    //     },
+    //     filterFn: multiSelectFilter,
+    // },
     {
         header: 'Assigned',
         accessorKey: '',
@@ -182,19 +182,19 @@ export const RootProspectColDefs: ColumnDef<z.infer<typeof leadSchema>>[] = [
         },
         filterFn: multiSelectFilter,
     },
-    {
-        header: 'Phone',
-        accessorKey: 'phone',
-        cell: ({ row }) => {
-            return (
-                <div className="flex items-center">
-                    <span>{row.getValue("phone")}</span>
-                </div>
-            )
+    // {
+    //     header: 'Phone',
+    //     accessorKey: 'phone',
+    //     cell: ({ row }) => {
+    //         return (
+    //             <div className="flex items-center">
+    //                 <span>{row.getValue("phone")}</span>
+    //             </div>
+    //         )
 
-        },
-        filterFn: multiSelectFilter,
-    },
+    //     },
+    //     filterFn: multiSelectFilter,
+    // },
     // {
     //     header: 'Department',
     //     accessorKey: 'dept',
@@ -207,19 +207,19 @@ export const RootProspectColDefs: ColumnDef<z.infer<typeof leadSchema>>[] = [
     //         )
     //     }
     // },
-    {
-        header: 'Alternate Phone',
-        accessorKey: 'alternatePhone',
-        cell: ({ row }) => {
-            return (
-                <div className="flex items-center">
-                    <span>{row.getValue("alternatePhone")}</span>
-                </div>
-            )
+    // {
+    //     header: 'Alternate Phone',
+    //     accessorKey: 'alternatePhone',
+    //     cell: ({ row }) => {
+    //         return (
+    //             <div className="flex items-center">
+    //                 <span>{row.getValue("alternatePhone")}</span>
+    //             </div>
+    //         )
 
-        },
-        filterFn: multiSelectFilter,
-    },
+    //     },
+    //     filterFn: multiSelectFilter,
+    // },
     {
         header: 'Created By',
         accessorKey: 'via',

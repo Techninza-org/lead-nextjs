@@ -20,14 +20,14 @@ import FollowUpsData from "../Lead/follow-ups-data";
 import { formatCurrencyForIndia, formatReturnOfDB } from "@/lib/utils";
 import { LeadApprovedAction } from "../Lead/lead-table-col";
 import { Input } from "../ui/input";
-import AdvancedDataTable from "../advance-data-table";
+import AdvancedDataTable from "../Table/advance-table/advance-data-table";
 
 
 export const ViewLeadInfoModal = () => {
     const [isFollowUpActive, setIsFollowUpActive] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const { isOpen, onClose, type, data: modalData } = useModal();
-    const { lead } = modalData;
+    const { lead, table } = modalData;
     const [editingFeedback, setEditingFeedback] = useState<{ [key: string]: boolean }>({})
     const [feedbackValues, setFeedbackValues] = useState<{ [key: string]: string }>({})
     const [editingLead, setEditingLead] = useState<{ [key: string]: boolean }>({
@@ -45,6 +45,7 @@ export const ViewLeadInfoModal = () => {
 
     const isModalOpen = isOpen && lead && type === "viewLeadInfo";
 
+    if (!lead && !table) return
     const handleClose = () => {
         onClose();
     }
@@ -105,22 +106,6 @@ export const ViewLeadInfoModal = () => {
         </div>
     )
 
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.altKey && event.key.toLowerCase() === 's') {
-                event.preventDefault();
-                setIsEditing(prev => !prev);
-            }
-        };
-
-        document.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-    }, []);
-
-
     return (
 
         <Dialog open={isModalOpen} onOpenChange={handleClose}>
@@ -130,11 +115,11 @@ export const ViewLeadInfoModal = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <Badge variant="outline" className="text-xs text-gray-600  font-medium">
-                                    ID: {lead?.id}
+                                    ID: {lead?.id || lead?._id }
                                 </Badge>
                                 <h2 className="pl-2">Lead Details</h2>
                             </div>
-                            <div className="flex items-center space-x-4">
+                            {/* <div className="flex items-center space-x-4">
                                 {
                                     isEditing ? (
                                         <Button
@@ -158,7 +143,7 @@ export const ViewLeadInfoModal = () => {
                                         </Button>
                                     )
                                 }
-                            </div>
+                            </div> */}
                         </div>
                     </DialogTitle>
                     <Separator className="my-4" />
@@ -167,71 +152,42 @@ export const ViewLeadInfoModal = () => {
                     <div className="p-4">
                         {lead && (
                             <div>
-                                {renderEditableField('name', 'Name')}
-                                {renderEditableField('email', 'Email')}
-                                {renderEditableField('phone', 'Phone')}
-                                <Separator className="my-2" />
-                            </div>
-                        )}
-                        {!!lead?.submittedForm && lead.submittedForm.map((item, index) => {
-                            const data = formatReturnOfDB(item)
-                            return (
-                                <Fragment key={index}>
-                                    {/* {member && (
-                                    <div className="flex justify-between pb-4 items-center">
-                                        <span className="text-sm font-semibold">Submitted By:</span>
-                                        <span className="text-sm font-semibold capitalize">
-                                            {member.name}
-                                            <Badge className="ml-2" variant={member.role.name === "MANAGER" ? "default" : "secondary"}>
-                                                {member.role.name}
-                                            </Badge>
-                                        </span>
-                                    </div>
-                                )} */}
-
-                                    <h3 className="font-medium text-xl pl-2 pt-2">{item?.formName}</h3>
-
-                                    <AdvancedDataTable
-                                        columnNames={data.cols.columnNames as any}
-                                        dependentCols={data.cols.dependentCols as any}
-                                        data={[data.row as any]}
-                                        showTools={false}
-                                    />
-
-                                </Fragment>
-                            )
-                        })}
-
-                        {lead?.bids && lead.bids.length > 0 && (
-                            <ScrollArea className="h-44 w-full rounded-md border">
-                                <div className="p-4">
-                                    <h4 className="mb-4 text-sm font-medium leading-none">All Bids</h4>
-                                    {lead.bids.map((bid: any) => (
-                                        <Fragment key={bid?.id}>
-                                            <div className="text-sm grid-cols-2 grid">
-                                                <span>{bid?.Member?.name || ""}</span>
-                                                <span>{formatCurrencyForIndia(bid?.bidAmount || 0)}</span>
+                                {table.changeView.map((item: any) => {
+                                    const isId = item == "id" ? "_id" : item
+                                    return (
+                                        <div key={item} className="flex justify-between pb-4 items-center">
+                                            <span className="text-sm font-semibold capitalize">{item}</span>
+                                            <div className="flex items-center">
+                                                <span className="text-sm font-semibold capitalize mr-2">{lead?.[isId] as string}</span>
                                             </div>
-                                            <Separator className="my-2" />
-                                        </Fragment>
-                                    ))}
-                                </div>
-                            </ScrollArea>
+                                        </div>
+                                    )
+                                })}
+                            </div>
                         )}
 
-                        <div>
-                            <h3 className="font-medium text-xl pl-2 pt-2">Follow Up</h3>
-                            <FollowUpsData lead={lead} />
-                            <div className="my-4 grid place-items-end grid-flow-col">
-                                <Button
-                                    size="sm"
-                                    variant="default"
-                                    disabled={isFollowUpActive}
-                                    onClick={() => setIsFollowUpActive(!isFollowUpActive)}
-                                >Add Follow Up</Button>
-                            </div>
-                            {isFollowUpActive && <FollowUpForm forLead lead={lead} isFollowUpActive={isFollowUpActive} setIsFollowUpActive={setIsFollowUpActive} />}
-                        </div>
+                        {
+                            Object.entries(lead?.children || {}).map(([key, value]: any[]) => {
+                                console.log(key, value, "key, value")
+                                return (
+                                    <Fragment key={key}>
+                                        <h3 className="font-medium text-xl pl-2 pt-2 capitalize">{key}</h3>
+
+                                        <Separator className="my-2" />
+                                        <AdvancedDataTable
+                                            columnNames={Object.keys(value?.[0] || {})}
+                                            dependentCols={[]}
+                                            data={Array.isArray(value) ? value : []}
+                                            showTools={false}
+                                            tableName={key}
+                                        />
+
+                                    </Fragment>
+                                )
+                            })
+                        }
+
+
                     </div>
                 </ScrollArea>
             </DialogContent>

@@ -74,8 +74,8 @@ export const SignupForm = () => {
             title: 'User Created Successfully!',
             variant: "default"
         })
-        form.reset()
-        router.push("/login")
+        // form.reset()
+        // router.push("/login")
     }
 
     return (

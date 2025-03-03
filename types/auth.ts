@@ -18,10 +18,15 @@ export const signupFormSchema = z.object({
 })
 
 export const loginViaPhoneFormSchema = z.object({
-    phone: z.string(),
-    email: z.string(),
-    password: z.string(),
-    // otp: z.string().length(6, 'Please enter a valid OTP.'),
+    orgId: z.string().min(3, 'Please enter your organization ID.'),
+    phone: z.string().length(10, 'Please enter a valid phone number.'),
+    otp: z.string().length(6, 'Please enter a valid OTP.'),
+})
+
+export const AdminloginViaPhoneFormSchema = z.object({
+    // orgId: z.string().min(3, 'Please enter your organization ID.'),
+    phone: z.string().length(10, 'Please enter a valid phone number.'),
+    otp: z.string().length(6, 'Please enter a valid OTP.'),
 })
 
 export const loggedUserSchema = z.object({

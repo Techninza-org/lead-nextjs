@@ -9,7 +9,7 @@ import { PlusCircle, UploadIcon } from "lucide-react";
 import { useCompany } from "../providers/CompanyProvider";
 import { useModal } from "@/hooks/use-modal-store";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import AdvancedDataTable from "../advance-data-table";
+import AdvancedDataTable from "../Table/advance-table/advance-data-table";
 import { leadMutation } from "@/lib/graphql/lead/mutation";
 
 export const ProspectTable = () => {

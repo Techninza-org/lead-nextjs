@@ -9,6 +9,8 @@ import { AssignedLeadColDefs } from "./assigned-lead-table-col";
 import { leadMutation } from "@/lib/graphql/lead/mutation";
 import { UserLeadTable } from "./user-lead-table";
 import { useState } from "react";
+import { PermissionGate } from "@/components/PermissionGate";
+import AdvancedDataTable from "@/components/Table/advance-table/advance-data-table";
 
 export const AssignedProspectTable = () => {
     const [userInfo] = useAtom(userAtom);
@@ -34,6 +36,8 @@ export const AssignedProspectTable = () => {
     )
 
     return (
-        <UserLeadTable columns={AssignedLeadColDefs} data={leadInfo || []} />
+        <PermissionGate permissions="VIEW:PROSPECT">
+            <AdvancedDataTable data={leadInfo || []} columnNames={Object.keys(leadInfo?.[0] || {})} tableName={'PROSPECT'} />
+        </PermissionGate>
     )
 }

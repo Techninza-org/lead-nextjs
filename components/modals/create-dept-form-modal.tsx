@@ -101,7 +101,7 @@ export const CreateDeptFormModal = () => {
                 input: {
                     dependentOnId: data.dependentFormName,
                     categoryName: data.categoryName, // TODO: Change this to the actual category name
-                    deptName: selectedDept.name,
+                    deptName: selectedDept?.name,
                     companyDeptId: data.deptId,
                     name: data.formName,
                     order: 7,

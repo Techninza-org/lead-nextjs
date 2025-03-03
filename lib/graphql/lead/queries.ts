@@ -1,73 +1,6 @@
 const GET_COMPANY_LEADS = `
-  query GetCompanyLeads($companyId: String) {
-    getCompanyLeads(companyId: $companyId) {
-      lead {
-        id
-        name
-        email
-        phone
-        alternatePhone
-        callStatus
-        paymentStatus
-        department
-        via
-        createdAt
-        updatedAt
-        bids {
-          id
-          bidAmount
-        }
-
-        leadMember {
-          id
-          member {
-            name
-          }
-        }
-        followUps {
-          id
-          nextFollowUpDate
-          remark
-          customerResponse
-          dynamicFieldValues
-          rating
-          leadId
-          followUpBy
-          createdAt
-          updatedAt
-       }
-        
-
-        submittedForm {
-          id
-          formName
-          memberId
-          dependentOnFormName
-          member {
-            name
-            role {
-              name
-            }
-          }
-          formValue {
-            id
-            formValueId
-            name
-            fieldType
-            value
-          }
-          dependentOnValue {
-            id
-            formValueId
-            name
-            fieldType
-            value
-          }
-        }
-      }
-
-     
-    }
+  query GetCompanyLeads($companyId: String, $filters: JSON, $page: String, $limit: String) {
+    getCompanyLeads(companyId: $companyId, filters: $filters, page: $page, limit: $limit ) 
   }
 `;
 
@@ -103,87 +36,13 @@ const GET_PROSPECT_LEADS = `
 
 const GET_ASSIGNED_LEADS = `
 query getAssignedLeads($userId: String!) {
-    getAssignedLeads(userId: $userId) {
-      id
-      name
-      email
-      phone
-      alternatePhone
-      callStatus
-      paymentStatus
-      bids{
-        id
-        bidAmount
-      }
-      submittedForm {
-        id
-        formName
-        memberId
-        member {
-            name
-            role {
-                name
-            }
-        }
-        formValue {
-            id
-            name
-            fieldType
-            value
-        }
-      }
-
-      leadMember {
-        member { 
-            name
-        }
-      }
-      nextFollowUpDate
-      createdAt
-    }
+    getAssignedLeads(userId: $userId) 
   }
 `;
 
 const GET_ASSIGNED_PROSPECT = `
 query getAssignedProspect($userId: String!) {
-    getAssignedProspect(userId: $userId) {
-      id
-      name
-      email
-      phone
-      alternatePhone
-      callStatus
-      paymentStatus
-      bids{
-        id
-        bidAmount
-      }
-      submittedForm {
-        id
-        formName
-        memberId
-        member {
-            name
-            role {
-                name
-            }
-        }
-        formValue {
-            id
-            name
-            fieldType
-            value
-        }
-      }
-
-      leadMember {
-        member { 
-            name
-        }
-      }
-      nextFollowUpDate
-      createdAt
-    }
+    getAssignedProspect(userId: $userId)
   }
 `;
 

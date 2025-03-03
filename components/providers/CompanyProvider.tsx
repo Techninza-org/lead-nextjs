@@ -12,6 +12,7 @@ import { deptQueries } from '@/lib/graphql/dept/queries';
 import { leadQueries } from '@/lib/graphql/lead/queries';
 import { companyQueries } from '@/lib/graphql/company/queries';
 import { DeptMutation } from '@/lib/graphql/dept/mutation';
+import { formatPermissions } from '@/lib/utils';
 
 type CompanyContextType = {
     companyDeptMembers: z.infer<typeof createCompanyMemberSchema>[] | null;
@@ -23,6 +24,9 @@ type CompanyContextType = {
     departments: any;
     optForms: any;
     companyMemberRoles: any;
+    roles: any;
+    permissions: any;
+    permissionsResources: any;
 };
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
@@ -41,6 +45,9 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const [optForms, setOptForms] = useState([])
     const [companyForm, setCompanyForms] = useState([])
     const [companyMemberRoles, setCompanyMemberRoles] = useState<any>([])
+    const [roles, setRoles] = useState<any[]>([])
+    const [permissions, setPermissions] = useState<any[]>([])
+    const [permissionsResources, setPermissionsResources] = useState<any[]>([])
 
     const authToken = useAtomValue(userAuthToken)
 
@@ -94,7 +101,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
             },
         ],
         onSuccess: ({ data }) => {
-            if (data?.getCompanyDepts?.[0].companyForms?.length > 0) {
+            if (data?.getCompanyDepts?.[0]?.companyForms?.length > 0) {
                 setCompanyForms(data?.getCompanyDepts?.[0].companyForms);
             }
         }
@@ -128,13 +135,32 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
         }
     });
 
-    // const { } = useQuery(userQueries.GET_DEPT_FIELDS, {
-    //     skip,
-    //     onSuccess: ({ data }) => {
-    //         // why it is using ???
-    //         setDepartments((data?.getDeptWFields[0]?.deptFields))
-    //     },
-    // })
+    const { } = useQuery(userQueries.GET_ROLES, {
+        skip,
+        variables: {
+            companyId: userInfo?.companyId,
+        },
+        onSuccess: ({ data }) => {
+            setRoles(data.getRoles)
+            //   if (data.getRoles.length > 0) {
+            //     setSelectedRole(data.getRoles[0].id)
+            //   }
+        }
+    })
+    const { } = useQuery(userQueries.GET_PERMISSIONS, {
+        skip,
+        onSuccess: ({ data }) => {
+            setPermissions(formatPermissions(data.getPermissions))
+        }
+    })
+
+    const { } = useQuery(userQueries.COMPANY_RESOURCES, {
+        skip,
+        onSuccess: ({ data }) => {
+            if (data.permissioResources)
+                setPermissionsResources(data.permissioResources)
+        },
+    })
 
     // const { error: dpetError } = useQuery(userQueries.GET_DEPT_OPT_FIELDS, {
     //     skip,
@@ -145,7 +171,9 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     // })
 
     return (
-        <CompanyContext.Provider value={{ companyMemberRoles, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms }}>
+        <CompanyContext.Provider value={{
+            roles, permissions, permissionsResources, companyMemberRoles, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms
+        }}>
             {children}
         </CompanyContext.Provider>
     );

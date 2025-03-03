@@ -148,7 +148,7 @@ export const AssignFormModal = () => {
                                 </FormItem>
                             )}
                         />
-                        <FormField
+                        {/* <FormField
                             control={form.control}
                             name="formIds"
                             render={({ field }) => (
@@ -173,7 +173,33 @@ export const AssignFormModal = () => {
                                     <FormMessage />
                                 </FormItem>
                             )}
-                        />
+                        /> */}
+                        {/* <CommandDialog open={open} onOpenChange={setOpen}>
+                            <CommandInput placeholder="Enter ..." />
+                            <CommandList>
+                                <CommandEmpty>
+                                    No Results found
+                                </CommandEmpty>
+                                {data.map(({ label, type, data }) => {
+                                    if (!data?.length) return null;
+
+                                    return (
+                                        <CommandGroup key={label} heading={label}>
+                                            {data?.map(({ id, icon, name, subBadgeText, badgeInfo }) => {
+                                                return (
+                                                    <CommandItem className="space-x-3" key={id} onSelect={() => onClick({ id, type })}>
+                                                        {icon}
+                                                        <span>{name}</span>
+                                                        <Badge variant={(badgeInfo?.variant || "secondary")}>{badgeInfo?.text}</Badge>
+                                                        {subBadgeText && <Badge variant={'secondary'}>{subBadgeText}</Badge>}
+                                                    </CommandItem>
+                                                )
+                                            })}
+                                        </CommandGroup>
+                                    )
+                                })}
+                            </CommandList>
+                        </CommandDialog> */}
                         <Button
                             type="submit"
                             className="mt-6"

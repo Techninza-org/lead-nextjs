@@ -6,9 +6,9 @@ import { CompanyPlan } from "./update-plan";
 
 export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
     {
-        header: 'Company ID',
+        header: 'Root Id',
         cell: ({ row }) => {
-            const id = row.original.Company.id;
+            const id = row.original.rootId;
             return (
                 <div className="flex items-center">
                     <Link href={`/admin/dept/${id}`} className="ml-2 text-blue-800">
@@ -21,7 +21,7 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
     {
         header: 'Company Name',
         cell: ({ row }) => {
-            const id = row.original.Company.name;
+            const id = row.original.name;
             return (
                 <span>{id}</span>
             )
@@ -40,8 +40,8 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
     {
         header: 'Details',
         cell: ({ row }) => {
-            const email = row.original.Company.email
-            const phone = row.original.Company.phone
+            const email = row.original.email
+            const phone = row.original.phone
             return (
                 <HoverCardToolTip label="Details" >
                     <p>Email: {email}</p>
@@ -50,16 +50,4 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
             )
         }
     },
-    {
-        header: 'Plan',
-        accessorKey: 'Subscriptions',
-        cell: ({ row }) => {
-            return (
-                <div className="w-20">
-                    <CompanyPlan row={row.original} />
-                </div>
-            )
-
-        }
-    }
 ];

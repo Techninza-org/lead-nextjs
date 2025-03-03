@@ -63,7 +63,18 @@ mutation upsertCompanyDeptForm(
 }
 `;
 
+const OTPCONFIG = `
+mutation otpConfig(
+    $isSendToEmp: Boolean
+) {
+    otpConfig(
+        isSendToEmp: $isSendToEmp
+    )
+}
+`;
+
 export const companyMutation = {
+  OTPCONFIG,
   UPDATE_COMPANY_SUBSCRIPTION,
   UPDATE_ROLE_FORM,
   DELETE_BROADCAST,

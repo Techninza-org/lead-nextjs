@@ -23,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command'
 import { cn, genHardCodedFields, parseCSVToJson } from '@/lib/utils'
 import { ScrollArea } from '../ui/scroll-area'
+import { NestedCombobox } from '../ui/nested-combobox'
 
 const DepartmentSchema = z.object({
     deptFields: z.array(z.object({
@@ -31,9 +32,11 @@ const DepartmentSchema = z.object({
         ddOptionId: z.any().optional(),
         order: z.number().int().min(1, "Field order is required"),
         options: z.any(),
+        optionId: z.string().optional(),
         isRequired: z.boolean(),
         isDisabled: z.boolean(),
         isHardCoded: z.boolean().optional(),
+        isRelation: z.boolean().optional().default(false),
     })).default([]),
 })
 
@@ -52,19 +55,6 @@ export const fieldTypes = [
     { value: "DATE", label: "Date" },
     { value: "DATETIME", label: "DateTime" },
 ]
-
-
-const languages = [
-    { label: "English", value: "en" },
-    { label: "French", value: "fr" },
-    { label: "German", value: "de" },
-    { label: "Spanish", value: "es" },
-    { label: "Portuguese", value: "pt" },
-    { label: "Russian", value: "ru" },
-    { label: "Japanese", value: "ja" },
-    { label: "Korean", value: "ko" },
-    { label: "Chinese", value: "zh" },
-] as const
 
 
 const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
@@ -155,9 +145,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
     const handleSelectChange = useCallback((value, index) => {
         form.setValue(`deptFields.${index}.fieldType`, value)
         if (['SELECT', 'RADIO', 'DROPDOWN', 'CHECKBOX', 'TAG'].includes(value)) {
-            const currentOptions = form.getValues(`deptFields.${index}.options`) || []
+            const currentOptions = form.getValues(`deptFields.${index}.options.value`) || []
             if (currentOptions.length === 0) {
-                form.setValue(`deptFields.${index}.options`, [])
+                form.setValue(`deptFields.${index}.options.value`, [])
             }
         }
     }, [form])
@@ -219,7 +209,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                     </div>
 
                     <ScrollArea className='h-52 w-full'>
-                        {form.watch(`deptFields.${currIdx}.options`)
+                        {form.watch(`deptFields.${currIdx}.options.value`)
                             ?.filter(option => option.label.toLowerCase().includes(searchTerm.toLowerCase())) // Search filter
                             .map((option, optIndex) => (
                                 <div key={optIndex} className="flex items-center mb-2 mt-2">
@@ -230,9 +220,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         disabled={editingIndex !== optIndex}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            const options = form.getValues(`deptFields.${currIdx}.options`);
+                                            const options = form.getValues(`deptFields.${currIdx}.options.value`);
                                             options[optIndex] = { ...options[optIndex], label: value, value };
-                                            form.setValue(`deptFields.${currIdx}.options`, options);
+                                            form.setValue(`deptFields.${currIdx}.options.value`, options);
                                         }}
                                     />
                                     <Input
@@ -241,9 +231,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         value={option.colorCode || "#000000"}
                                         onChange={(e) => {
                                             const colorCode = e.target.value;
-                                            const options = form.getValues(`deptFields.${currIdx}.options`);
+                                            const options = form.getValues(`deptFields.${currIdx}.options.value`);
                                             options[optIndex] = { ...options[optIndex], colorCode };
-                                            form.setValue(`deptFields.${currIdx}.options`, options);
+                                            form.setValue(`deptFields.${currIdx}.options.value`, options);
                                         }}
                                     />
                                     {editingIndex === optIndex ? (
@@ -267,9 +257,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         type="button"
                                         variant="ghost"
                                         onClick={() => {
-                                            const options = form.getValues(`deptFields.${currIdx}.options`);
+                                            const options = form.getValues(`deptFields.${currIdx}.options.value`);
                                             options.splice(optIndex, 1);
-                                            form.setValue(`deptFields.${currIdx}.options`, options);
+                                            form.setValue(`deptFields.${currIdx}.options.value`, options);
                                         }}
                                     >
                                         <X size={20} color="red" />
@@ -281,9 +271,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                     <Button
                         type="button"
                         onClick={() => {
-                            const options = form.getValues(`deptFields.${currIdx}.options`) || [];
+                            const options = form.getValues(`deptFields.${currIdx}.options.value`) || [];
                             options.push({ label: '', value: '', colorCode: '#000000' });
-                            form.setValue(`deptFields.${currIdx}.options`, options);
+                            form.setValue(`deptFields.${currIdx}.options.value`, options);
                         }}
                         className="mt-2 bg-blue-500 text-white"
                     >
@@ -310,7 +300,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                     </div>
 
                     <ScrollArea className='h-52 w-full'>
-                        {form.watch(`deptFields.${currIdx}.options`)
+                        {form.watch(`deptFields.${currIdx}.options.value`)
                             ?.filter(option => option.label.toLowerCase().includes(searchTerm.toLowerCase())) // Search filter
                             .map((option, optIndex) => (
                                 <div key={optIndex} className="flex items-center mb-2 mt-2">
@@ -321,9 +311,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         disabled={editingIndex !== optIndex}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            const options = form.getValues(`deptFields.${currIdx}.options`);
+                                            const options = form.getValues(`deptFields.${currIdx}.options.value`);
                                             options[optIndex] = { label: value, value };
-                                            form.setValue(`deptFields.${currIdx}.options`, options);
+                                            form.setValue(`deptFields.${currIdx}.options.value`, options);
                                         }}
                                     />
                                     {editingIndex === optIndex ? (
@@ -347,9 +337,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         type="button"
                                         variant="ghost"
                                         onClick={() => {
-                                            const options = form.getValues(`deptFields.${currIdx}.options`);
+                                            const options = form.getValues(`deptFields.${currIdx}.options.value`);
                                             options.splice(optIndex, 1);
-                                            form.setValue(`deptFields.${currIdx}.options`, options);
+                                            form.setValue(`deptFields.${currIdx}.options.value`, options);
                                         }}
                                     >
                                         <X size={20} color="red" />
@@ -361,9 +351,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                     <Button
                         type="button"
                         onClick={() => {
-                            const options = form.getValues(`deptFields.${currIdx}.options`) || [];
+                            const options = form.getValues(`deptFields.${currIdx}.options.value`) || [];
                             options.push({ label: '', value: '' });
-                            form.setValue(`deptFields.${currIdx}.options`, options);
+                            form.setValue(`deptFields.${currIdx}.options.value`, options);
                         }}
                         className="mt-2 bg-blue-500 text-white"
                     >
@@ -472,10 +462,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                                         value={option.label}
                                                                         onSelect={(value) => {
                                                                             field.onChange(value)
-                                                                            const options = form.getValues(`deptFields.${currIdx}.options`) || []
+                                                                            const options = form.getValues(`deptFields.${currIdx}.options.value`) || []
                                                                             if (!options.find(x => x.label === value)) {
                                                                                 options.push({ label: value, value: [] })
-                                                                                form.setValue(`deptFields.${currIdx}.options`, options)
+                                                                                form.setValue(`deptFields.${currIdx}.options.value`, options)
                                                                             }
                                                                         }}
                                                                     >
@@ -499,12 +489,12 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                                             value={option.label}
                                                                             onSelect={(value) => {
                                                                                 field.onChange(value)
-                                                                                const options = form.getValues(`deptFields.${currIdx}.options`) || []
+                                                                                const options = form.getValues(`deptFields.${currIdx}.options.value`) || []
                                                                                 if (!options.find(x => x.label === value)) {
                                                                                     options.push({ label: value, value: [] })
-                                                                                    form.setValue(`deptFields.${currIdx}.options`, options)
+                                                                                    form.setValue(`deptFields.${currIdx}.options.value`, options)
                                                                                 }
-                                                                                setCurrentOptionsIndx(form.getValues(`deptFields.${currIdx}.options`).findIndex((x) => x.label === value))
+                                                                                setCurrentOptionsIndx(form.getValues(`deptFields.${currIdx}.options.value`).findIndex((x) => x.label === value))
                                                                             }}
                                                                         >
                                                                             <Check
@@ -572,7 +562,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         </div>
                         <ScrollArea className="h-52 p-3 rounded-md border">
-                            {form.watch(`deptFields.${currIdx}.options`)
+                            {form.watch(`deptFields.${currIdx}.options.value`)
                                 ?.find(x => x.label === form.watch(`deptFields.${currIdx}.linkedFieldValues`))
                                 ?.value
                                 .filter(option => option?.label?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -585,10 +575,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                             disabled={editingIndex !== nestedIndex}
                                             onChange={(e) => {
                                                 const value = e.target.value
-                                                const options = form.getValues(`deptFields.${currIdx}.options`)
+                                                const options = form.getValues(`deptFields.${currIdx}.options.value`)
                                                 const optionIndex = options.findIndex(x => x.label === form.getValues(`deptFields.${currIdx}.linkedFieldValues`))
                                                 options[optionIndex].value[nestedIndex] = { label: value, value }
-                                                form.setValue(`deptFields.${currIdx}.options`, options)
+                                                form.setValue(`deptFields.${currIdx}.options.value`, options)
                                             }}
                                         />
                                         {editingIndex === nestedIndex ? (
@@ -612,10 +602,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                             type="button"
                                             variant="ghost"
                                             onClick={() => {
-                                                const options = form.getValues(`deptFields.${currIdx}.options`)
+                                                const options = form.getValues(`deptFields.${currIdx}.options.value`)
                                                 const optionIndex = options.findIndex(x => x.label === form.getValues(`deptFields.${currIdx}.linkedFieldValues`))
                                                 options[optionIndex].value.splice(nestedIndex, 1)
-                                                form.setValue(`deptFields.${currIdx}.options`, options)
+                                                form.setValue(`deptFields.${currIdx}.options.value`, options)
                                             }}
                                         >
                                             <X size={20} color="red" />
@@ -629,10 +619,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                         <Button
                             type="button"
                             onClick={() => {
-                                const options = form.getValues(`deptFields.${currIdx}.options`)
+                                const options = form.getValues(`deptFields.${currIdx}.options.value`)
                                 const optionIndex = options.findIndex(x => x.label === form.getValues(`deptFields.${currIdx}.linkedFieldValues`))
                                 options[optionIndex].value.push({ label: '', value: '' })
-                                form.setValue(`deptFields.${currIdx}.options`, options)
+                                form.setValue(`deptFields.${currIdx}.options.value`, options)
                             }}
                             className="mt-2 bg-blue-500 text-white"
                         >
@@ -647,6 +637,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
         return null
     }, [form, currIdx, searchTerm, editingIndex, filteredDeptFields, handleFileChange])
 
+
+    const handleSelect = (value: string) => {
+        console.log('Selected value:', value);
+    };
     return (
         <Form {...form}>
             <Card className="grid grid-cols-7 gap-2">
@@ -759,7 +753,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                 </Button>
                                             </div>
                                         </div>
-                                        <div className="flex gap-8 mt-2">
+                                        <div className="flex gap-6 mt-2">
                                             <FormField
                                                 control={form.control}
                                                 name={`deptFields.${index}.isRequired`}
@@ -798,6 +792,29 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                     </FormItem>
                                                 )}
                                             />
+                                            <FormField
+                                                control={form.control}
+                                                name={`deptFields.${index}.isRelation`}
+                                                render={({ field: disabledField }) => (
+                                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <Checkbox
+                                                                checked={disabledField.value}
+                                                                onCheckedChange={(checked) => {
+                                                                    disabledField.onChange(checked);
+                                                                    form.trigger(`deptFields.${index}.isRelation`);
+                                                                }}
+                                                            />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">Relation?</FormLabel>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            {form.watch(`deptFields.${index}.isRelation`) && <NestedCombobox
+                                                data={data?.getCompanyDeptFields || []}
+                                                onSelect={(value) => form.setValue(`deptFields.${index}.optionId`, value)}
+                                                className='bg-inherit'
+                                            />}
                                         </div>
                                     </div>
                                 )
@@ -814,6 +831,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                 <Button type="submit" variant="default" className="text-white">Submit</Button>
                             </div>
                         </form>
+
                     </CardContent>
                 </Card>
 
@@ -822,7 +840,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                         <CardTitle className="text-2xl text-center font-bold">Field Options</CardTitle>
                     </CardHeader>
                     <CardContent className='p-3'>
-                        {renderFieldOptions()}
+                        {!form.watch(`deptFields.${currIdx}.isRelation`) && renderFieldOptions()}
                     </CardContent>
                 </Card>
             </Card>

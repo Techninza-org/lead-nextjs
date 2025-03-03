@@ -1,8 +1,14 @@
 "use client"
-import AdvancedDataTable from "@/components/advance-data-table";
+import AdvancedDataTableForms from "@/components/advance-data-table-forms";
+import { useCompany } from "@/components/providers/CompanyProvider";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useModal } from "@/hooks/use-modal-store";
 import { companyQueries } from "@/lib/graphql/company/queries";
+import { updateDependentFields } from "@/lib/utils";
 import { useQuery } from "graphql-hooks";
+import { PlusCircleIcon } from "lucide-react";
+import { useCallback, useMemo } from "react";
 
 export default function Page({ params }: { params: { formName: string } }) {
     const formName = decodeURIComponent(params?.formName);
@@ -12,6 +18,25 @@ export default function Page({ params }: { params: { formName: string } }) {
         }
     })
     const formData = data?.getFormValuesByFormName;
+    const { onOpen } = useModal()
+    const { companyDeptFields } = useCompany()
+
+    const formateForms = updateDependentFields(companyDeptFields || [])
+    const formateFields = useMemo(() => formateForms?.find((x: any) => x.name === formName) || [], [formateForms, formName])
+
+    const MoreInfoLead = useCallback(({ selectedLeads }: { selectedLeads: any[] }) => {
+        return (
+            <div className="flex gap-2 ml-auto">
+                <Button
+                    onClick={() => onOpen("submitLead", { fields: formateFields })}
+                    variant={'default'}
+                    size={"sm"}
+                    className="items-center gap-1">
+                    <PlusCircleIcon size={15} /> <span>Add New {formName}</span>
+                </Button>
+            </div>
+        )
+    }, [formName, formateFields, onOpen])
 
     return (
         <Card className="w-full max-w-3xl mx-auto my-4">
@@ -19,7 +44,14 @@ export default function Page({ params }: { params: { formName: string } }) {
                 <CardTitle className="text-lg font-semibold text-gray-700">{formName}</CardTitle>
             </CardHeader>
             <CardContent>
-                <AdvancedDataTable dependentCols={formData?.cols?.dependentCols} columnNames={formData?.cols?.columnNames} data={formData?.rows} />
+                <AdvancedDataTableForms
+                    dependentCols={[]}
+                    columnNames={formData?.listView || []}
+                    changeView={formData?.changeView || []}
+                    data={formData?.data || []}
+                    MoreInfo={MoreInfoLead}
+                    tableName={formName}
+                />
             </CardContent>
         </Card>
     )
