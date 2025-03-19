@@ -26,7 +26,16 @@ const GET_COMPANY_DEPT_FIELDS = `
         imgLimit
         order
       }
+      category { 
+        name
+      }
     }
+  }
+`;
+
+const Global_Search = `
+  mutation GlobalSearchResolver($searchTerm: String) {
+    globalSearchResolver(searchTerm: $searchTerm) 
   }
 `;
 
@@ -177,6 +186,7 @@ export const companyQueries = {
   GET_ALL_ROLES,
   GET_FOLLOWUP,
   GET_COMPANY_DEPT_FIELDS,
+  Global_Search,
   GET_COMPANY_SUBSCRIPTION,
   GET_BROADCASTS,
   GET_BROADCAST_BY_ID,

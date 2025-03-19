@@ -247,7 +247,7 @@ export const CreateDeptFormModal = () => {
     )
 }
 
-export default function FilterableList({ form, selectedDept }: { form: any, selectedDept: any }) {
+export default function FilterableList({ form, selectedDept, value }: { value?: any, form: any, selectedDept: any }) {
 
     const categories = selectedDept?.companyForms?.map((form: any) => form.category?.name) ?? [];
     const uniqueCategories = Array.from(new Set(categories));
@@ -262,6 +262,7 @@ export default function FilterableList({ form, selectedDept }: { form: any, sele
                     <FormLabel className="capitalize text-xs font-bold text-zinc-500 dark:text-secondary/70">Category Name</FormLabel>
                     <FormControl>
                         <MultipleSelector
+                            value={value}
                             onChange={(value: any) => {
                                 form.setValue("categoryName", value?.[0]?.value)
                             }}

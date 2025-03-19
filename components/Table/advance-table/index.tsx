@@ -48,6 +48,7 @@ interface DataTableProps {
   }
   onPageChange?: (page: number) => void
   onFilterChange?: (filters: Record<string, string[] | { start?: string; end?: string }>) => void
+  onSortChange?: (sorting: SortingState) => void
 }
 
 export default function AdvanceDataTable({
@@ -63,6 +64,7 @@ export default function AdvanceDataTable({
   pagination = { total: 0, page: 1, limit: 50, totalPages: 0 },
   onPageChange,
   onFilterChange,
+  onSortChange,
 }: DataTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -92,6 +94,19 @@ export default function AdvanceDataTable({
   const debouncedSearchValue = useDebounce(searchValue, 500)
   const currentApiType = searchParams.get("apiType");
 
+  // Parse sort from URL on initial load
+  useEffect(() => {
+    const sortParam = searchParams.get("sort")
+    if (sortParam) {
+      try {
+        const parsedSort = JSON.parse(decodeURIComponent(sortParam)) as SortingState
+        setSorting(parsedSort)
+      } catch (e) {
+        console.error("Failed to parse sort parameter", e)
+      }
+    }
+  }, [searchParams])
+
   const columns = useMemo(
     () => generateColumns({
       columnNames,
@@ -115,7 +130,17 @@ export default function AdvanceDataTable({
       globalFilter,
       columnOrder,
     },
-    onSortingChange: setSorting,
+    onSortingChange: (updatedSorting) => {
+      setSorting(updatedSorting)
+      if (typeof updatedSorting === 'function') {
+        const newSorting = updatedSorting(sorting)
+        updateSortInUrl(newSorting)
+        if (onSortChange) onSortChange(newSorting)
+      } else {
+        updateSortInUrl(updatedSorting)
+        if (onSortChange) onSortChange(updatedSorting)
+      }
+    },
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -129,6 +154,24 @@ export default function AdvanceDataTable({
     pageCount: pagination.totalPages,
     getRowCanExpand: () => true,
   })
+
+  const updateSortInUrl = useCallback((newSorting: SortingState) => {
+    if (urlUpdateTimeoutRef.current) {
+      clearTimeout(urlUpdateTimeoutRef.current)
+    }
+
+    urlUpdateTimeoutRef.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString())
+      
+      if (newSorting.length > 0) {
+        params.set("sort", encodeURIComponent(JSON.stringify(newSorting)))
+      } else {
+        params.delete("sort")
+      }
+
+      router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    }, 300)
+  }, [searchParams, router, pathname])
 
   const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original)
 
@@ -161,12 +204,14 @@ export default function AdvanceDataTable({
     }
 
     urlUpdateTimeoutRef.current = setTimeout(() => {
-      const params = new URLSearchParams()
+      const params = new URLSearchParams(searchParams.toString())
       params.set("table", tableName)
       params.set("page", page.toString())
 
       if (filters.search) {
         params.set("search", filters.search)
+      } else {
+        params.delete("search")
       }
 
       Object.entries(filters).forEach(([key, value]) => {
@@ -175,12 +220,20 @@ export default function AdvanceDataTable({
           params.set(key, encodeURIComponent(JSON.stringify(value)))
         } else if (Array.isArray(value) && value.length > 0) {
           params.set(key, value.join(","))
+        } else {
+          params.delete(key)
         }
       })
 
+      // Preserve sort parameter if it exists
+      const sortParam = searchParams.get("sort")
+      if (sortParam) {
+        params.set("sort", sortParam)
+      }
+
       router.push(`${pathname}?${params.toString()}`, { scroll: false })
     }, 300)
-  }, [router, pathname, tableName])
+  }, [router, pathname, tableName, searchParams])
 
   const applyFilters = useCallback(async (filters: Record<string, any>, page: number) => {
     setIsLoading(true)
@@ -218,7 +271,7 @@ export default function AdvanceDataTable({
 
     const newFilters = { ...activeFilters }
     if (value) {
-      newFilters.search = [value]
+      newFilters.search = value
     } else {
       delete newFilters.search
     }
@@ -281,8 +334,7 @@ export default function AdvanceDataTable({
     }
 
     fetchInitialFilters()
-  }, [handleLoadMoreFilters, isInitialFetchDone])
-
+  }, [handleLoadMoreFilters, isInitialFetchDone, changeView])
 
   useEffect(() => {
     const params = Object.fromEntries(searchParams.entries())
@@ -294,13 +346,20 @@ export default function AdvanceDataTable({
       } else if (key === "search") {
         setGlobalFilter(value)
         setSearchValue(value)
+      } else if (key === "sort") {
+        try {
+          const parsedSort = JSON.parse(decodeURIComponent(value)) as SortingState
+          setSorting(parsedSort)
+        } catch (e) {
+          console.error("Failed to parse sort parameter", e)
+        }
       } else if (key === "createdAt") {
         try {
           parsedFilters.createdAt = JSON.parse(decodeURIComponent(value))
         } catch (e) {
           console.error("Failed to parse date range", e)
         }
-      } else if (value) {
+      } else if (value && key !== "table" && key !== "apiType") {
         parsedFilters[key] = value.split(",")
       }
     })
@@ -308,7 +367,7 @@ export default function AdvanceDataTable({
     if (Object.keys(parsedFilters).length > 0) {
       setActiveFilters(parsedFilters)
     }
-  }, [])
+  }, [searchParams])
 
   useEffect(() => {
     setLocalData(data)
@@ -330,7 +389,7 @@ export default function AdvanceDataTable({
     const newFilters = { ...activeFilters }
 
     if (debouncedSearchValue) {
-      newFilters.search = [debouncedSearchValue]
+      newFilters.search = debouncedSearchValue
     } else {
       delete newFilters.search
     }
@@ -338,7 +397,14 @@ export default function AdvanceDataTable({
     lastApiCallRef.current.filters = debouncedSearchValue
     updateUrl(newFilters, currentPage)
     applyFilters(newFilters, currentPage)
-  }, [debouncedSearchValue, activeFilters, currentPage])
+  }, [debouncedSearchValue, activeFilters, currentPage, updateUrl, applyFilters])
+
+  // Apply sorting when it changes
+  useEffect(() => {
+    if (sorting.length > 0) {
+      applyFilters(activeFilters, currentPage)
+    }
+  }, [sorting, applyFilters, activeFilters, currentPage])
 
   const toggleApiType = (selectedRows: any[], paginationTotal: number) => {
     const key = `assign_bulk_${paginationTotal - selectedRows.length}`
@@ -379,14 +445,17 @@ export default function AdvanceDataTable({
               delete newFilters[columnId]
             } else if (Array.isArray(newFilters[columnId])) {
               newFilters[columnId] = newFilters[columnId].filter((value) => value !== filterValue)
-              if (newFilters[columnId].length > 0) {
+              if (newFilters[columnId].length === 0) {
                 delete newFilters[columnId]
               }
             }
             setActiveFilters(newFilters)
             updateUrl(newFilters, currentPage)
           }}
-          onClearAll={() => setActiveFilters({})}
+          onClearAll={() => {
+            setActiveFilters({})
+            updateUrl({}, currentPage)
+          }}
           searchValue={globalFilter}
           handleSearchChange={handleSearchChange}
           updateUrl={updateUrl}
@@ -419,9 +488,7 @@ export default function AdvanceDataTable({
           </Button>}
         </div>
         <div className="ml-auto flex gap-2">
-
           {MoreInfo && <MoreInfo selectedLeads={selectedRows} />}
-
         </div>
       </div>
 

@@ -63,7 +63,7 @@ export const LeadTable = () => {
         <Card>
             <CardHeader>
                 <CardTitle className="flex justify-between font-bold">
-                    Leads
+                    Leads------
                 </CardTitle>
             </CardHeader>
             <CardContent>

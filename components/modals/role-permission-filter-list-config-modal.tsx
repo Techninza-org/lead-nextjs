@@ -315,7 +315,6 @@ export const RolePerimssionFilterListConfig = () => {
     onClose();
   };
 
-  console.log(listColumns, "listColumns")
   const onSubmit = async () => {
     const currentRole = getCurrentRole();
     if (!currentRole) {

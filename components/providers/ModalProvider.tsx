@@ -24,6 +24,7 @@ import { RolePerimssionFilterListConfig } from "../modals/role-permission-filter
 import { ChildDetailsModal } from "../modals/child-form-table-modal";
 import { CreateRoleModal } from "../modals/create-role-modal";
 import { BulkOperationModal } from "../modals/bulk-operation-modal";
+import { EditDeptFormModal } from "../modals/edit-form-modal";
 
 
 export const ModalProvider = () => {
@@ -38,6 +39,7 @@ export const ModalProvider = () => {
 
   return (
     <>
+      <EditDeptFormModal />
       <ChildDetailsModal />
       <BulkOperationModal />
       <CreateRoleModal />

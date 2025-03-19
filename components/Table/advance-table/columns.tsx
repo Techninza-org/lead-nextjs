@@ -1,7 +1,7 @@
 import { type ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
 import { format, isWithinInterval, parseISO } from "date-fns"
 import Link from "next/link"
 import Image from "next/image"
@@ -62,12 +62,34 @@ export const generateColumns = ({
     })
   }
 
+  // Helper function to create sortable column header
+  const getSortableHeader = (columnId: string, label: string) => {
+    return ({ column }: any) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="p-0 h-auto flex items-center gap-1"
+        >
+          {label}
+          {column.getIsSorted() === "asc" ? (
+            <ArrowUp className="ml-1 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ArrowDown className="ml-1 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+          )}
+        </Button>
+      )
+    }
+  }
+
   const nameColumn =
     tableName?.toLowerCase() === "lead" && columnNames.includes("name")
       ? [
         {
           accessorKey: "name",
-          header: "Name",
+          header: getSortableHeader("name", "Name"),
           cell: ({ row }: any) => {
             const value = row.getValue("name")
             return hasCreatePermission ? <ViewLeadInfo lead={row.original} changeView={changeView} /> : <span>{value}</span>
@@ -83,7 +105,7 @@ export const generateColumns = ({
     ? [
       {
         accessorKey: "_id",
-        header: "Id",
+        header: getSortableHeader("_id", "Id"),
         cell: ({ row }: any) => {
           const value = row.getValue("_id")
           return hasCreatePermission ? (
@@ -108,7 +130,7 @@ export const generateColumns = ({
     .filter((colName) => !["_id", "id", "name"].includes(colName))
     .map((colName) => ({
       accessorKey: colName,
-      header: capitalizeFirstLetter(colName),
+      header: getSortableHeader(colName, capitalizeFirstLetter(colName)),
       cell: ({ row }: any) => {
         const value = row.getValue(colName)
         if (colName === "createdAt") {
@@ -146,6 +168,5 @@ export const generateColumns = ({
           : multiSelectFilter,
     }))
 
-  // ...idColumn, 
   return [...baseColumns, ...nameColumn, ...dynamicColumns]
 }

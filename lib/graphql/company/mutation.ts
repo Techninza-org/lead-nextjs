@@ -73,8 +73,15 @@ mutation otpConfig(
 }
 `;
 
+
+const UPDATE_DEPT_FORM_NAMES = `
+  mutation UpdateDeptFormNames($categoryName: String!, $formName: String!, $companyDeptFormId: String!) {
+    updateCompanyDeptFormNames(categoryName: $categoryName, formName: $formName, companyDeptFormId: $companyDeptFormId ) 
+}
+`
 export const companyMutation = {
   OTPCONFIG,
+  UPDATE_DEPT_FORM_NAMES,
   UPDATE_COMPANY_SUBSCRIPTION,
   UPDATE_ROLE_FORM,
   DELETE_BROADCAST,

@@ -43,16 +43,24 @@ import {
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 import { Input } from "@/components/ui/input"
 
-// Define the navigation item type with icon support
+// Define the navigation item type with icon and category support
 interface NavigationItem {
-  name: string
-  icon?: string | LucideIcon
-  children: NavigationItem[]
-  path?: string // Custom path override
+  name: string;
+  icon?: string | LucideIcon;
+  children: NavigationItem[];
+  path?: string; // Custom path override
+  category?: string; // Category name
+}
+
+// Define category group structure
+interface CategoryGroup {
+  name: string;
+  items: NavigationItem[];
 }
 
 interface NestedSidebarProps {
-  data: NavigationItem[]
+  data: NavigationItem[];
+  searchTerm?: string;
 }
 
 // Map of icon names to Lucide icon components
@@ -131,12 +139,35 @@ function getParentPaths(
   return null
 }
 
-export function NestedSidebar({ data }: NestedSidebarProps) {
-  const [searchTerm, setSearchTerm] = React.useState("")
+// Group items by category
+function groupItemsByCategory(items: NavigationItem[]): CategoryGroup[] {
+  const categoryMap: Record<string, NavigationItem[]> = {};
+  
+  // First populate the map
+  items.forEach(item => {
+    const category = item.category || "Uncategorized";
+    if (!categoryMap[category]) {
+      categoryMap[category] = [];
+    }
+    categoryMap[category].push(item);
+  });
+  
+  // Convert the map to an array of category groups
+  return Object.entries(categoryMap).map(([name, items]) => ({
+    name,
+    items
+  }));
+}
+
+export function NestedSidebar({ data, searchTerm = "" }: NestedSidebarProps) {
   const [expandedItems, setExpandedItems] = React.useState<Set<string>>(new Set())
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set())
   const [searchResults, setSearchResults] = React.useState<NavigationItem[]>([])
   
-  // Update search results when search term changes
+  // Group items by category
+  const categoryGroups = React.useMemo(() => groupItemsByCategory(data), [data]);
+  
+  // Update search results when search term changes from props
   React.useEffect(() => {
     if (!searchTerm.trim()) {
       setSearchResults([])
@@ -152,6 +183,7 @@ export function NestedSidebar({ data }: NestedSidebarProps) {
     
     // Auto-expand parents of matching items
     const newExpandedItems = new Set<string>()
+    const newExpandedCategories = new Set<string>()
     
     results.forEach(result => {
       const parentPaths = getParentPaths(data, result.name)
@@ -161,10 +193,26 @@ export function NestedSidebar({ data }: NestedSidebarProps) {
           newExpandedItems.add(parent)
         })
       }
+      // Expand the category containing the result
+      if (result.category) {
+        newExpandedCategories.add(result.category)
+      }
     })
     
     setExpandedItems(newExpandedItems)
+    setExpandedCategories(newExpandedCategories)
   }, [searchTerm, data])
+
+  // Toggle category expansion
+  const toggleCategory = (categoryName: string) => {
+    const newExpandedCategories = new Set(expandedCategories);
+    if (expandedCategories.has(categoryName)) {
+      newExpandedCategories.delete(categoryName);
+    } else {
+      newExpandedCategories.add(categoryName);
+    }
+    setExpandedCategories(newExpandedCategories);
+  };
 
   return (
     <SidebarProvider>
@@ -201,13 +249,14 @@ export function NestedSidebar({ data }: NestedSidebarProps) {
                       <SearchResultItem key={item.name} item={item} />
                     ))
                   ) : (
-                    data.map((item) => (
-                      <NavigationItem 
-                        key={item.name} 
-                        item={item} 
-                        level={0}
+                    categoryGroups.map((category) => (
+                      <CategoryGroupItem 
+                        key={category.name}
+                        category={category}
                         expandedItems={expandedItems}
                         setExpandedItems={setExpandedItems}
+                        isExpanded={expandedCategories.has(category.name)}
+                        toggleExpanded={() => toggleCategory(category.name)}
                       />
                     ))
                   )}
@@ -217,24 +266,56 @@ export function NestedSidebar({ data }: NestedSidebarProps) {
           </SidebarContent>
         </div>
         
-        {/* Search bar */}
-        <div className="w-full px-3 py-3 border-t border-gray-800">
-          <div className="relative rounded-md overflow-hidden">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search navigation..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#2a2d46] border-[#2a2d46] pl-9 text-white placeholder:text-gray-400 rounded-md"
-            />
-          </div>
-        </div>
-        
         <SidebarRail />
       </Sidebar>
     </SidebarProvider>
   )
+}
+
+interface CategoryGroupItemProps {
+  category: CategoryGroup;
+  expandedItems: Set<string>;
+  setExpandedItems: React.Dispatch<React.SetStateAction<Set<string>>>;
+  isExpanded: boolean;
+  toggleExpanded: () => void;
+}
+
+function CategoryGroupItem({ 
+  category, 
+  expandedItems, 
+  setExpandedItems,
+  isExpanded,
+  toggleExpanded
+}: CategoryGroupItemProps) {
+  return (
+    <div className="mb-2">
+      <Collapsible open={isExpanded} onOpenChange={toggleExpanded} className="w-full">
+        <div 
+          className="flex items-center px-2 py-2 cursor-pointer text-gray-200 bg-[#262940] hover:bg-[#2a2d46]"
+          onClick={toggleExpanded}
+        >
+          {isExpanded ? 
+            <ChevronDown className="h-4 w-4 mr-2 text-gray-300" /> : 
+            <ChevronRight className="h-4 w-4 mr-2 text-gray-300" />
+          }
+          <span className="font-medium text-xs uppercase tracking-wider">{category.name}</span>
+        </div>
+        <CollapsibleContent>
+          <div className="ml-2">
+            {category.items.map((item) => (
+              <NavigationItem 
+                key={item.name} 
+                item={item} 
+                level={0}
+                expandedItems={expandedItems}
+                setExpandedItems={setExpandedItems}
+              />
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
 }
 
 interface NavigationItemProps {
@@ -348,6 +429,11 @@ function SearchResultItem({ item }: SearchResultItemProps) {
       >
         <ItemIcon className="mr-2 h-4 w-4" />
         <span>{item.name}</span>
+        {item.category && (
+          <span className="ml-2 text-xs bg-[#2a2d46] px-1 py-0.5 rounded text-gray-400">
+            {item.category}
+          </span>
+        )}
       </Link>
     </SidebarMenuItem>
   )

@@ -22,7 +22,7 @@ export default function Page({ params }: { params: { formName: string } }) {
     const { companyDeptFields } = useCompany()
 
     const formateForms = updateDependentFields(companyDeptFields || [])
-    const formateFields = useMemo(() => formateForms?.find((x: any) => x.name === formName) || [], [formateForms, formName])
+    const formateFields = useMemo(() => formateForms?.find((x: any) => x.name?.toLowerCase() === formName?.toLowerCase()) || [], [formateForms, formName])
 
     const MoreInfoLead = useCallback(({ selectedLeads }: { selectedLeads: any[] }) => {
         return (

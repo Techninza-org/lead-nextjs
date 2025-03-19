@@ -95,6 +95,8 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
         data?.getCompanyDeptFields?.filter(field => String(field.name) === String(decodeURIComponent(deptName))) || [],
         [data, deptName])
 
+    console.log(filteredDeptFields, 'filteredDeptFields')
+
     useEffect(() => {
         if (filteredDeptFields.length > 0) {
             const sortedSubDeptFields = filteredDeptFields[0]?.fields?.sort((a, b) => a.order - b.order) || []

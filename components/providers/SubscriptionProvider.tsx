@@ -19,18 +19,18 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
 
     const [plans, setPlans] = useState<any[]>([])
 
-    const { data: plansData, loading: plansLoading } = useQuery(userQueries.GET_PLANS, {
-        skip: !userInfo?.token || plans.length > 0,
-        skipCache: true,
-        refetchAfterMutations: [
-            {
-                mutation: LOGIN_USER
-            },
-        ],
-        onSuccess: ({ data }) => {
-            setPlans(data.getPlans)
-        }
-    });
+    // const { data: plansData, loading: plansLoading } = useQuery(userQueries.GET_PLANS, {
+    //     skip: !userInfo?.token || plans.length > 0,
+    //     skipCache: true,
+    //     refetchAfterMutations: [
+    //         {
+    //             mutation: LOGIN_USER
+    //         },
+    //     ],
+    //     onSuccess: ({ data }) => {
+    //         setPlans(data.getPlans)
+    //     }
+    // });
 
 
     return (

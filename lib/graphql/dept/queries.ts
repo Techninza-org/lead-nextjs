@@ -18,6 +18,7 @@ const GET_COMPANY_DEPTS = `
       companyForms {
         id
         name
+        dependentOnId
         category {
           name
         }

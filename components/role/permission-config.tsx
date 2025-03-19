@@ -41,7 +41,7 @@ export function PermissionConfig() {
     setFilteredResources(filtered)
   }, [filterValue, resources])
 
-  const togglePermission = async (resourceName: string, action: "VIEW" | "CREATE" | "UPDATE" | "DELETE") => {
+  const togglePermission = async (resourceName: string, action: "VIEW" | "CREATE" | "UPDATE" | "DELETE" | "SIDEBAR_VISIBILITY") => {
     if (!selectedRole) return
 
     const currentRole = roles.find((role) => role.id === selectedRole)
@@ -53,11 +53,43 @@ export function PermissionConfig() {
     if (!resourcePermission) return
 
     const existingPermissionIndex = updatedRole.permissions?.findIndex((p: any) => p.id === resourcePermission.id)
+    const isAddingPermission = existingPermissionIndex === -1
 
-    if (existingPermissionIndex !== -1) {
-      updatedRole.permissions.splice(existingPermissionIndex, 1)
-    } else {
+    // If adding VIEW permission, also add SIDEBAR_VISIBILITY
+    if (action === "VIEW" && isAddingPermission) {
+      // Add VIEW permission
       updatedRole.permissions.push(resourcePermission)
+
+      // Also add SIDEBAR_VISIBILITY permission if it exists
+      const sidebarPermission = resources.find((r: any) => r.name === resourceName)?.permissions["SIDEBAR_VISIBILITY"]
+      if (sidebarPermission) {
+        const sidebarPermissionExists = updatedRole.permissions?.findIndex((p: any) => p.id === sidebarPermission.id) !== -1
+        if (!sidebarPermissionExists) {
+          updatedRole.permissions.push(sidebarPermission)
+        }
+      }
+    }
+    // If removing VIEW permission, also remove SIDEBAR_VISIBILITY
+    else if (action === "VIEW" && !isAddingPermission) {
+      // Remove VIEW permission
+      updatedRole.permissions.splice(existingPermissionIndex, 1)
+
+      // Also remove SIDEBAR_VISIBILITY permission if it exists
+      const sidebarPermission = resources.find((r: any) => r.name === resourceName)?.permissions["SIDEBAR_VISIBILITY"]
+      if (sidebarPermission) {
+        const sidebarPermissionIndex = updatedRole.permissions?.findIndex((p: any) => p.id === sidebarPermission.id)
+        if (sidebarPermissionIndex !== -1) {
+          updatedRole.permissions.splice(sidebarPermissionIndex, 1)
+        }
+      }
+    }
+    // For SIDEBAR_VISIBILITY or other actions, just toggle normally
+    else {
+      if (existingPermissionIndex !== -1) {
+        updatedRole.permissions.splice(existingPermissionIndex, 1)
+      } else {
+        updatedRole.permissions.push(resourcePermission)
+      }
     }
 
     setRoles(roles.map((role) => (role.id === selectedRole ? updatedRole : role)))
@@ -117,14 +149,16 @@ export function PermissionConfig() {
               <TableHead className="sticky top-0 bg-white">Create</TableHead>
               <TableHead className="sticky top-0 bg-white">Update</TableHead>
               <TableHead className="sticky top-0 bg-white">Delete</TableHead>
+              <TableHead className="sticky top-0 bg-white">Sidebar Visibility</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {(filteredResources.length > 0 ? filteredResources : resources).map((resource: any) => {
               const rolePermissions = roles.find((r) => r.id === selectedRole)?.permissions || []
 
-              const currResource = permissionsResources.models.find((r: any) => r.name === resource.name)
-              const currResourceRelation = permissionsResources.relationships.filter((r: any) => r.name === resource.name && r.name === r.fromModel)
+              const currResource = permissionsResources?.models?.find((r: any) => r.name == resource.name)
+              console.log(currResource, "resource.name", resource.name)
+              const currResourceRelation = permissionsResources?.relationships?.filter((r: any) => r.name === resource.name && r.name === r.fromModel)
               return (
                 <TableRow key={resource.name}>
                   <TableCell
@@ -138,13 +172,16 @@ export function PermissionConfig() {
                     {resource.name}
                   </TableCell>
                   {
-                    (["VIEW", "CREATE", "UPDATE", "DELETE"] as const).map((action) => (
+                    (["VIEW", "CREATE", "UPDATE", "DELETE", "SIDEBAR_VISIBILITY"] as const).map((action) => (
                       <TableCell key={action}>
                         <Checkbox
                           checked={rolePermissions.some(
-                            (p: any) => p.actions === action && resource.permissions[action]?.id === p.id,
+                            (p: any) => p.actions === action && resource.permissions[action]?.id === p.id
                           )}
                           onCheckedChange={() => togglePermission(resource.name, action)}
+                          disabled={action === "SIDEBAR_VISIBILITY" && !rolePermissions.some(
+                            (p: any) => p.actions === "VIEW" && resource.permissions["VIEW"]?.id === p.id
+                          )}
                         />
                       </TableCell>
                     ))
