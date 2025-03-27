@@ -3,6 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import HoverCardToolTip from "@/components/hover-card-tooltip";
 import Link from "next/link";
 import { CompanyPlan } from "./update-plan";
+import { CategoryModal } from "./company/category-modal";
 
 export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
     {
@@ -50,4 +51,26 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
             )
         }
     },
+    {
+        id: "actions",
+        cell: ({ row }) => {
+          const company = row.original
+          return (
+            <CategoryModal
+              companyId={company.id}
+              initialData={{
+                category: company.category,
+                subCategory: company.subCategory,
+                subCategory2: company.subCategory2,
+                subCategory3: company.subCategory3,
+                subCategory4: company.subCategory4,
+              }}
+              onSuccess={() => {
+                // Refresh your data here
+              }}
+            />
+          )
+        }
+      }
+      
 ];

@@ -181,8 +181,15 @@ const GET_TABLE_FILTER_OPTIONS = `
     }
 `
 
+const GET_TABLE_CHILD_DATA = `
+    query fetchRowChildData($tableName: String!, $rowId: String!) {
+      fetchRowChildData(tableName: $tableName, rowId: $rowId)
+    }
+`
+
 export const companyQueries = {
   XCHANGE_CUSTOMER_LIST,
+  GET_TABLE_CHILD_DATA,
   GET_ALL_ROLES,
   GET_FOLLOWUP,
   GET_COMPANY_DEPT_FIELDS,

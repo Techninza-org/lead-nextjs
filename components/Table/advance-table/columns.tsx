@@ -8,6 +8,7 @@ import Image from "next/image"
 import { capitalizeFirstLetter, isValidUrl } from "@/lib/utils"
 import { multiSelectFilter } from "./filters"
 import { ViewLeadInfo } from "./view-lead-info"
+import { useLead } from "@/components/providers/LeadProvider"
 
 interface GenerateColumnsProps {
   columnNames: string[]
@@ -16,16 +17,37 @@ interface GenerateColumnsProps {
   tableName: string
   hasCreatePermission: boolean
   onOpen: any
+  getSortableHeader: any
 }
 
-export const generateColumns = ({
+export const GenerateColumns = ({
   columnNames,
   dependentCols,
   tableName,
   changeView,
   hasCreatePermission,
   onOpen,
+  getSortableHeader
 }: GenerateColumnsProps): ColumnDef<any>[] => {
+  const { getChildData } = useLead()
+
+  const handleOpenModal = async (rowId: string) => {
+    try {
+      const childData = await getChildData(tableName, rowId)
+      onOpen("enquiryDetails", {
+        lead: {
+          changeView,
+          data: {
+            ...childData,
+            _id: rowId
+          }
+        }
+      })
+    } catch (error) {
+      console.error("Error fetching child data:", error)
+    }
+  }
+
   const baseColumns: ColumnDef<any>[] = [
     {
       id: "select",
@@ -62,37 +84,23 @@ export const generateColumns = ({
     })
   }
 
-  // Helper function to create sortable column header
-  const getSortableHeader = (columnId: string, label: string) => {
-    return ({ column }: any) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="p-0 h-auto flex items-center gap-1"
-        >
-          {label}
-          {column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-1 h-4 w-4" />
-          ) : column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-1 h-4 w-4" />
-          ) : (
-            <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-          )}
-        </Button>
-      )
-    }
-  }
-
   const nameColumn =
-    tableName?.toLowerCase() === "lead" && columnNames.includes("name")
+    columnNames.includes("name")
       ? [
         {
           accessorKey: "name",
-          header: getSortableHeader("name", "Name"),
+          header: getSortableHeader("name", "Name", columnNames.indexOf("name")),
           cell: ({ row }: any) => {
             const value = row.getValue("name")
-            return hasCreatePermission ? <ViewLeadInfo lead={row.original} changeView={changeView} /> : <span>{value}</span>
+            return hasCreatePermission ? (
+              <ViewLeadInfo
+                lead={row.original}
+                changeView={changeView}
+                tableName={tableName}
+              />
+            ) : (
+              <span>{value}</span>
+            )
           },
           enableSorting: true,
           enableHiding: true,
@@ -101,17 +109,17 @@ export const generateColumns = ({
       ]
       : []
 
-  const idColumn = columnNames.includes("_id")
+  const idColumn = columnNames.includes("_id") || columnNames.includes("id")
     ? [
       {
         accessorKey: "_id",
-        header: getSortableHeader("_id", "Id"),
+        header: getSortableHeader("_id", "Id", columnNames.indexOf("_id") || columnNames.indexOf("id")),
         cell: ({ row }: any) => {
-          const value = row.getValue("_id")
+          const value = row.getValue("_id") || row.getValue("id")
           return hasCreatePermission ? (
             <span
               className="text-blue-900 cursor-pointer hover:underline"
-              onClick={() => onOpen("enquiryDetails", { lead: { changeView, data: row.original } })}
+              onClick={() => handleOpenModal(value)}
             >
               {value}
             </span>
@@ -130,7 +138,7 @@ export const generateColumns = ({
     .filter((colName) => !["_id", "id", "name"].includes(colName))
     .map((colName) => ({
       accessorKey: colName,
-      header: getSortableHeader(colName, capitalizeFirstLetter(colName)),
+      header: getSortableHeader(colName, capitalizeFirstLetter(colName), columnNames.indexOf(colName)),
       cell: ({ row }: any) => {
         const value = row.getValue(colName)
         if (colName === "createdAt") {
@@ -168,5 +176,5 @@ export const generateColumns = ({
           : multiSelectFilter,
     }))
 
-  return [...baseColumns, ...nameColumn, ...dynamicColumns]
+  return [...baseColumns, ...idColumn, ...nameColumn, ...dynamicColumns]
 }

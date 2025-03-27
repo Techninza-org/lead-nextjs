@@ -27,6 +27,7 @@ type CompanyContextType = {
     roles: any;
     permissions: any;
     permissionsResources: any;
+    companyCategories: any;
 };
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
@@ -48,6 +49,8 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const [roles, setRoles] = useState<any[]>([])
     const [permissions, setPermissions] = useState<any[]>([])
     const [permissionsResources, setPermissionsResources] = useState<any[]>([])
+    const [companyCategories, setCompanyCategories] = useState<any[]>([])
+
 
     const authToken = useAtomValue(userAuthToken)
 
@@ -70,7 +73,16 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
         }
     })
 
-    const { data, error: queryError, loading: queryLoading } = useQuery(userQueries.GET_COMPANY_DEPT_MEMBERS, {
+    const { data, error: queryError, loading: queryLoading } = useQuery(userQueries.GET_DISCTINT_CATEGORY, {
+        skip: skip && !!userInfo?.deptId,
+        // variables,
+        // refetchAfterMutations: [leadAssignTo, UPDATE_USER_COMPANY],
+        onSuccess: ({ data }) => {
+            if (data?.getDistinctCategories) setCompanyCategories(data.getDistinctCategories)
+        }
+    });
+
+    const { } = useQuery(userQueries.GET_COMPANY_DEPT_MEMBERS, {
         skip: skip && !!userInfo?.deptId,
         variables,
         refetchAfterMutations: [leadAssignTo, UPDATE_USER_COMPANY],
@@ -172,7 +184,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
 
     return (
         <CompanyContext.Provider value={{
-            roles, permissions, permissionsResources, companyMemberRoles, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms
+            roles, permissions, permissionsResources, companyMemberRoles, companyCategories, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms
         }}>
             {children}
         </CompanyContext.Provider>

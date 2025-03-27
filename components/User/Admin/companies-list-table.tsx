@@ -4,9 +4,9 @@ import { CompaniesListCol } from "./companies-list-col";
 import { useCompany } from "@/components/providers/CompanyProvider";
 
 export const CompaniesListTable = () => {
-    const { rootInfo } = useCompany()
+    const { rootInfo, companyCategories } = useCompany()
 
     return (
-        <RootTable columns={CompaniesListCol} data={rootInfo ?? []} />
+        <RootTable columns={CompaniesListCol} data={rootInfo ?? []} categories={companyCategories || []}  />
     )
 }

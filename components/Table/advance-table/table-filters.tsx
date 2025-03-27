@@ -79,13 +79,9 @@ export const TableFilters = ({
                   variant="ghost"
                   className="text-orange-500 hover:text-orange-600 hover:bg-orange-50"
                   onClick={() => {
-                    const newFilters = {}
-                    table.getAllColumns().forEach((column) => column.setFilterValue(""))
-                    updateUrl(newFilters, currentPage)
-                    onClearAll()
-                    if (onFilterChange) {
-                      onFilterChange(newFilters)
-                    }
+                    table.getAllColumns().forEach((column) => column.setFilterValue(""));
+                    setOpenPopoverId(null); // Close any open popover
+                    onClearAll();
                   }}
                 >
                   clear all

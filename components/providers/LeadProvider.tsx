@@ -19,6 +19,7 @@ interface LeadProviderType {
     handleCreateBulkLead: ({ lead, error }: { lead: z.infer<typeof leadSchema>, error?: APIError<object> | undefined }) => void;
     getLeadPagination: (page: number, limit: number, newFilters?: any) => Promise<void>
     getTableFilterOptions: (colId: string, searchValue: string) => Promise<string[] | undefined>
+    getChildData: (tableName: string, rowId: string) => Promise<never[] | undefined>
 }
 
 const LeadContext = createContext<LeadProviderType | undefined>(undefined);
@@ -82,6 +83,7 @@ export const LeadProvider = ({ children }: { children: ReactNode }) => {
 
     const [fetchPaginationLead] = useManualQuery(leadQueries.GET_COMPANY_LEADS);
     const [fetchfilterOptions] = useManualQuery(companyQueries.GET_TABLE_FILTER_OPTIONS);
+    const [fetchRowChildData] = useManualQuery(companyQueries.GET_TABLE_CHILD_DATA);
 
 
     const handleCreateLead = async ({ lead, error }: {
@@ -188,8 +190,27 @@ export const LeadProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const getChildData = async (tableName: string, rowId: string) => {
+        try {
+
+            const { data, error } = await fetchRowChildData({ variables: { tableName, rowId } });
+            await new Promise((resolve) => setTimeout(resolve, 500))
+
+            if (!data) return []
+
+            return data?.fetchRowChildData
+
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: err.message,
+                variant: "destructive",
+            });
+        }
+    };
+
     return (
-        <LeadContext.Provider value={{ getTableFilterOptions, getLeadPagination, handleCreateLead, handleCreateBulkLead }}>
+        <LeadContext.Provider value={{ getTableFilterOptions, getLeadPagination, getChildData, handleCreateLead, handleCreateBulkLead }}>
             {children}
         </LeadContext.Provider>
     );

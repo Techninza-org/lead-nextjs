@@ -216,10 +216,24 @@ const UPDATE_PERMISSION_FILTER = `
     updatePermissionFilter(resourceName: $resourceName, data: $data)
   }
 `
+
+const GET_COMPANIES_CATEGORIES = `
+  mutation GetCompanyByCategory($resourceName: String!, $data: JSON) {
+    getCompanyByCategory(resourceName: $resourceName, data: $data)
+  }
+`
+
+const  GET_DISCTINT_CATEGORY = `
+  query GetDistinctCategories {
+    getDistinctCategories
+  }
+`
 export const userQueries = {
+  GET_COMPANIES_CATEGORIES,
   GET_COMPANY_DEPT_MEMBERS,
   GET_COMPANIES,
   GET_MEMBERS,
+  GET_DISCTINT_CATEGORY,
   GET_MEMBER_LOCATION,
   GET_PLANS,
   GET_DEPT_FIELDS,

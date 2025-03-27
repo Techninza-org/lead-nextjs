@@ -42,15 +42,19 @@ import {
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { CalendarDaysIcon } from "lucide-react"
+import { CategoryModal } from "./company/category-modal"
+import { CategoryFilter } from "./company/category-filter"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
+    categories: any
 }
 
 export function RootTable<TData, TValue>({
     columns,
     data,
+    categories
 }: DataTableProps<TData, TValue>) {
     const [rowSelection, setRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] =
@@ -73,7 +77,7 @@ export function RootTable<TData, TValue>({
         const monthEndDate = new Date(date.getFullYear(), date.getMonth() + 1, 0).getTime();
         const filteredData = data.filter((lead: any) => {
             return lead.createdAt >= monthStartDate && lead.createdAt <= monthEndDate;
-        })        
+        })
         setMonthData(filteredData);
     };
 
@@ -126,38 +130,18 @@ export function RootTable<TData, TValue>({
     return (
         <div className="space-y-4">
             <div className="flex justify-between">
-                <div className="grid gap-4">
-                {/* <Popover>
-                    <PopoverTrigger asChild>
-                            <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "pl-3 text-left font-normal",
-                                    !selectedMonth && "text-muted-foreground",
-                                )}
-                            >
-                                {selectedMonth ? (
-                                    format(selectedMonth, "MMM yyyy") 
-                                ) : (
-                                    <span>Pick a month</span>
-                                )}
-                                <CalendarDaysIcon className="ml-2 h-4 w-4 opacity-50" />
-                            </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={selectedMonth}
-                            onDayClick={handleDayClick}
-                            disabled={(date) =>
-                                date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                        />
-                    </PopoverContent>
-                </Popover> */}
-                <DataTableToolbar table={table} setFilter={setFilter} />
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                        <CategoryFilter type="categories" items={categories.categories} />
+                        <CategoryFilter type="subCategories" items={categories.subCategories} />
+                        <CategoryFilter type="subCategories2" items={categories.subCategories2} />
+                        <CategoryFilter type="subCategories3" items={categories.subCategories3} />
+                        <CategoryFilter type="subCategories4" items={categories.subCategories4} />
+                    </div>
+
+                    {/* <DataTableToolbar table={table} setFilter={setFilter} /> */}
                 </div>
+
                 {/*
                 <Select onValueChange={(value) => handleSort(value || 'Reset')}>
                     <SelectTrigger className="w-64">
