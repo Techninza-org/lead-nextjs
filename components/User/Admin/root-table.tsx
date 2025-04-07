@@ -26,24 +26,7 @@ import {
 } from "@/components/ui/table"
 
 import { DataTablePagination } from "@/components/ui/table-pagination"
-import { DataTableToolbar } from "@/components/ui/table-toolbar"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarDaysIcon } from "lucide-react"
-import { CategoryModal } from "./company/category-modal"
-import { CategoryFilter } from "./company/category-filter"
+import FilterDropdown from "./company/category-filter"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -132,11 +115,7 @@ export function RootTable<TData, TValue>({
             <div className="flex justify-between">
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2">
-                        <CategoryFilter type="categories" items={categories.categories} />
-                        <CategoryFilter type="subCategories" items={categories.subCategories} />
-                        <CategoryFilter type="subCategories2" items={categories.subCategories2} />
-                        <CategoryFilter type="subCategories3" items={categories.subCategories3} />
-                        <CategoryFilter type="subCategories4" items={categories.subCategories4} />
+                        <FilterDropdown initialData={categories || {}} />
                     </div>
 
                     {/* <DataTableToolbar table={table} setFilter={setFilter} /> */}

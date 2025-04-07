@@ -20,6 +20,7 @@ interface GenerateColumnsProps {
   getSortableHeader: any
 }
 
+
 export const GenerateColumns = ({
   columnNames,
   dependentCols,
@@ -30,6 +31,15 @@ export const GenerateColumns = ({
   getSortableHeader
 }: GenerateColumnsProps): ColumnDef<any>[] => {
   const { getChildData } = useLead()
+
+  if(!columnNames || columnNames.length === 0) {
+    console.error("No column names provided")
+    return []
+  }
+  if(!tableName) {
+    console.error("No table name provided")
+    return []
+  }
 
   const handleOpenModal = async (rowId: string) => {
     try {
@@ -48,6 +58,7 @@ export const GenerateColumns = ({
     }
   }
 
+  // Base columns that are always included
   const baseColumns: ColumnDef<any>[] = [
     {
       id: "select",
@@ -70,6 +81,7 @@ export const GenerateColumns = ({
     },
   ]
 
+  // Add expander column if needed
   if (dependentCols.length > 0) {
     baseColumns.unshift({
       id: "expander",
@@ -84,88 +96,80 @@ export const GenerateColumns = ({
     })
   }
 
-  const nameColumn =
-    columnNames.includes("name")
-      ? [
-        {
-          accessorKey: "name",
-          header: getSortableHeader("name", "Name", columnNames.indexOf("name")),
-          cell: ({ row }: any) => {
-            const value = row.getValue("name")
-            return hasCreatePermission ? (
-              <ViewLeadInfo
-                lead={row.original}
-                changeView={changeView}
-                tableName={tableName}
-              />
-            ) : (
-              <span>{value}</span>
-            )
-          },
-          enableSorting: true,
-          enableHiding: true,
-          filterFn: multiSelectFilter,
-        },
-      ]
-      : []
-
-  const idColumn = columnNames.includes("_id") || columnNames.includes("id")
-    ? [
-      {
-        accessorKey: "_id",
-        header: getSortableHeader("_id", "Id", columnNames.indexOf("_id") || columnNames.indexOf("id")),
-        cell: ({ row }: any) => {
-          const value = row.getValue("_id") || row.getValue("id")
-          return hasCreatePermission ? (
-            <span
-              className="text-blue-900 cursor-pointer hover:underline"
-              onClick={() => handleOpenModal(value)}
-            >
-              {value}
-            </span>
-          ) : (
-            <span>{value}</span>
-          )
-        },
-        enableSorting: true,
-        enableHiding: true,
-        filterFn: multiSelectFilter,
-      },
-    ]
-    : []
-
-  const dynamicColumns: ColumnDef<any>[] = columnNames
-    .filter((colName) => !["_id", "id", "name"].includes(colName))
-    .map((colName) => ({
-      accessorKey: colName,
-      header: getSortableHeader(colName, capitalizeFirstLetter(colName), columnNames.indexOf(colName)),
+  // First column special handling - always apply ViewLeadInfo if hasCreatePermission
+  const firstColumnName = columnNames?.[0];
+  let firstColumn: ColumnDef<any>[] = [];
+  
+  // Skip if first column is id or _id
+  if (firstColumnName !== "_id" && firstColumnName !== "id") {
+    firstColumn = [{
+      // Explicitly set the id to match the accessorKey
+      id: firstColumnName,
+      accessorKey: firstColumnName,
+      header: getSortableHeader(firstColumnName, capitalizeFirstLetter(firstColumnName), 0),
       cell: ({ row }: any) => {
-        const value = row.getValue(colName)
-        if (colName === "createdAt") {
-          return format(parseISO(value), "yyyy-MM-dd HH:mm:ss")
-        }
-        return (
-          <div className="capitalize">
-            {isValidUrl(value) ? (
-              <Link href={value} target="_blank" className="my-1">
-                <Image
-                  src={value || "/placeholder.svg"}
-                  alt={value}
-                  height={250}
-                  width={250}
-                  className="rounded-sm h-24 w-24 object-cover"
-                />
-              </Link>
-            ) : (
-              <span>{value}</span>
-            )}
-          </div>
+        const value = row.getValue(firstColumnName)
+        // Always use ViewLeadInfo for first column if hasCreatePermission
+        return hasCreatePermission ? (
+          <ViewLeadInfo
+            lead={row.original}
+            changeView={changeView}
+            tableName={tableName}
+          />
+        ) : (
+          <span>{value}</span>
         )
       },
       enableSorting: true,
       enableHiding: true,
-      filterFn:
-        colName === "createdAt"
+      filterFn: firstColumnName === "createdAt"
+        ? (row, columnId, filterValue: { start?: string; end?: string }) => {
+          if (!filterValue?.start && !filterValue?.end) return true
+          const date = parseISO(row.getValue(columnId))
+          const start = filterValue.start ? parseISO(filterValue.start) : new Date(0)
+          const end = filterValue.end ? parseISO(filterValue.end) : new Date(8640000000000000)
+          return isWithinInterval(date, { start, end })
+        }
+        : multiSelectFilter,
+    }];
+  }
+
+  // Rest of the columns (skip the first one and skip any id/_id columns)
+  const restOfColumns: ColumnDef<any>[] = columnNames.slice(1)
+    .filter(colName => colName !== "_id" && colName !== "id")
+    .map((colName, index) => {
+      // Standard column handling for all remaining columns
+      return {
+        // Explicitly set the id to match the accessorKey
+        id: colName,
+        accessorKey: colName,
+        header: getSortableHeader(colName, capitalizeFirstLetter(colName), index + 1),
+        cell: ({ row }: any) => {
+          const value = row.getValue(colName)
+          if (colName === "createdAt") {
+            return format(parseISO(value), "yyyy-MM-dd HH:mm:ss")
+          }
+          return (
+            <div className="capitalize">
+              {isValidUrl(value) ? (
+                <Link href={value} target="_blank" className="my-1">
+                  <Image
+                    src={value || "/placeholder.svg"}
+                    alt={value}
+                    height={250}
+                    width={250}
+                    className="rounded-sm h-24 w-24 object-cover"
+                  />
+                </Link>
+              ) : (
+                <span>{value}</span>
+              )}
+            </div>
+          )
+        },
+        enableSorting: true,
+        enableHiding: true,
+        filterFn: colName === "createdAt"
           ? (row, columnId, filterValue: { start?: string; end?: string }) => {
             if (!filterValue?.start && !filterValue?.end) return true
             const date = parseISO(row.getValue(columnId))
@@ -174,7 +178,9 @@ export const GenerateColumns = ({
             return isWithinInterval(date, { start, end })
           }
           : multiSelectFilter,
-    }))
+      }
+    });
 
-  return [...baseColumns, ...idColumn, ...nameColumn, ...dynamicColumns]
+  // Combine all columns
+  return [...baseColumns, ...firstColumn, ...restOfColumns]
 }

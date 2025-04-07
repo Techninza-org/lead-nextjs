@@ -81,11 +81,18 @@ const UPDATE_DEPT_FORM_NAMES = `
 `
 
 const UPDATE_COMPANY_CATEGORIES = `
-  mutation UpdateCompanyCategories($companyId: String!, $category: String!, $subCategory: String!, $subCategory2: String!, $subCategory3: String!) {
-    updateCompanyCategories(companyId: $companyId, category: $category, subCategory: $subCategory, subCategory2: $subCategory2, subCategory3: $subCategory3 ) 
+  mutation UpdateCompanyCategories($companyId: String!, $category: String!, $subCategory: String!, $subCategory2: String!, $subCategory3: String!, $tags: [String!]!) {
+    updateCompanyCategories(companyId: $companyId, category: $category, subCategory: $subCategory, subCategory2: $subCategory2, subCategory3: $subCategory3, tags: $tags ) 
+}
+`
+
+const UPDATE_COMPANY_TABLE_CONFIG = `
+  mutation TableConfig($pre: String, $suf: String, $pad: String, $separator: String, $tablename: String) {
+    tableConfig(pre: $pre, suf: $suf, pad: $pad, separator: $separator, tablename: $tablename ) 
 }
 `
 export const companyMutation = {
+  UPDATE_COMPANY_TABLE_CONFIG,
   OTPCONFIG,
   UPDATE_COMPANY_CATEGORIES,
   UPDATE_DEPT_FORM_NAMES,

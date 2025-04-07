@@ -7,6 +7,6 @@ export const CompaniesListTable = () => {
     const { rootInfo, companyCategories } = useCompany()
 
     return (
-        <RootTable columns={CompaniesListCol} data={rootInfo ?? []} categories={companyCategories || []}  />
+        <RootTable columns={CompaniesListCol} data={rootInfo ?? []} categories={companyCategories || {}}  />
     )
 }

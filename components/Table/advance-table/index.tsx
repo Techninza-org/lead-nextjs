@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button"
 import { useAtomValue } from "jotai"
 import { leads } from "@/lib/atom/leadAtom"
 import { cn } from "@/lib/utils"
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
+import { ArrowDown, ArrowUp, ArrowUpDown, X } from "lucide-react"
 
 interface DataTableProps {
   filterOption?: Record<string, any[]>
@@ -104,80 +104,98 @@ export default function AdvanceDataTable({
     }
   }, [searchParams, onSortChange])
 
+  const updateSortInUrl = useCallback((index: number, isDesc: boolean | null, event: React.MouseEvent) => {
+    event.preventDefault();
 
-  const updateSortInUrl = useCallback((columnIndex: number, isDesc: boolean, event?: React.MouseEvent) => {
-    if (urlUpdateTimeoutRef.current) {
-      clearTimeout(urlUpdateTimeoutRef.current)
-    }
-  
-    urlUpdateTimeoutRef.current = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString())
-      const newSortValue = isDesc ? `-${columnIndex + 1}` : `${columnIndex + 1}` // Use 1-based indexing
-  
-      if (event?.shiftKey) {
-        // Handle multi-column sorting
-        const currentSort = params.get("sort") || ""
-        const sortArray = currentSort.split(",").filter(Boolean)
-  
-        // Remove existing sort for this column
-        const filteredSort = sortArray.filter(s => Math.abs(parseInt(s)) !== (columnIndex + 1))
-  
-        filteredSort.push(newSortValue)
-        const newSort = filteredSort.join(",")
-        params.set("sort", newSort)
-        setSorting(newSort)
-        if (onSortChange) onSortChange(newSort)
+    const currentSort = searchParams.get("sort") || "";
+    let sortArray = currentSort ? currentSort.split(",") : [];
+
+    const columnIndex = index + 1; // 1-based indexing
+    const columnSort = sortArray.find(s => Math.abs(parseInt(s)) === columnIndex);
+
+    if (isDesc === null) {
+      // **REMOVE sorting when 'X' is clicked**
+      sortArray = sortArray.filter(s => Math.abs(parseInt(s)) !== columnIndex);
+    } else {
+      // **TOGGLE sorting**
+      if (columnSort) {
+        // Update sorting direction
+        sortArray = sortArray.map(s => {
+          if (Math.abs(parseInt(s)) === columnIndex) {
+            return isDesc ? `-${columnIndex}` : `${columnIndex}`;
+          }
+          return s;
+        });
       } else {
-        // Single column sorting
-        params.set("sort", newSortValue)
-        setSorting(newSortValue)
-        if (onSortChange) onSortChange(newSortValue)
+        // Add new sorting column
+        sortArray.push(isDesc ? `-${columnIndex}` : `${columnIndex}`);
       }
-  
-      router.push(`${pathname}?${params.toString()}`, { scroll: false })
-    }, 300)
-  }, [searchParams, router, pathname, onSortChange])
-  
+    }
+
+    // Update URL with the new sort state
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (sortArray.length > 0) {
+      newSearchParams.set("sort", sortArray.join(","));
+    } else {
+      newSearchParams.delete("sort");
+    }
+
+    router.replace(`${pathname}?${newSearchParams.toString()}`, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+
   const getSortableHeader = useCallback((columnId: string, label: string, index: number) => {
     const SortableHeader = ({ column }: any) => {
       const currentSort = searchParams.get("sort") || ""
       const sortArray = currentSort.split(",")
       const columnSort = sortArray.find(s => Math.abs(parseInt(s)) === (index + 1))
       const isDesc = columnSort && columnSort.startsWith("-")
-      
+
       // Find the order of this column in multi-column sorting
       const sortOrder = sortArray.findIndex(s => Math.abs(parseInt(s)) === (index + 1))
       const orderLabel = sortOrder >= 0 ? `(${sortOrder + 1})` : ''
-  
+
       return (
-        <Button
-          variant="ghost"
-          onClick={(e) => {
-            const newIsDesc = columnSort ? !isDesc : false
-            updateSortInUrl(index, newIsDesc, e)
-          }}
-          className="p-0 h-auto flex items-center gap-1"
-        >
-          {label} {orderLabel}
-          {columnSort ? (
-            isDesc ? (
-              <ArrowDown className="ml-1 h-4 w-4" />
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            onClick={(e) => {
+              const newIsDesc = columnSort ? !isDesc : false
+              updateSortInUrl(index, newIsDesc, e)
+            }}
+            className="p-0 h-auto flex items-center gap-1"
+          >
+            {label} {orderLabel}
+            {columnSort ? (
+              isDesc ? (
+                <ArrowDown className="ml-1 h-4 w-4" />
+              ) : (
+                <ArrowUp className="ml-1 h-4 w-4" />
+              )
             ) : (
-              <ArrowUp className="ml-1 h-4 w-4" />
-            )
-          ) : (
-            <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+              <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+            )}
+          </Button>
+          {columnSort && (
+            <Button
+              size={'icon'}
+              variant={'ghost'}
+              onClick={(e) => updateSortInUrl(index, null, e)}
+              className="p-0 text-red-500"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           )}
-        </Button>
+        </div>
       )
     }
     SortableHeader.displayName = `SortableHeader(${columnId})`
     return SortableHeader
   }, [searchParams, updateSortInUrl])
-  
+
   const columns = useMemo(
     () => GenerateColumns({
-      columnNames,
+      columnNames: columnNames.filter((col) => col !== "_id" && col !== "id"),
       dependentCols,
       tableName,
       changeView,

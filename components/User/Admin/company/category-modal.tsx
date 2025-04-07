@@ -1,351 +1,365 @@
 "use client"
 
-import * as React from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import type React from "react"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent } from "@/components/ui/card"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Pencil, PlusCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import MultipleSelector from "@/components/multi-select-shadcn-expension"
-import type { Option } from "@/components/multi-select-shadcn-expension"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { PencilIcon } from "lucide-react"
-import { useMutation } from "graphql-hooks"
-import { companyMutation } from "@/lib/graphql/company/mutation"
-import { useToast } from "@/components/ui/use-toast"
 
-// Sample categories data
-const distinctCategories = {
-  categories: ["C1", "C2", "C3"],
-  subCategories: ["S1", "S2", "S3"],
-  subCategories2: ["S2-1", "S2-2", "S2-3"],
-  subCategories3: ["S3-1", "S3-2", "S3-3"],
-  subCategories4: ["S4-1", "S4-2"]
-}
-
-const categorySchema = z.object({
-  category: z.array(z.object({
-    label: z.string(),
-    value: z.string()
-  })).min(1, "Category is required"),
-  subCategory: z.array(z.object({
-    label: z.string(),
-    value: z.string()
-  })).optional(),
-  subCategory2: z.array(z.object({
-    label: z.string(),
-    value: z.string()
-  })).optional(),
-  subCategory3: z.array(z.object({
-    label: z.string(),
-    value: z.string()
-  })).optional(),
-  subCategory4: z.array(z.object({
-    label: z.string(),
-    value: z.string()
-  })).optional(),
-})
-
-interface CategoryModalProps {
-  companyId: string
-  initialData: {
-    category?: string
-    subCategory?: string
-    subCategory2?: string
-    subCategory3?: string
-    subCategory4?: string
-  }
-  onSuccess?: () => void
-}
-
-export function CategoryModal({ companyId, initialData, onSuccess }: CategoryModalProps) {
-  const [open, setOpen] = React.useState(false)
-  const [UpdateCompanyCategories] = useMutation(companyMutation.UPDATE_COMPANY_CATEGORIES);
-  const { toast } = useToast()
-
-  // Prepare options for MultipleSelector
-  const mappedCategories: Option[] = distinctCategories.categories.map(cat => ({
-    label: cat,
-    value: cat
-  }))
-
-  const mappedSubCategories: Option[] = distinctCategories.subCategories.map(subCat => ({
-    label: subCat,
-    value: subCat
-  }))
-
-  const mappedSubCategories2: Option[] = distinctCategories.subCategories2.map(subCat2 => ({
-    label: subCat2,
-    value: subCat2
-  }))
-
-  const mappedSubCategories3: Option[] = distinctCategories.subCategories3.map(subCat3 => ({
-    label: subCat3,
-    value: subCat3
-  }))
-
-  const mappedSubCategories4: Option[] = distinctCategories.subCategories4.map(subCat4 => ({
-    label: subCat4,
-    value: subCat4
-  }))
-
-  const form = useForm<z.infer<typeof categorySchema>>({
-    resolver: zodResolver(categorySchema),
-    defaultValues: {
-      category: initialData?.category
-        ? [{ label: initialData.category, value: initialData.category }]
-        : [],
-      subCategory: initialData?.subCategory
-        ? [{ label: initialData.subCategory, value: initialData.subCategory }]
-        : [],
-      subCategory2: initialData?.subCategory2
-        ? [{ label: initialData.subCategory2, value: initialData.subCategory2 }]
-        : [],
-      subCategory3: initialData?.subCategory3
-        ? [{ label: initialData.subCategory3, value: initialData.subCategory3 }]
-        : [],
-      subCategory4: initialData?.subCategory4
-        ? [{ label: initialData.subCategory4, value: initialData.subCategory4 }]
-        : [],
+// Sample data based on the provided response
+const initialData = {
+  id: "67c12fe7b77813b908732c84",
+  orgId: "Lead-Backend",
+  rootId: "67644a79bd3b295e0dbdb220",
+  name: "Form Exist",
+  email: "aloksharma10969@gmail.com",
+  phone: "7011609262",
+  categoryId: "67e7d6ffe7f32c617e121668",
+  tags: ["S3-3", "S2-2", "S2", "C1", "T4-1", "T4-2"],
+  isSubscribed: false,
+  createdAt: "2025-02-28T03:10:22.698Z",
+  updatedAt: "2025-03-29T11:18:24.102Z",
+  categories: {
+    id: "67e7d6ffe7f32c617e121668",
+    name: "S3-3",
+    level: 3,
+    parentId: "67e7d6ffe7f32c617e121667",
+    parent: {
+      id: "67e7d6ffe7f32c617e121667",
+      name: "S2-2",
+      level: 2,
+      parentId: "67e7d6ffe7f32c617e121666",
+      parent: {
+        id: "67e7d6ffe7f32c617e121666",
+        name: "S2",
+        level: 1,
+        parentId: "67e7d6ffe7f32c617e121665",
+        parent: {
+          id: "67e7d6ffe7f32c617e121665",
+          name: "C1",
+          level: 0,
+          parentId: null,
+        },
+      },
     },
-  })
+  },
+}
 
-  async function onSubmit(values: z.infer<typeof categorySchema>) {
-    try {
-      const { data: formRes, error } = await UpdateCompanyCategories({
-        variables: {
-          companyId: companyId,
-          category: values.category[0]?.value,
-          subCategory: values.subCategory?.[0]?.value,
-          subCategory2: values.subCategory2?.[0]?.value,
-          subCategory3: values.subCategory3?.[0]?.value,
-          subCategory4: values.subCategory4?.[0]?.value,
-        }
-      })
+// Available categories
+const categories = [{ id: "67e7d6ffe7f32c617e121665", name: "C1", level: 0, parentId: null }]
 
-      if (error) {
-        const message = error?.graphQLErrors?.map((e: any) => e.message).join(", ")
-        toast({
-          title: 'Error',
-          description: message || "Something went wrong",
-          variant: "destructive"
-        })
-        return;
-      }
+const subCategories = [{ id: "67e7d6ffe7f32c617e121666", name: "S2", level: 1, parentId: "67e7d6ffe7f32c617e121665" }]
 
-      toast({
-        variant: "default",
-        title: "Form Updated Successfully!",
-      })
-      setOpen(false)
-      if (onSuccess) onSuccess()
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: "Failed to update categories",
-        variant: "destructive"
-      })
+const subSubCategories = [
+  { id: "67e7d6ffe7f32c617e121667", name: "S2-2", level: 2, parentId: "67e7d6ffe7f32c617e121666" },
+]
+
+const subSubSubCategories = [
+  { id: "67e7d6ffe7f32c617e121668", name: "S3-3", level: 3, parentId: "67e7d6ffe7f32c617e121667" },
+]
+
+// Available tags
+const availableTags = ["S3-3", "S2-2", "S2", "C1", "T4-1", "T4-2", "T4-3", "T5-1", "T5-2"]
+
+export function CategoryModal() {
+  const [open, setOpen] = useState(false)
+  const [formData, setFormData] = useState(initialData)
+
+  // Category selection state
+  const [categoryMode, setCategoryMode] = useState<"select" | "create">("select")
+  const [subCategoryMode, setSubCategoryMode] = useState<"select" | "create">("select")
+  const [subSubCategoryMode, setSubSubCategoryMode] = useState<"select" | "create">("select")
+  const [subSubSubCategoryMode, setSubSubSubCategoryMode] = useState<"select" | "create">("select")
+
+  const [selectedCategory, setSelectedCategory] = useState(categories[0]?.id || "")
+  const [selectedSubCategory, setSelectedSubCategory] = useState(subCategories[0]?.id || "")
+  const [selectedSubSubCategory, setSelectedSubSubCategory] = useState(subSubCategories[0]?.id || "")
+  const [selectedSubSubSubCategory, setSelectedSubSubSubCategory] = useState(subSubSubCategories[0]?.id || "")
+
+  const [newCategory, setNewCategory] = useState("")
+  const [newSubCategory, setNewSubCategory] = useState("")
+  const [newSubSubCategory, setNewSubSubCategory] = useState("")
+  const [newSubSubSubCategory, setNewSubSubSubCategory] = useState("")
+
+  // Tags state
+  const [selectedTags, setSelectedTags] = useState(initialData.tags)
+  const [newTag, setNewTag] = useState("")
+  const [customTags, setCustomTags] = useState<string[]>([])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData({
+      ...formData,
+      [name]: value,
+    })
+  }
+
+  const handleTagToggle = (tag: string) => {
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
+  }
+
+  const handleAddCustomTag = () => {
+    if (newTag && !availableTags.includes(newTag) && !customTags.includes(newTag)) {
+      setCustomTags((prev) => [...prev, newTag])
+      setSelectedTags((prev) => [...prev, newTag])
+      setNewTag("")
     }
+  }
+
+  const handleRemoveCustomTag = (tag: string) => {
+    setCustomTags((prev) => prev.filter((t) => t !== tag))
+    setSelectedTags((prev) => prev.filter((t) => t !== tag))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Prepare the category data
+    let finalCategoryId = ""
+    let categoryData = null
+
+    if (subSubSubCategoryMode === "select" && selectedSubSubSubCategory) {
+      finalCategoryId = selectedSubSubSubCategory
+    } else if (subSubSubCategoryMode === "create" && newSubSubSubCategory) {
+      // Create new level 3 category
+      finalCategoryId = `new-l3-${Date.now()}`
+      categoryData = {
+        id: finalCategoryId,
+        name: newSubSubSubCategory,
+        level: 3,
+        parentId: subSubCategoryMode === "select" ? selectedSubSubCategory : `new-l2-${Date.now()}`,
+      }
+    } else if (subSubCategoryMode === "select" && selectedSubSubCategory) {
+      finalCategoryId = selectedSubSubCategory
+    } else if (subSubCategoryMode === "create" && newSubSubCategory) {
+      // Create new level 2 category
+      finalCategoryId = `new-l2-${Date.now()}`
+      categoryData = {
+        id: finalCategoryId,
+        name: newSubSubCategory,
+        level: 2,
+        parentId: subCategoryMode === "select" ? selectedSubCategory : `new-l1-${Date.now()}`,
+      }
+    } else if (subCategoryMode === "select" && selectedSubCategory) {
+      finalCategoryId = selectedSubCategory
+    } else if (subCategoryMode === "create" && newSubCategory) {
+      // Create new level 1 category
+      finalCategoryId = `new-l1-${Date.now()}`
+      categoryData = {
+        id: finalCategoryId,
+        name: newSubCategory,
+        level: 1,
+        parentId: categoryMode === "select" ? selectedCategory : `new-l0-${Date.now()}`,
+      }
+    } else if (categoryMode === "select" && selectedCategory) {
+      finalCategoryId = selectedCategory
+    } else if (categoryMode === "create" && newCategory) {
+      // Create new level 0 category
+      finalCategoryId = `new-l0-${Date.now()}`
+      categoryData = {
+        id: finalCategoryId,
+        name: newCategory,
+        level: 0,
+        parentId: null,
+      }
+    }
+
+    // Prepare the updated data
+    const updatedData = {
+      ...formData,
+      tags: selectedTags,
+      categoryId: finalCategoryId,
+      newCategory: categoryData,
+      customTags: customTags,
+    }
+
+    console.log("Form submitted:", updatedData)
+    // Here you would typically send the data to your backend
+
+    setOpen(false)
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <PencilIcon className="h-4 w-4" />
-        </Button>
+        <Button variant="outline"><Pencil size={14}/></Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Categories</DialogTitle>
-          <DialogDescription>
-            Update the categories for this company
-          </DialogDescription>
+          <DialogTitle>Edit Lead Information</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <MultipleSelector
-                      {...field}
-                      value={field.value}
-                      onChange={(value) => {
-                        field.onChange(value)
-                      }}
-                      badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                      options={mappedCategories}
-                      placeholder="Select Category"
-                      emptyIndicator={
-                        <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                          No categories found.
-                        </p>
-                      }
-                      maxSelected={1}
-                      hidePlaceholderWhenSelected
-                      triggerSearchOnFocus
-                      creatable
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            <FormField
-              control={form.control}
-              name="subCategory"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sub Category</FormLabel>
-                  <FormControl>
-                    <MultipleSelector
-                      {...field}
-                      value={field.value}
-                      onChange={(value) => {
-                        field.onChange(value)
-                      }}
-                      badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                      options={mappedSubCategories}
-                      placeholder="Select Sub Category"
-                      emptyIndicator={
-                        <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                          No sub-categories found.
-                        </p>
-                      }
-                      maxSelected={1}
-                      hidePlaceholderWhenSelected
-                      triggerSearchOnFocus
-                      creatable
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+          <div className="grid grid-cols-1 gap-4">
 
-            <FormField
-              control={form.control}
-              name="subCategory2"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sub Category 2</FormLabel>
-                  <FormControl>
-                    <MultipleSelector
-                      {...field}
-                      value={field.value}
-                      onChange={(value) => {
-                        field.onChange(value)
-                      }}
-                      badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                      options={mappedSubCategories2}
-                      placeholder="Select Sub Category 2"
-                      emptyIndicator={
-                        <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                          No sub-categories found.
-                        </p>
-                      }
-                      maxSelected={1}
-                      hidePlaceholderWhenSelected
-                      triggerSearchOnFocus
-                      creatable
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-4">
+              <Label>Category Hierarchy</Label>
 
-            <FormField
-              control={form.control}
-              name="subCategory3"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sub Category 3</FormLabel>
-                  <FormControl>
-                    <MultipleSelector
-                      {...field}
-                      value={field.value}
-                      onChange={(value) => {
-                        field.onChange(value)
-                      }}
-                      badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                      options={mappedSubCategories3}
-                      placeholder="Select Sub Category 3"
-                      emptyIndicator={
-                        <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                          No sub-categories found.
-                        </p>
-                      }
-                      maxSelected={1}
-                      hidePlaceholderWhenSelected
-                      triggerSearchOnFocus
-                      creatable
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <div className="grid grid-cols-1 gap-4">
+                {/* Level 0 - Category */}
 
-            <FormField
-              control={form.control}
-              name="subCategory4"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sub Category 4</FormLabel>
-                  <FormControl>
-                    <MultipleSelector
-                      {...field}
-                      value={field.value}
-                      onChange={(value) => {
-                        field.onChange(value)
-                      }}
-                      badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                      options={mappedSubCategories4}
-                      placeholder="Select Sub Category 4"
-                      emptyIndicator={
-                        <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                          No sub-categories found.
-                        </p>
-                      }
-                      maxSelected={1}
-                      hidePlaceholderWhenSelected
-                      triggerSearchOnFocus
-                      creatable
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <div className="space-y-3">
+                  <Label htmlFor="category" className="text-sm font-medium">
+                    Category (Level 0)
+                  </Label>
 
-            <div className="flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Save changes</Button>
+                  <MultipleSelector
+                    value={selectedCategory ? [{ label: categories.find(cat => cat.id === selectedCategory)?.name || "", value: selectedCategory }] : []}
+                    onChange={(value) => setSelectedCategory(value[0]?.value || "")}
+                    badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
+                    options={categories.map((category) => ({
+                      value: category.id,
+                      label: category.name,
+                      isDisabled: selectedCategory === category.id,
+                    }))}
+                    placeholder="Select Category"
+                    emptyIndicator={
+                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                        No Categories found.
+                      </p>
+                    }
+                    hidePlaceholderWhenSelected
+                    triggerSearchOnFocus
+                  />
+                </div>
+
+                {/* Level 1 - Sub-Category */}
+                <div className="space-y-3">
+                  <Label htmlFor="subCategory" className="text-sm font-medium">
+                    Sub-Category (Level 1)
+                  </Label>
+
+                  <MultipleSelector
+                    value={selectedSubCategory ? [{ label: subCategories.find(cat => cat.id === selectedSubCategory)?.name || "", value: selectedSubCategory }] : []}
+                    onChange={(value) => setSelectedSubCategory(value[0]?.value || "")}
+                    badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
+                    options={subCategories
+                      .filter((sub) => sub.parentId === selectedCategory)
+                      .map((subCategory) => ({
+                        value: subCategory.id,
+                        label: subCategory.name,
+                        isDisabled: selectedSubCategory === subCategory.id,
+                      }))}
+                    placeholder="Select Sub-Category"
+                    emptyIndicator={
+                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                        No Sub-Categories found.
+                      </p>
+                    }
+                    hidePlaceholderWhenSelected
+                    triggerSearchOnFocus
+                    disabled={categoryMode === "create" || !selectedCategory}
+                  />
+                </div>
+
+                {/* Level 2 - Sub-Sub-Category */}
+                <div className="space-y-3">
+                  <Label htmlFor="subSubCategory" className="text-sm font-medium">
+                    Sub-Sub-Category (Level 2)
+                  </Label>
+                  <MultipleSelector
+                    value={selectedSubSubCategory ? [{ label: subSubCategories.find(cat => cat.id === selectedSubSubCategory)?.name || "", value: selectedSubSubCategory }] : []}
+                    onChange={(value) => setSelectedSubSubCategory(value[0]?.value || "")}
+                    badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
+                    options={subSubCategories
+                      .filter((subSub) => subSub.parentId === selectedSubCategory)
+                      .map((subSubCategory) => ({
+                        value: subSubCategory.id,
+                        label: subSubCategory.name,
+                        isDisabled: selectedSubSubCategory === subSubCategory.id,
+                      }))}
+                    placeholder="Select Sub-Sub-Category"
+                    emptyIndicator={
+                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                        No Sub-Sub-Categories found.
+                      </p>
+                    }
+                    hidePlaceholderWhenSelected
+                    triggerSearchOnFocus
+                    disabled={subCategoryMode === "create" || !selectedSubCategory}
+                    creatable
+                  />
+                </div>
+
+                {/* Level 3 - Sub-Sub-Sub-Category */}
+                <div className="space-y-3">
+                  <Label htmlFor="subSubSubCategory" className="text-sm font-medium">
+                    Sub-Sub-Sub-Category (Level 3)
+                  </Label>
+
+                  <MultipleSelector
+                    value={selectedSubSubSubCategory ? [{ label: subSubSubCategories.find(cat => cat.id === selectedSubSubSubCategory)?.name || "", value: selectedSubSubSubCategory }] : []}
+                    onChange={(value) => setSelectedSubSubSubCategory(value[0]?.value || "")}
+                    badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
+                    options={subSubSubCategories
+                      .filter((subSubSub) => subSubSub.parentId === selectedSubSubCategory)
+                      .map((subSubSubCategory) => ({
+                        value: subSubSubCategory.id,
+                        label: subSubSubCategory.name,
+                        isDisabled: selectedSubSubSubCategory === subSubSubCategory.id,
+                      }))}
+                    placeholder="Select Sub-Sub-Sub-Category"
+                    emptyIndicator={
+                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                        No Sub-Sub-Sub-Categories found.
+                      </p>
+                    }
+                    hidePlaceholderWhenSelected
+                    triggerSearchOnFocus
+                    disabled={subSubCategoryMode === "create" || !selectedSubSubCategory}
+                    creatable
+                  />
+                </div>
+              </div>
             </div>
-          </form>
-        </Form>
+
+            <div className="border-t pt-3">
+              <Label className="text-sm mb-2 block">Tags</Label>
+              <div className="flex gap-2">
+                <MultipleSelector
+                  value={selectedTags.map(tag => ({ value: tag, label: tag }))}
+                  onChange={(values) => setSelectedTags(values.map(v => v.value))}
+                  badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
+                  options={availableTags.map((tag) => ({
+                    value: tag,
+                    label: tag,
+                  }))}
+                  // onCreateOption={(newTag) => {
+                  //   setSelectedTags((prev) => [...prev, newTag])
+                  //   setCustomTags((prev) => [...prev, newTag])
+                  // }}
+                  placeholder="Select Tags"
+                  emptyIndicator={
+                    <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                      No Tags found.
+                    </p>
+                  }
+                  hidePlaceholderWhenSelected
+                  triggerSearchOnFocus
+                  creatable
+                />
+              </div>
+            </div>
+
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Save Changes</Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   )

@@ -45,6 +45,14 @@ const menuItems: MenuItem[] = [
     gradient: "",
     iconColor: "text-green-500",
   },
+  {
+    icon: <Settings className="h-5 w-5" />,
+    label: "Configuration",
+    href: "/settings/config",
+    // gradient: "radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(22,163,74,0.06) 50%, rgba(21,128,61,0) 100%)",
+    gradient: "",
+    iconColor: "text-green-500",
+  },
 
 ]
 
