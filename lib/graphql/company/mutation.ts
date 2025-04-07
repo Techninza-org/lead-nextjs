@@ -91,7 +91,13 @@ const UPDATE_COMPANY_TABLE_CONFIG = `
     tableConfig(pre: $pre, suf: $suf, pad: $pad, separator: $separator, tablename: $tablename ) 
 }
 `
+const UPDATE_COMPANY_TABLE_PAGE_CONFIG = `
+  mutation TablePageConfig($pageSize: String!) {
+    tablePageConfig(pageSize: $pageSize) 
+}
+`
 export const companyMutation = {
+  UPDATE_COMPANY_TABLE_PAGE_CONFIG,
   UPDATE_COMPANY_TABLE_CONFIG,
   OTPCONFIG,
   UPDATE_COMPANY_CATEGORIES,

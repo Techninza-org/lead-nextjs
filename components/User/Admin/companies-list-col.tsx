@@ -4,6 +4,7 @@ import HoverCardToolTip from "@/components/hover-card-tooltip";
 import Link from "next/link";
 import { CompanyPlan } from "./update-plan";
 import { CategoryModal } from "./company/category-modal";
+import { Button } from "@/components/ui/button";
 
 export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
     {
@@ -52,25 +53,34 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
         }
     },
     {
+        header: 'Tags',
+        accessorKey: 'tags',
+        cell: ({ row }) => {
+            return (
+                <p>{row.getValue("tags").map(x => <Button size={'sm'} className="mx-1" variant={'secondary'}>{x}</Button>)}</p>
+            )
+        }
+    },
+    {
         id: "actions",
         cell: ({ row }) => {
-          const company = row.original
-          return (
-            <CategoryModal
-              companyId={company.id}
-              initialData={{
-                category: company.category,
-                subCategory: company.subCategory,
-                subCategory2: company.subCategory2,
-                subCategory3: company.subCategory3,
-                subCategory4: company.subCategory4,
-              }}
-              onSuccess={() => {
-                // Refresh your data here
-              }}
-            />
-          )
+            const company = row.original
+            return (
+                <CategoryModal
+                    companyId={company.id}
+                    initialData={{
+                        category: company.category,
+                        subCategory: company.subCategory,
+                        subCategory2: company.subCategory2,
+                        subCategory3: company.subCategory3,
+                        subCategory4: company.subCategory4,
+                    }}
+                    onSuccess={() => {
+                        // Refresh your data here
+                    }}
+                />
+            )
         }
-      }
-      
+    }
+
 ];
