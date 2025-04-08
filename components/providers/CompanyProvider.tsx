@@ -28,6 +28,7 @@ type CompanyContextType = {
     permissions: any;
     permissionsResources: any;
     companyCategories: any;
+    getRootPagination: any;
 };
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
@@ -53,6 +54,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
 
 
     const authToken = useAtomValue(userAuthToken)
+    const [fetchPaginationRoot] = useManualQuery(userQueries.GET_COMPANIES);
 
     const { skip, variables } = {
         skip: ['ROOT', 'MANAGER'].includes(userInfo?.role?.name || "") && !!userInfo?.companyId && !!authToken,
@@ -123,8 +125,8 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const { data: rootDate, loading, error } = useQuery(userQueries.GET_COMPANIES, {
         skip,
         onSuccess: ({ data }) => {
-            if (data?.getRootUsers) setRootInto(data.getRootUsers)
-            if (data?.getRootUsers) setRootMembersAtom(data.getRootUsers)
+            if (data?.getRootUsers?.data) setRootInto(data.getRootUsers?.data)
+            if (data?.getRootUsers?.data) setRootMembersAtom(data.getRootUsers?.data)
         }
     });
 
@@ -182,9 +184,28 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     //     },
     // })
 
+    const getRootPagination = async (page: number, newFilters?: any,) => {
+        try {
+            const { data, error } = await fetchPaginationRoot({ variables: { filters: newFilters, page: page.toString() } });
+
+            if (error) {
+                throw new Error(error.graphQLErrors?.map((e: any) => e.message).join(", "));
+            }
+
+            if (data?.getRootUsers) setRootInto(data?.getRootUsers?.data)
+        } catch (err: any) {
+            // toast({
+            //     title: "Error",
+            //     description: err.message,
+            //     variant: "destructive",
+            // });
+        }
+    };
+
+
     return (
         <CompanyContext.Provider value={{
-            roles, permissions, permissionsResources, companyMemberRoles, companyCategories, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms
+            roles, permissions, getRootPagination, permissionsResources, companyMemberRoles, companyCategories, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms
         }}>
             {children}
         </CompanyContext.Provider>

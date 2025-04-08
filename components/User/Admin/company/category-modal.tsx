@@ -2,78 +2,16 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Card, CardContent } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Pencil, PlusCircle } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Pencil } from "lucide-react"
 import MultipleSelector from "@/components/multi-select-shadcn-expension"
 
-// Sample data based on the provided response
-const initialData = {
-  id: "67c12fe7b77813b908732c84",
-  orgId: "Lead-Backend",
-  rootId: "67644a79bd3b295e0dbdb220",
-  name: "Form Exist",
-  email: "aloksharma10969@gmail.com",
-  phone: "7011609262",
-  categoryId: "67e7d6ffe7f32c617e121668",
-  tags: ["S3-3", "S2-2", "S2", "C1", "T4-1", "T4-2"],
-  isSubscribed: false,
-  createdAt: "2025-02-28T03:10:22.698Z",
-  updatedAt: "2025-03-29T11:18:24.102Z",
-  categories: {
-    id: "67e7d6ffe7f32c617e121668",
-    name: "S3-3",
-    level: 3,
-    parentId: "67e7d6ffe7f32c617e121667",
-    parent: {
-      id: "67e7d6ffe7f32c617e121667",
-      name: "S2-2",
-      level: 2,
-      parentId: "67e7d6ffe7f32c617e121666",
-      parent: {
-        id: "67e7d6ffe7f32c617e121666",
-        name: "S2",
-        level: 1,
-        parentId: "67e7d6ffe7f32c617e121665",
-        parent: {
-          id: "67e7d6ffe7f32c617e121665",
-          name: "C1",
-          level: 0,
-          parentId: null,
-        },
-      },
-    },
-  },
-}
-
-// Available categories
-const categories = [{ id: "67e7d6ffe7f32c617e121665", name: "C1", level: 0, parentId: null }]
-
-const subCategories = [{ id: "67e7d6ffe7f32c617e121666", name: "S2", level: 1, parentId: "67e7d6ffe7f32c617e121665" }]
-
-const subSubCategories = [
-  { id: "67e7d6ffe7f32c617e121667", name: "S2-2", level: 2, parentId: "67e7d6ffe7f32c617e121666" },
-]
-
-const subSubSubCategories = [
-  { id: "67e7d6ffe7f32c617e121668", name: "S3-3", level: 3, parentId: "67e7d6ffe7f32c617e121667" },
-]
-
-// Available tags
-const availableTags = ["S3-3", "S2-2", "S2", "C1", "T4-1", "T4-2", "T4-3", "T5-1", "T5-2"]
-
-export function CategoryModal() {
+export function CategoryModal({ initialData }: any) {
   const [open, setOpen] = useState(false)
-  const [formData, setFormData] = useState(initialData)
+  const [formData, setFormData] = useState(initialData || {})
 
   // Category selection state
   const [categoryMode, setCategoryMode] = useState<"select" | "create">("select")
@@ -81,10 +19,11 @@ export function CategoryModal() {
   const [subSubCategoryMode, setSubSubCategoryMode] = useState<"select" | "create">("select")
   const [subSubSubCategoryMode, setSubSubSubCategoryMode] = useState<"select" | "create">("select")
 
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]?.id || "")
-  const [selectedSubCategory, setSelectedSubCategory] = useState(subCategories[0]?.id || "")
-  const [selectedSubSubCategory, setSelectedSubSubCategory] = useState(subSubCategories[0]?.id || "")
-  const [selectedSubSubSubCategory, setSelectedSubSubSubCategory] = useState(subSubSubCategories[0]?.id || "")
+  // Extract category IDs from initialData
+  const [selectedCategory, setSelectedCategory] = useState("")
+  const [selectedSubCategory, setSelectedSubCategory] = useState("")
+  const [selectedSubSubCategory, setSelectedSubSubCategory] = useState("")
+  const [selectedSubSubSubCategory, setSelectedSubSubSubCategory] = useState("")
 
   const [newCategory, setNewCategory] = useState("")
   const [newSubCategory, setNewSubCategory] = useState("")
@@ -92,9 +31,77 @@ export function CategoryModal() {
   const [newSubSubSubCategory, setNewSubSubSubCategory] = useState("")
 
   // Tags state
-  const [selectedTags, setSelectedTags] = useState(initialData.tags)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState("")
   const [customTags, setCustomTags] = useState<string[]>([])
+
+  // Extract category options from initialData
+  const [categoryOptions, setCategoryOptions] = useState<any[]>([])
+  const [subCategoryOptions, setSubCategoryOptions] = useState<any[]>([])
+  const [subSubCategoryOptions, setSubSubCategoryOptions] = useState<any[]>([])
+  const [subSubSubCategoryOptions, setSubSubSubCategoryOptions] = useState<any[]>([])
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData)
+      setSelectedTags(initialData.tags || [])
+
+      // Extract category hierarchy from initialData
+      if (initialData.categories) {
+        // Level 3 (current category)
+        if (initialData.categories.id) {
+          setSelectedSubSubSubCategory(initialData.categories.id)
+          setSubSubSubCategoryOptions([
+            {
+              id: initialData.categories.id,
+              name: initialData.categories.name,
+              level: initialData.categories.level,
+              parentId: initialData.categories.parentId,
+            },
+          ])
+        }
+
+        // Level 2 (parent)
+        if (initialData.categories.parent) {
+          setSelectedSubSubCategory(initialData.categories.parent.id)
+          setSubSubCategoryOptions([
+            {
+              id: initialData.categories.parent.id,
+              name: initialData.categories.parent.name,
+              level: initialData.categories.parent.level,
+              parentId: initialData.categories.parent.parentId,
+            },
+          ])
+        }
+
+        // Level 1 (grandparent)
+        if (initialData.categories.parent?.parent) {
+          setSelectedSubCategory(initialData.categories.parent.parent.id)
+          setSubCategoryOptions([
+            {
+              id: initialData.categories.parent.parent.id,
+              name: initialData.categories.parent.parent.name,
+              level: initialData.categories.parent.parent.level,
+              parentId: initialData.categories.parent.parent.parentId,
+            },
+          ])
+        }
+
+        // Level 0 (great-grandparent)
+        if (initialData.categories.parent?.parent?.parent) {
+          setSelectedCategory(initialData.categories.parent.parent.parent.id)
+          setCategoryOptions([
+            {
+              id: initialData.categories.parent.parent.parent.id,
+              name: initialData.categories.parent.parent.parent.name,
+              level: initialData.categories.parent.parent.parent.level,
+              parentId: initialData.categories.parent.parent.parent.parentId,
+            },
+          ])
+        }
+      }
+    }
+  }, [initialData])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -109,7 +116,7 @@ export function CategoryModal() {
   }
 
   const handleAddCustomTag = () => {
-    if (newTag && !availableTags.includes(newTag) && !customTags.includes(newTag)) {
+    if (newTag && !selectedTags.includes(newTag) && !customTags.includes(newTag)) {
       setCustomTags((prev) => [...prev, newTag])
       setSelectedTags((prev) => [...prev, newTag])
       setNewTag("")
@@ -183,8 +190,12 @@ export function CategoryModal() {
       customTags: customTags,
     }
 
-    console.log("Form submitted:", updatedData)
-    // Here you would typically send the data to your backend
+    console.log("Form submitted:", updatedData, {
+      category: initialData?.categories?.parent?.parent?.parent?.name,
+      subCategory: initialData?.categories?.parent?.parent?.name,
+      subSubCategory: initialData?.categories?.parent?.name,
+      subSubSubCategory: initialData?.categories?.name,
+    })
 
     setOpen(false)
   }
@@ -192,7 +203,9 @@ export function CategoryModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline"><Pencil size={14}/></Button>
+        <Button variant="outline">
+          <Pencil size={14} />
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -201,26 +214,33 @@ export function CategoryModal() {
 
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="grid grid-cols-1 gap-4">
-
             <div className="space-y-4">
               <Label>Category Hierarchy</Label>
 
               <div className="grid grid-cols-1 gap-4">
                 {/* Level 0 - Category */}
-
                 <div className="space-y-3">
                   <Label htmlFor="category" className="text-sm font-medium">
                     Category (Level 0)
                   </Label>
 
                   <MultipleSelector
-                    value={selectedCategory ? [{ label: categories.find(cat => cat.id === selectedCategory)?.name || "", value: selectedCategory }] : []}
+                    value={
+                      selectedCategory
+                        ? [
+                            {
+                              label: categoryOptions.find((cat) => cat.id === selectedCategory)?.name || "",
+                              value: selectedCategory,
+                            },
+                          ]
+                        : []
+                    }
                     onChange={(value) => setSelectedCategory(value[0]?.value || "")}
                     badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                    options={categories.map((category) => ({
+                    options={categoryOptions.map((category) => ({
                       value: category.id,
                       label: category.name,
-                      isDisabled: selectedCategory === category.id,
+                      // isDisabled: selectedCategory === category.id,
                     }))}
                     placeholder="Select Category"
                     emptyIndicator={
@@ -240,15 +260,24 @@ export function CategoryModal() {
                   </Label>
 
                   <MultipleSelector
-                    value={selectedSubCategory ? [{ label: subCategories.find(cat => cat.id === selectedSubCategory)?.name || "", value: selectedSubCategory }] : []}
+                    value={
+                      selectedSubCategory
+                        ? [
+                            {
+                              label: subCategoryOptions.find((cat) => cat.id === selectedSubCategory)?.name || "",
+                              value: selectedSubCategory,
+                            },
+                          ]
+                        : []
+                    }
                     onChange={(value) => setSelectedSubCategory(value[0]?.value || "")}
                     badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                    options={subCategories
+                    options={subCategoryOptions
                       .filter((sub) => sub.parentId === selectedCategory)
                       .map((subCategory) => ({
                         value: subCategory.id,
                         label: subCategory.name,
-                        isDisabled: selectedSubCategory === subCategory.id,
+                        // isDisabled: selectedSubCategory === subCategory.id,
                       }))}
                     placeholder="Select Sub-Category"
                     emptyIndicator={
@@ -258,7 +287,7 @@ export function CategoryModal() {
                     }
                     hidePlaceholderWhenSelected
                     triggerSearchOnFocus
-                    disabled={categoryMode === "create" || !selectedCategory}
+                    // disabled={categoryMode === "create" || !selectedCategory}
                   />
                 </div>
 
@@ -268,15 +297,24 @@ export function CategoryModal() {
                     Sub-Sub-Category (Level 2)
                   </Label>
                   <MultipleSelector
-                    value={selectedSubSubCategory ? [{ label: subSubCategories.find(cat => cat.id === selectedSubSubCategory)?.name || "", value: selectedSubSubCategory }] : []}
+                    value={
+                      selectedSubSubCategory
+                        ? [
+                            {
+                              label: subSubCategoryOptions.find((cat) => cat.id === selectedSubSubCategory)?.name || "",
+                              value: selectedSubSubCategory,
+                            },
+                          ]
+                        : []
+                    }
                     onChange={(value) => setSelectedSubSubCategory(value[0]?.value || "")}
                     badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                    options={subSubCategories
+                    options={subSubCategoryOptions
                       .filter((subSub) => subSub.parentId === selectedSubCategory)
                       .map((subSubCategory) => ({
                         value: subSubCategory.id,
                         label: subSubCategory.name,
-                        isDisabled: selectedSubSubCategory === subSubCategory.id,
+                        // isDisabled: selectedSubSubCategory === subSubCategory.id,
                       }))}
                     placeholder="Select Sub-Sub-Category"
                     emptyIndicator={
@@ -286,7 +324,7 @@ export function CategoryModal() {
                     }
                     hidePlaceholderWhenSelected
                     triggerSearchOnFocus
-                    disabled={subCategoryMode === "create" || !selectedSubCategory}
+                    // disabled={subCategoryMode === "create" || !selectedSubCategory}
                     creatable
                   />
                 </div>
@@ -298,15 +336,26 @@ export function CategoryModal() {
                   </Label>
 
                   <MultipleSelector
-                    value={selectedSubSubSubCategory ? [{ label: subSubSubCategories.find(cat => cat.id === selectedSubSubSubCategory)?.name || "", value: selectedSubSubSubCategory }] : []}
+                    value={
+                      selectedSubSubSubCategory
+                        ? [
+                            {
+                              label:
+                                subSubSubCategoryOptions.find((cat) => cat.id === selectedSubSubSubCategory)?.name ||
+                                "",
+                              value: selectedSubSubSubCategory,
+                            },
+                          ]
+                        : []
+                    }
                     onChange={(value) => setSelectedSubSubSubCategory(value[0]?.value || "")}
                     badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                    options={subSubSubCategories
+                    options={subSubSubCategoryOptions
                       .filter((subSubSub) => subSubSub.parentId === selectedSubSubCategory)
                       .map((subSubSubCategory) => ({
                         value: subSubSubCategory.id,
                         label: subSubSubCategory.name,
-                        isDisabled: selectedSubSubSubCategory === subSubSubCategory.id,
+                        // isDisabled: selectedSubSubSubCategory === subSubSubCategory.id,
                       }))}
                     placeholder="Select Sub-Sub-Sub-Category"
                     emptyIndicator={
@@ -316,7 +365,7 @@ export function CategoryModal() {
                     }
                     hidePlaceholderWhenSelected
                     triggerSearchOnFocus
-                    disabled={subSubCategoryMode === "create" || !selectedSubSubCategory}
+                    // disabled={subSubCategoryMode === "create" || !selectedSubSubCategory}
                     creatable
                   />
                 </div>
@@ -327,22 +376,18 @@ export function CategoryModal() {
               <Label className="text-sm mb-2 block">Tags</Label>
               <div className="flex gap-2">
                 <MultipleSelector
-                  value={selectedTags.map(tag => ({ value: tag, label: tag }))}
-                  onChange={(values) => setSelectedTags(values.map(v => v.value))}
+                  value={selectedTags.map((tag) => ({ value: tag, label: tag }))}
+                  onChange={(values) => setSelectedTags(values.map((v) => v.value))}
                   badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                  options={availableTags.map((tag) => ({
-                    value: tag,
-                    label: tag,
-                  }))}
-                  // onCreateOption={(newTag) => {
-                  //   setSelectedTags((prev) => [...prev, newTag])
-                  //   setCustomTags((prev) => [...prev, newTag])
-                  // }}
+                  options={
+                    initialData?.tags?.map((tag: string) => ({
+                      value: tag,
+                      label: tag,
+                    })) || []
+                  }
                   placeholder="Select Tags"
                   emptyIndicator={
-                    <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                      No Tags found.
-                    </p>
+                    <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">No Tags found.</p>
                   }
                   hidePlaceholderWhenSelected
                   triggerSearchOnFocus
@@ -350,7 +395,6 @@ export function CategoryModal() {
                 />
               </div>
             </div>
-
           </div>
 
           <div className="flex justify-end space-x-2">

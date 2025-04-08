@@ -27,6 +27,8 @@ import {
 
 import { DataTablePagination } from "@/components/ui/table-pagination"
 import FilterDropdown from "./company/category-filter"
+import { useCompany } from "@/components/providers/CompanyProvider"
+import { useDebounce } from "@/components/multi-select-shadcn-expension"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -53,6 +55,8 @@ export function RootTable<TData, TValue>({
     const [monthData, setMonthData] = React.useState<any[]>([]);
 
     const [selectedMonth, setSelectedMonth] = React.useState<Date | undefined>(undefined);
+
+    const { getRootPagination } = useCompany()
 
     const handleDayClick = (date: Date) => {
         setSelectedMonth(date);
@@ -88,53 +92,55 @@ export function RootTable<TData, TValue>({
         getFacetedUniqueValues: getFacetedUniqueValues(),
     })
 
-    const handleSort = (value: string) => {
-        if (value === 'Contacted') {
-            const currentSorting = table.getState().sorting;
-            const contactedSort = currentSorting.find(sort => sort.id === 'callStatus');
+    const [searchQuery, setSearchQuery] = React.useState('')
+    const [searchResults, setSearchResults] = React.useState<string[]>([])
+    const [appliedFilters, setAppliedFilters] = React.useState<{
+        categories: { id: string; name: string }[]
+        tags: string[]
+    }>({ categories: [], tags: [] })
 
-            const newSorting: SortingState = contactedSort
-                ? [{ id: 'callStatus', desc: !contactedSort.desc }]
-                : [{ id: 'callStatus', desc: false }];
-            setSorting(newSorting);
-        } else if (value === 'Follow Up Date') {
-            const currentSorting = table.getState().sorting;
-            const followUpDateSort = currentSorting.find(sort => sort.id === 'nextFollowUpDate');
+    const debouncedQuery = useDebounce(searchQuery, 500)
 
-            const newSorting: SortingState = followUpDateSort
-                ? [{ id: 'nextFollowUpDate', desc: !followUpDateSort.desc }]
-                : [{ id: 'nextFollowUpDate', desc: false }];
-            setSorting(newSorting);
-        } else {
-            setSorting([]);
+    React.useEffect(() => {
+        const fetchData = async () => {
+            // if (!debouncedQuery) return
+
+            console.log('Fetching API for:', debouncedQuery)
+
+            await getRootPagination(1, { ...appliedFilters, query: debouncedQuery })
+
+            // Mock local filter (if categories object available)
+            const tagMatches = (categories?.tags || []).filter(tag =>
+                tag.toLowerCase().includes(debouncedQuery.toLowerCase())
+            )
+
+            const catMatches = (categories?.categories || [])
+                .map(cat => cat.name)
+                .filter(name => name.toLowerCase().includes(debouncedQuery.toLowerCase()))
+
+            const results = [...tagMatches, ...catMatches]
+
+            setSearchResults(results)
         }
-    }
+
+        fetchData()
+    }, [debouncedQuery, appliedFilters])
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between">
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2">
-                        <FilterDropdown initialData={categories || {}} />
+                        <FilterDropdown
+                            initialData={categories || {}}
+                            onSearch={(query) => setSearchQuery(query)}
+                            onApplyFilters={setAppliedFilters} //
+                        />
                     </div>
-
                     {/* <DataTableToolbar table={table} setFilter={setFilter} /> */}
                 </div>
-
-                {/*
-                <Select onValueChange={(value) => handleSort(value || 'Reset')}>
-                    <SelectTrigger className="w-64">
-                        <SelectValue placeholder="Sort By" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectItem value="Company Name">Company Name</SelectItem>
-                            <SelectItem value="Plan">Plan</SelectItem>
-                            <SelectItem value="None">None</SelectItem>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select> */}
             </div>
+
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>

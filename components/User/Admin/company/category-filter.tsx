@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Search, ChevronRight, ChevronDown, X, Tag, FolderTree, Filter, ChevronUp } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -25,9 +25,38 @@ type CategoryData = {
   tags: string[]
 }
 
-export default function FilterDropdown({ initialData }: { initialData: CategoryData }) {
+// Custom hook for debouncing
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+interface OptimizedFilterDropdownProps {
+  initialData: CategoryData
+  onSearch?: (query: string) => Promise<void>
+  onApplyFilters?: (filters: { categories: { id: string; name: string }[]; tags: string[] }) => void
+}
+
+export default function OptimizedFilterDropdown({
+  initialData,
+  onSearch,
+  onApplyFilters,
+}: OptimizedFilterDropdownProps) {
+  // State
   const [isOpen, setIsOpen] = useState(false)
-  const [data] = useState<CategoryData>(initialData || { categories: [], tags: [] })
+  const [data, setData] = useState<CategoryData>(initialData || { categories: [], tags: [] })
+  const [searchQuery, setSearchQuery] = useState("")
   const [categorySearch, setCategorySearch] = useState("")
   const [tagSearch, setTagSearch] = useState("")
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
@@ -39,16 +68,37 @@ export default function FilterDropdown({ initialData }: { initialData: CategoryD
     categories: { id: string; name: string }[]
     tags: string[]
   }>({ categories: [], tags: [] })
+  const [isSearching, setIsSearching] = useState(false)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
   // Initialize data
   useEffect(() => {
     if (initialData) {
+      setData(initialData)
       setFilteredCategories(initialData.categories || [])
       setFilteredTags(initialData.tags || [])
     }
   }, [initialData])
+
+  // Handle debounced search
+  useEffect(() => {
+    const handleSearch = async () => {
+      if (debouncedSearchQuery && onSearch) {
+        setIsSearching(true)
+        try {
+          await onSearch(debouncedSearchQuery)
+        } catch (error) {
+          console.error("Search error:", error)
+        } finally {
+          setIsSearching(false)
+        }
+      }
+    }
+
+    handleSearch()
+  }, [debouncedSearchQuery, onSearch])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -108,37 +158,52 @@ export default function FilterDropdown({ initialData }: { initialData: CategoryD
   }, [tagSearch, data.tags])
 
   // Toggle category expansion
-  const toggleExpand = (categoryId: string) => {
+  const toggleExpand = useCallback((categoryId: string) => {
     setExpandedCategories((prev) => ({
       ...prev,
       [categoryId]: !prev[categoryId],
     }))
-  }
+  }, [])
 
   // Toggle category selection
-  const toggleCategorySelection = (category: Category) => {
-    setSelectedCategories((prev) => ({
-      ...prev,
-      [category.id]: !prev[category.id],
-    }))
-  }
+  const toggleCategorySelection = useCallback((category: Category) => {
+    setSelectedCategories((prev) => {
+      const newState = { ...prev }
+      newState[category.id] = !prev[category.id]
+      return newState
+    })
+  }, [])
 
   // Toggle tag selection
-  const toggleTagSelection = (tag: string) => {
+  const toggleTagSelection = useCallback((tag: string) => {
     setSelectedTags((prev) => ({
       ...prev,
       [tag]: !prev[tag],
     }))
-  }
+  }, [])
 
   // Clear all selections
-  const clearSelections = () => {
+  const clearSelections = useCallback(() => {
     setSelectedCategories({})
     setSelectedTags({})
-  }
+  }, [])
+
+  // Helper function to get category name by ID
+  const getCategoryNameById = useCallback((id: string, categories: Category[] = []): string => {
+    if (!categories || !Array.isArray(categories)) return ""
+
+    for (const category of categories) {
+      if (category.id === id) return category.name
+
+      const childName = getCategoryNameById(id, category.children)
+      if (childName) return childName
+    }
+
+    return ""
+  }, [])
 
   // Apply filters
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     // Get selected category IDs and names
     const selectedCategoryEntries = Object.entries(selectedCategories)
       .filter(([_, isSelected]) => isSelected)
@@ -150,126 +215,153 @@ export default function FilterDropdown({ initialData }: { initialData: CategoryD
       .filter(([_, isSelected]) => isSelected)
       .map(([tag]) => tag)
 
-    setAppliedFilters({
+    const newFilters = {
       categories: selectedCategoryEntries,
       tags: selectedTagEntries,
-    })
-
-    setIsOpen(false)
-  }
-
-  // Helper function to get category name by ID
-  const getCategoryNameById = (id: string, categories: Category[] = []): string => {
-    if (!categories || !Array.isArray(categories)) return ""
-
-    for (const category of categories) {
-      if (category.id === id) return category.name
-
-      const childName = getCategoryNameById(id, category.children)
-      if (childName) return childName
     }
 
-    return ""
-  }
+    setAppliedFilters(newFilters)
+    setIsOpen(false)
+
+    // Call the onApplyFilters callback if provided
+    if (onApplyFilters) {
+      onApplyFilters(newFilters)
+    }
+  }, [selectedCategories, selectedTags, getCategoryNameById, data.categories, onApplyFilters])
 
   // Clear applied filters
-  const clearAppliedFilters = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setAppliedFilters({ categories: [], tags: [] })
-    clearSelections()
-  }
+  const clearAppliedFilters = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setAppliedFilters({ categories: [], tags: [] })
+      clearSelections()
+
+      // Call the onApplyFilters callback with empty filters if provided
+      if (onApplyFilters) {
+        onApplyFilters({ categories: [], tags: [] })
+      }
+    },
+    [clearSelections, onApplyFilters],
+  )
 
   // Remove a specific filter
-  const removeFilter = (type: "category" | "tag", value: string, e: React.MouseEvent) => {
-    e.stopPropagation()
+  const removeFilter = useCallback(
+    (type: "category" | "tag", value: string, e: React.MouseEvent) => {
+      e.stopPropagation()
 
-    if (type === "category") {
-      // Find the category ID to remove
-      const categoryToRemove = appliedFilters.categories.find((cat) => cat.name === value)
+      if (type === "category") {
+        // Find the category ID to remove
+        const categoryToRemove = appliedFilters.categories.find((cat) => cat.name === value)
 
-      if (categoryToRemove) {
-        // Remove from selected categories
-        setSelectedCategories((prev) => ({
+        if (categoryToRemove) {
+          // Remove from selected categories
+          setSelectedCategories((prev) => ({
+            ...prev,
+            [categoryToRemove.id]: false,
+          }))
+
+          // Remove from applied filters
+          const newFilters = {
+            ...appliedFilters,
+            categories: appliedFilters.categories.filter((cat) => cat.name !== value),
+          }
+
+          setAppliedFilters(newFilters)
+
+          // Call the onApplyFilters callback if provided
+          if (onApplyFilters) {
+            onApplyFilters(newFilters)
+          }
+        }
+      } else {
+        // Remove tag
+        setSelectedTags((prev) => ({
           ...prev,
-          [categoryToRemove.id]: false,
+          [value]: false,
         }))
 
-        // Remove from applied filters
-        setAppliedFilters((prev) => ({
-          ...prev,
-          categories: prev.categories.filter((cat) => cat.name !== value),
-        }))
+        const newFilters = {
+          ...appliedFilters,
+          tags: appliedFilters.tags.filter((tag) => tag !== value),
+        }
+
+        setAppliedFilters(newFilters)
+
+        // Call the onApplyFilters callback if provided
+        if (onApplyFilters) {
+          onApplyFilters(newFilters)
+        }
       }
-    } else {
-      // Remove tag
-      setSelectedTags((prev) => ({
-        ...prev,
-        [value]: false,
-      }))
-
-      setAppliedFilters((prev) => ({
-        ...prev,
-        tags: prev.tags.filter((tag) => tag !== value),
-      }))
-    }
-  }
+    },
+    [appliedFilters, onApplyFilters],
+  )
 
   // Render a category and its children recursively
-  const renderCategory = (category: Category) => {
-    const isExpanded = expandedCategories[category.id]
-    const isSelected =
-      selectedCategories[category.id] || appliedFilters.categories.some((cat) => cat.id === category.id)
-    const hasChildren = category.children && category.children.length > 0
+  const renderCategory = useCallback(
+    (category: Category) => {
+      const isExpanded = expandedCategories[category.id]
+      const isSelected =
+        selectedCategories[category.id] || appliedFilters.categories.some((cat) => cat.id === category.id)
+      const hasChildren = category.children && category.children.length > 0
 
-    return (
-      <div key={category.id} className="ml-2">
-        <div className="flex items-center py-0.5">
-          {hasChildren && (
-            <Button variant="ghost" size="icon" className="h-4 w-4 p-0 mr-1" onClick={() => toggleExpand(category.id)}>
-              {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            </Button>
-          )}
-          {!hasChildren && <div className="w-4" />}
-          <Checkbox
-            id={category.id}
-            checked={isSelected}
-            onCheckedChange={() => toggleCategorySelection(category)}
-            className="mr-1 h-3 w-3"
-          />
-          <label htmlFor={category.id} className="text-xs cursor-pointer">
-            {category.name}
-          </label>
-        </div>
-        {isExpanded && hasChildren && (
-          <div className="ml-1 border-l pl-1 border-border">
-            {category.children.map((child) => renderCategory(child))}
+      return (
+        <div key={category.id} className="ml-2">
+          <div className="flex items-center py-0.5">
+            {hasChildren && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-4 w-4 p-0 mr-1"
+                onClick={() => toggleExpand(category.id)}
+              >
+                {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              </Button>
+            )}
+            {!hasChildren && <div className="w-4" />}
+            <Checkbox
+              id={category.id}
+              checked={isSelected}
+              onCheckedChange={() => toggleCategorySelection(category)}
+              className="mr-1 h-3 w-3"
+            />
+            <label htmlFor={category.id} className="text-xs cursor-pointer">
+              {category.name}
+            </label>
           </div>
-        )}
-      </div>
-    )
-  }
+          {isExpanded && hasChildren && (
+            <div className="ml-1 border-l pl-1 border-border">
+              {category.children.map((child) => renderCategory(child))}
+            </div>
+          )}
+        </div>
+      )
+    },
+    [expandedCategories, selectedCategories, appliedFilters.categories, toggleExpand, toggleCategorySelection],
+  )
 
   // Initialize selected items based on applied filters
   useEffect(() => {
     // Set selected categories based on applied filters
+    const newSelectedCategories = { ...selectedCategories }
+
     appliedFilters.categories.forEach((category) => {
-      setSelectedCategories((prev) => ({
-        ...prev,
-        [category.id]: true,
-      }))
+      newSelectedCategories[category.id] = true
     })
+
+    setSelectedCategories(newSelectedCategories)
 
     // Set selected tags based on applied filters
+    const newSelectedTags = { ...selectedTags }
+
     appliedFilters.tags.forEach((tag) => {
-      setSelectedTags((prev) => ({
-        ...prev,
-        [tag]: true,
-      }))
+      newSelectedTags[tag] = true
     })
-  }, [])
+
+    setSelectedTags(newSelectedTags)
+  }, []) // Only run once on mount
 
   // Get selected items for display
-  const getSelectedItems = () => {
+  const getSelectedItems = useCallback(() => {
     // Get selected category names
     const categoryNames = Object.entries(selectedCategories)
       .filter(([_, isSelected]) => isSelected)
@@ -282,7 +374,7 @@ export default function FilterDropdown({ initialData }: { initialData: CategoryD
       .map(([tag]) => tag)
 
     return { categoryNames, tags }
-  }
+  }, [selectedCategories, selectedTags, getCategoryNameById, data.categories])
 
   const { categoryNames: selectedCategoryNames, tags: selectedTagNames } = getSelectedItems()
   const totalSelected = selectedCategoryNames.length + selectedTagNames.length
@@ -291,17 +383,35 @@ export default function FilterDropdown({ initialData }: { initialData: CategoryD
   if (!initialData || Object.keys(initialData).length === 0) return null
 
   return (
-    <div className="relative inline-block" ref={dropdownRef}>
-      {/* Filter Button */}
-      <Button
-        variant="outline"
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn("flex items-center gap-2", totalApplied > 0 ? "bg-primary/10" : "")}
-      >
-        <Filter className="h-4 w-4" />
-        <span>{totalApplied > 0 ? `Filters (${totalApplied})` : "Filters"}</span>
-        {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-      </Button>
+    <div className="relative" ref={dropdownRef}>
+      <div className="flex items-center gap-2">
+        {/* Filter Button */}
+        <Button
+          variant="outline"
+          onClick={() => setIsOpen(!isOpen)}
+          className={cn("flex items-center gap-2", totalApplied > 0 ? "bg-primary/10" : "")}
+        >
+          <Filter className="h-4 w-4" />
+          <span>{totalApplied > 0 ? `Filters (${totalApplied})` : "Filters"}</span>
+          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </Button>
+
+        {/* Search Input */}
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search..."
+            className="pl-8 h-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {isSearching && (
+            <div className="absolute right-2 top-2.5">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Applied Filters */}
       {totalApplied > 0 && (
@@ -471,4 +581,3 @@ export default function FilterDropdown({ initialData }: { initialData: CategoryD
     </div>
   )
 }
-

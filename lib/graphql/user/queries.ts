@@ -23,8 +23,8 @@ const GET_MEMBERS = `
 `
 
 const GET_COMPANIES = `
-  query getRootUsers {
-    getRootUsers 
+  query getRootUsers($filters: JSON, $page: String) {
+    getRootUsers(filters: $filters, page: $page) 
   }
 `;
 

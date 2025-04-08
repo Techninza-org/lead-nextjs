@@ -2,10 +2,23 @@ import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
 import HoverCardToolTip from "@/components/hover-card-tooltip";
 import Link from "next/link";
-import { CompanyPlan } from "./update-plan";
 import { CategoryModal } from "./company/category-modal";
 import { Button } from "@/components/ui/button";
 
+export function getCategoryNames(category: any) {
+    const categories = []
+  
+    let current = category
+    while (current) {
+      categories.push({ name: current.name, level: current.level ?? 0 })
+      current = current.parent
+    }
+  
+    categories.sort((a, b) => a.level - b.level)
+  
+    return categories.map(cat => cat.name)
+  }
+  
 export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
     {
         header: 'Root Id',
@@ -56,8 +69,22 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
         header: 'Tags',
         accessorKey: 'tags',
         cell: ({ row }) => {
+            const categorires = (row.original.categories)
+            const categories = getCategoryNames(categorires)
             return (
-                <p>{row.getValue("tags").map(x => <Button size={'sm'} className="mx-1" variant={'secondary'}>{x}</Button>)}</p>
+                <p>
+                    {[...categories, ...row.getValue("tags")]
+                        // .sort((a, b) => {
+                        //     const levelA = a?.level ?? 99 // If undefined, push to end
+                        //     const levelB = b?.level ?? 99
+                        //     return levelA - levelB
+                        // })
+                        .map((x, index) => (
+                            <Button key={index} size="sm" className="mx-1" variant="secondary">
+                                {x?.name || x} {/* Show name if available, fallback to raw value */}
+                            </Button>
+                        ))}
+                </p>
             )
         }
     },
@@ -68,13 +95,7 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
             return (
                 <CategoryModal
                     companyId={company.id}
-                    initialData={{
-                        category: company.category,
-                        subCategory: company.subCategory,
-                        subCategory2: company.subCategory2,
-                        subCategory3: company.subCategory3,
-                        subCategory4: company.subCategory4,
-                    }}
+                    initialData={{categories : row.original.categories, tags: row.original.tags}}
                     onSuccess={() => {
                         // Refresh your data here
                     }}
