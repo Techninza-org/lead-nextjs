@@ -19,33 +19,36 @@ export const ViewLeadInfo = ({ lead, changeView, tableName }: ViewLeadInfoProps)
   const handleClick = async () => {
     try {
       // Open modal immediately with initial lead data
-      onOpen("viewLeadInfo", { 
-        lead: { ...lead, isLoading: true }, 
-        table: { changeView } 
+      onOpen("viewLeadInfo", {
+        lead: { ...lead, isLoading: true },
+        table: { changeView }
       })
 
       setIsLoading(true)
-      
+
       // Fetch child data
       const data = await getChildData(tableName, lead._id ?? lead.id)
-      
+
       // Update modal with fetched data
-      onOpen("viewLeadInfo", { 
-        lead: { ...data.data, isLoading: false }, 
-        table: { changeView: data.changeView } 
+      onOpen("viewLeadInfo", {
+        lead: { ...data.data, isLoading: false },
+        table: { changeView: data.changeView }
       })
     } catch (error) {
       console.error("Error fetching child data:", error)
-      
+
       // Update modal to show error state
-      onOpen("viewLeadInfo", { 
-        lead: { ...lead, isLoading: false, error: true }, 
-        table: { changeView } 
+      onOpen("viewLeadInfo", {
+        lead: { ...lead, isLoading: false, error: true },
+        table: { changeView }
       })
     } finally {
       setIsLoading(false)
     }
   }
+
+  const firstKey = Object.keys(lead)[1] as keyof typeof lead;
+  const firstValue = lead?.[firstKey];
 
   return (
     <div className="flex items-center gap-2">
@@ -53,7 +56,7 @@ export const ViewLeadInfo = ({ lead, changeView, tableName }: ViewLeadInfoProps)
         className={`text-blue-900 ${isLoading ? "cursor-not-allowed" : "cursor-pointer hover:underline"}`}
         onClick={handleClick}
       >
-        {lead.name}
+        {firstValue}
       </span>
       {isLoading && (
         <Loader2 className="h-4 w-4 animate-spin text-blue-900" />

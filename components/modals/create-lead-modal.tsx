@@ -111,7 +111,7 @@ export const LeadForm = ({ fields, onClose }: {
     });
 
 
-    const validationSchema = fields?.fields.reduce((acc: any, field: any) => {
+    const validationSchema = fields?.fields?.reduce((acc: any, field: any) => {
         if (field.isRequired) {
             acc[field.name] = { required: "Required" };
         }

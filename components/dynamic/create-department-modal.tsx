@@ -1,6 +1,6 @@
 // @ts-nocheck
 "use client"
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm, useFieldArray, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -24,6 +24,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn, genHardCodedFields, parseCSVToJson } from '@/lib/utils'
 import { ScrollArea } from '../ui/scroll-area'
 import { NestedCombobox } from '../ui/nested-combobox'
+import TableConfigPage from '@/app/(root_manager)/settings/config/page'
 
 const DepartmentSchema = z.object({
     deptFields: z.array(z.object({
@@ -41,6 +42,7 @@ const DepartmentSchema = z.object({
 })
 
 export const fieldTypes = [
+    { value: "xId", label: "Custom Id" },
     { value: "INPUT", label: "Input" },
     { value: "CURRENCY", label: "Currency" },
     { value: "PHONE", label: "Phone" },
@@ -61,6 +63,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
     const [currIdx, setCurrIdx] = useState(0)
     const userInfo = useAtomValue(userAtom)
     const [currentOptionsIndx, setCurrentOptionsIndx] = useState(0)
+    const [loading, setLoading] = useState(false)
+    const tableConfigRef = useRef<TableConfigPageRef>(null)
+
     const { toast } = useToast()
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -95,8 +100,6 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
         data?.getCompanyDeptFields?.filter(field => String(field.name) === String(decodeURIComponent(deptName))) || [],
         [data, deptName])
 
-    console.log(filteredDeptFields, 'filteredDeptFields')
-
     useEffect(() => {
         if (filteredDeptFields.length > 0) {
             const sortedSubDeptFields = filteredDeptFields[0]?.fields?.sort((a, b) => a.order - b.order) || []
@@ -107,7 +110,15 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
     }, [filteredDeptFields, form])
 
     const onSubmit = useCallback(async (values) => {
-        const filteredFields = values.deptFields.filter(field => !field.isHardCoded)
+        setLoading(true)
+        const filteredFields = values.deptFields.map(field => {
+            if (field.fieldType === "xId" && field.name !== "xId") {
+                return { ...field, name: "xId" };
+            }
+            return field;
+        }).filter(field => !field.isHardCoded);
+        const hasXIdField = values.deptFields.some((field) => field.fieldType === "xId")
+
 
         try {
             const { data, error } = await updateDepartmentFields({
@@ -125,6 +136,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
             });
 
             if (error) {
+                setLoading(false)
                 const message = error?.graphQLErrors?.map((e) => e.message).join(", ");
                 toast({
                     title: 'Error',
@@ -134,12 +146,18 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                 return;
             }
 
+            if (hasXIdField && tableConfigRef.current) {
+                await tableConfigRef.current.handleSubmit()
+            }
+
+
             toast({
                 variant: "default",
                 title: "Department Form Updated Successfully!",
             });
 
         } catch (error) {
+            setLoading(false)
             console.error(error);
         }
     }, [categoryName, companyDeptFormId, deptId, deptName, toast, updateDepartmentFields])
@@ -194,6 +212,9 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
     const renderFieldOptions = useCallback(() => {
         const fieldType = form.watch(`deptFields.${currIdx}.fieldType`)
 
+        if (["xId"].includes(fieldType)) {
+            return <TableConfigPage isApiHit={false} tableName={decodeURIComponent(deptName)} ref={tableConfigRef} />
+        }
         if (['TAG'].includes(fieldType)) {
             return (
                 <div className="mt-4">
@@ -655,6 +676,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                             {fields.map((field, index) => {
                                 const isDisabled = form.watch(`deptFields.${index}.isDisabled`);
                                 const isHardCoded = form.watch(`deptFields.${index}.isHardCoded`);
+                                const isXIdField = form.watch(`deptFields.${index}.fieldType`) === "xId";
+                                if (isXIdField) {
+                                    form.setValue(`deptFields.${index}.name`, 'xId')
+                                }
 
                                 return (
                                     <div
@@ -662,13 +687,13 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         className={`mb-4 border p-4 rounded-md ${currIdx === index ? 'bg-blue-50' : ''
                                             } ${isDisabled || isHardCoded ? 'opacity-50 pointer-events-none' : ''}`}
                                         onClick={() => !isDisabled && !isHardCoded && setCurrIdx(index)}
-                                        aria-disabled={isDisabled || isHardCoded}
+                                        aria-disabled={isDisabled || isHardCoded || isXIdField}
                                     >
                                         <div className="grid grid-cols-8 gap-2">
                                             <div className="col-span-3">
                                                 <FormField
                                                     control={form.control}
-                                                    disabled={isDisabled}
+                                                    disabled={isDisabled || isXIdField}
                                                     name={`deptFields.${index}.name`}
                                                     render={({ field: nameField }) => (
                                                         <FormItem>

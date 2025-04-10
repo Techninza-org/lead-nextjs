@@ -92,8 +92,8 @@ const UPDATE_COMPANY_TABLE_CONFIG = `
 }
 `
 const UPDATE_COMPANY_TABLE_PAGE_CONFIG = `
-  mutation TablePageConfig($pageSize: String!) {
-    tablePageConfig(pageSize: $pageSize) 
+  mutation TablePageConfig($id: String!, $pageSize: String!) {
+    tablePageConfig(id: $id, pageSize: $pageSize) 
 }
 `
 export const companyMutation = {
