@@ -11,10 +11,16 @@ import { useModal } from "@/hooks/use-modal-store";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { leadMutation } from "@/lib/graphql/lead/mutation";
 import AdvanceDataTable from "../Table/advance-table";
+import { useMutation } from "graphql-hooks";
+import { companyMutation } from "@/lib/graphql/company/mutation";
+import { useToast } from "../ui/use-toast";
 
 export const LeadTable = () => {
     const { onOpen } = useModal()
+    const { companyFunctions } = useCompany();
+
     const [leadInfo]: any = useAtom(leads)
+    const { toast } = useToast()
     const colsName = [
         'name',
         'email',
@@ -23,9 +29,46 @@ export const LeadTable = () => {
     ]
     const addLeadForm = useCompany().optForms?.find((x: any) => x.name === "Lead")
 
+    const [executeDynamicFunction, { loading: assignLoading }] = useMutation(companyMutation.FUNCTION_EXCUTE)
+
+    const onSubmit = async (data: any) => {
+        const { data: formRes, error } = await executeDynamicFunction({
+            variables: {
+                functionName: data.functionName
+            }
+        })
+
+        if (error) {
+            const message = error?.graphQLErrors?.map((e: any) => e.message).join(", ")
+            toast({
+                title: 'Error',
+                description: message || "Something went wrong",
+                variant: "destructive"
+            })
+            return;
+        }
+
+        toast({
+            variant: "default",
+            title: "Form Updated Successfully!",
+        })
+    }
+
+
     const MoreInfoLead = ({ selectedLeads }: { selectedLeads: any[] }) => {
         return (
             <div className="flex gap-2 ml-auto">
+                {companyFunctions.map(item => (
+                    <Button
+                        key={item.functionName}
+                        onClick={() => onSubmit(item)}
+                        variant={'default'}
+                        size={"sm"}
+                        className="items-center gap-1"
+                    >
+                        {item.functionName}
+                    </Button>
+                ))}
                 <Button
                     onClick={() => onOpen("assignLead", { leads: selectedLeads, apiUrl: leadMutation.LEAD_ASSIGN_TO, query: "Lead" })}
                     variant={'default'}

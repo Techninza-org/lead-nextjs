@@ -73,6 +73,18 @@ mutation otpConfig(
 }
 `;
 
+const FUNCTION_EXCUTE = `
+mutation executeDynamicFunction(
+    $functionName: String!
+    $params: JSON
+) {
+    executeDynamicFunction(
+        functionName: $functionName
+        params: $params
+    )
+}
+`;
+
 
 const UPDATE_DEPT_FORM_NAMES = `
   mutation UpdateDeptFormNames($categoryName: String!, $formName: String!, $companyDeptFormId: String!) {
@@ -98,6 +110,7 @@ const UPDATE_COMPANY_TABLE_PAGE_CONFIG = `
 `
 export const companyMutation = {
   UPDATE_COMPANY_TABLE_PAGE_CONFIG,
+  FUNCTION_EXCUTE,
   UPDATE_COMPANY_TABLE_CONFIG,
   OTPCONFIG,
   UPDATE_COMPANY_CATEGORIES,

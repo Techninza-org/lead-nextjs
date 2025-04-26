@@ -52,7 +52,7 @@ export const AssignLeadModal = () => {
 
     const { isOpen, onClose, type, data: modalData } = useModal();
     const { leads, apiUrl, query: formName } = modalData;
-    const leadIds = leads?.map((lead: z.infer<typeof createLeadSchema>) => lead?.id)
+    const leadIds = leads?.map((lead: z.infer<typeof createLeadSchema>) => lead?._id || lead?.id)
 
     const [leadAssignTo, { loading: assignLoading }] = useMutation(apiUrl ?? "")
 
@@ -144,7 +144,7 @@ export const AssignLeadModal = () => {
                     </div>
                 </ScrollArea>
                 <div>
-                   {searchParms.get('apiType')?.split("_")?.[2] && <Button variant={'ghost'} size={'sm'}>And Others {searchParms.get('apiType')?.split("_")?.[2]} Selected...</Button>}
+                    {searchParms.get('apiType')?.split("_")?.[2] && <Button variant={'ghost'} size={'sm'}>And Others {searchParms.get('apiType')?.split("_")?.[2]} Selected...</Button>}
                 </div>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>

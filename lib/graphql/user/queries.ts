@@ -228,7 +228,21 @@ const  GET_DISCTINT_CATEGORY = `
     getDistinctCategories
   }
 `
+
+const  GET_COMPANY_FUNCTION = `
+  query getCompanyFunctions {
+    getCompanyFunctions {
+      functionName
+      desc
+      returnType
+      order
+      viewName
+      isActive
+    }
+  }
+`
 export const userQueries = {
+  GET_COMPANY_FUNCTION,
   GET_COMPANIES_CATEGORIES,
   GET_COMPANY_DEPT_MEMBERS,
   GET_COMPANIES,
