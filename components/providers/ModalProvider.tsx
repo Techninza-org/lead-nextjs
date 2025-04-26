@@ -25,6 +25,7 @@ import { ChildDetailsModal } from "../modals/child-form-table-modal";
 import { CreateRoleModal } from "../modals/create-role-modal";
 import { BulkOperationModal } from "../modals/bulk-operation-modal";
 import { EditDeptFormModal } from "../modals/edit-form-modal";
+import { CompanySettingsModal } from "../modals/company-settings-modal";
 
 
 export const ModalProvider = () => {
@@ -39,6 +40,7 @@ export const ModalProvider = () => {
 
   return (
     <>
+      <CompanySettingsModal />
       <EditDeptFormModal />
       <ChildDetailsModal />
       <BulkOperationModal />

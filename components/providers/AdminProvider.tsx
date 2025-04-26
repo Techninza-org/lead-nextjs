@@ -37,7 +37,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     })
 
     return (
-        <AdminContext.Provider value={{ departmentsForms }}>
+        <AdminContext.Provider value={{departmentsForms }}>
             {children}
         </AdminContext.Provider>
     );

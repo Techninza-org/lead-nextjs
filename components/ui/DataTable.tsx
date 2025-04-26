@@ -102,7 +102,7 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4">
       <div className="flex justify-between">
         <DataTableToolbar table={table} data={data} setFilter={setFilter} />
-        <DatePickerWithRange date={date} setDate={setDate} disabledDates={{ after: new Date() }} />
+        {/* <DatePickerWithRange date={date} setDate={setDate} disabledDates={{ after: new Date() }} /> */}
       </div>
       <div className="rounded-md border">
         <Table>

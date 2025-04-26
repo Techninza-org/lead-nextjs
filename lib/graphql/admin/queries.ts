@@ -25,6 +25,12 @@ const GET_DEPT_FIELDS = `
   }
 `;
 
+const getCompnayFunctions = `
+query GetCompnayFunctionsAdmin($orgId: String!){
+ getCompnayFunctionsAdmin(orgId: $orgId)
+}
+`
+
 const ASSIGNFORMTOROOT = `
   mutation assignFormC2C(
       $sourceValue: String
@@ -40,4 +46,5 @@ const ASSIGNFORMTOROOT = `
 export const adminQueries = {
   GET_DEPT_FIELDS,
   ASSIGNFORMTOROOT,
+  getCompnayFunctions,
 };

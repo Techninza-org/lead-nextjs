@@ -56,6 +56,13 @@ interface Role {
   }
 }
 
+const GET_COMPANY_SETTINGS = `
+  query _GetCompanySettings($companyId: String!) {
+    _getCompanySettings(companyId: $companyId)
+  }
+`
+
+
 export const RolePerimssionFilterListConfig = () => {
   const userInfo = useAtomValue(userAtom)
   const { isOpen, onClose, type, data: modalData } = useModal()
@@ -421,7 +428,7 @@ export const RolePerimssionFilterListConfig = () => {
               <TabsTrigger value="list">List View</TabsTrigger>
               <TabsTrigger value="change">Change View</TabsTrigger>
               <TabsTrigger value="relations">Relations</TabsTrigger>
-              <TabsTrigger value="action_buttons">Action Buttons</TabsTrigger>
+              {<TabsTrigger value="action_buttons">Action Buttons</TabsTrigger>}
             </div>
             <Button onClick={onSubmit}>Submit</Button>
           </TabsList>
