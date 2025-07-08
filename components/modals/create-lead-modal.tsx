@@ -90,6 +90,8 @@ export const LeadForm = ({ fields, onClose }: {
     fields: any,
     onClose: any,
 }) => {
+    console.log("Fields in LeadForm:", fields);
+    
     const { toast } = useToast()
     const [files, setFiles] = useState<File[] | null>([]);
     const { handleCreateLead } = useLead()
@@ -111,7 +113,7 @@ export const LeadForm = ({ fields, onClose }: {
     });
 
 
-    const validationSchema = fields?.fields?.reduce((acc: any, field: any) => {
+    const validationSchema = fields?.fields?.Lead.reduce((acc: any, field: any) => {
         if (field.isRequired) {
             acc[field.name] = { required: "Required" };
         }
@@ -119,7 +121,7 @@ export const LeadForm = ({ fields, onClose }: {
     }, {});
 
     const form = useForm({
-        defaultValues: fields?.fields.reduce((acc: any, field: any) => {
+        defaultValues: fields?.fields.Lead.reduce((acc: any, field: any) => {
             acc[field.name] = "";
             return acc;
         }, {}),
@@ -249,7 +251,7 @@ export const LeadForm = ({ fields, onClose }: {
         }
     };
 
-    const sortedFields = fields?.fields.sort((a: any, b: any) => a.order - b.order);
+    const sortedFields = fields?.fields.Lead.sort((a: any, b: any) => a.order - b.order);
 
 
     const handleClose = () => {
@@ -687,7 +689,7 @@ export const LeadForm = ({ fields, onClose }: {
                                                     defaultValue={cfield.value}
                                                     className="flex flex-col space-y-1"
                                                 >
-                                                    {cfield.options.map((option: any) => (
+                                                    {cfield.options?.map((option: any) => (
                                                         <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
                                                             <FormControl>
                                                                 <RadioGroupItem value={option.value} />

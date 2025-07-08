@@ -29,6 +29,7 @@ type CompanyContextType = {
     permissionsResources: any;
     companyCategories: any;
     getRootPagination: any;
+    // companyFunctions: any;
 };
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
@@ -51,7 +52,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const [permissions, setPermissions] = useState<any[]>([])
     const [permissionsResources, setPermissionsResources] = useState<any[]>([])
     const [companyCategories, setCompanyCategories] = useState<any[]>([])
-    const [companyFunctions, setCompanyFunctions] = useState<any[]>([])
+    // const [companyFunctions, setCompanyFunctions] = useState<any[]>([])
 
 
     const authToken = useAtomValue(userAuthToken)
@@ -131,12 +132,12 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
         }
     });
 
-    const {  } = useQuery(userQueries.GET_COMPANY_FUNCTION, {
-        skip,
-        onSuccess: ({ data }) => {
-            if (data?.getCompanyFunctions) setCompanyFunctions(data.getCompanyFunctions)
-        }
-    });
+    // const {  } = useQuery(userQueries.GET_COMPANY_FUNCTION, {
+    //     skip,
+    //     onSuccess: ({ data }) => {
+    //         if (data?.getCompanyFunctions) setCompanyFunctions(data.getCompanyFunctions)
+    //     }
+    // });
 
     const { data: leadRange, loading: leadRangeLoader, error: leadRangeError, refetch } = useQuery(leadQueries.GET_LEADS_BY_DATE_RANGE, {
         skip,
@@ -163,6 +164,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
             companyId: userInfo?.companyId,
         },
         onSuccess: ({ data }) => {
+            
             setRoles(data.getRoles)
             //   if (data.getRoles.length > 0) {
             //     setSelectedRole(data.getRoles[0].id)
@@ -172,6 +174,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const { } = useQuery(userQueries.GET_PERMISSIONS, {
         skip,
         onSuccess: ({ data }) => {
+            
             setPermissions(formatPermissions(data.getPermissions))
         }
     })
@@ -179,6 +182,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const { } = useQuery(userQueries.COMPANY_RESOURCES, {
         skip,
         onSuccess: ({ data }) => {
+            
             if (data.permissioResources)
                 setPermissionsResources(data.permissioResources)
         },
@@ -213,7 +217,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
 
     return (
         <CompanyContext.Provider value={{
-            roles, permissions, getRootPagination, companyFunctions, permissionsResources, companyMemberRoles, companyCategories, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms
+            roles, permissions, getRootPagination, permissionsResources, companyMemberRoles, companyCategories, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms
         }}>
             {children}
         </CompanyContext.Provider>

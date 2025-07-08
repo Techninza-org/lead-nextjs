@@ -28,6 +28,8 @@ export function PermissionConfig() {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log("apiRole", apiRole);
+      
       if (!apiRole) return
       setRoles(apiRole)
     }
@@ -35,6 +37,8 @@ export function PermissionConfig() {
   }, [apiRole])
 
   useEffect(() => {
+    console.log("resources", resources);
+    
     const filtered = resources.filter((resource: any) =>
       resource.name.toLowerCase().includes(filterValue.toLowerCase())
     )
@@ -154,10 +158,12 @@ export function PermissionConfig() {
           </TableHeader>
           <TableBody>
             {(filteredResources.length > 0 ? filteredResources : resources).map((resource: any) => {
+              
+              
               const rolePermissions = roles.find((r) => r.id === selectedRole)?.permissions || []
+              
 
               const currResource = permissionsResources?.models?.find((r: any) => r.name == resource.name)
-              console.log(currResource, "resource.name", resource.name)
               const currResourceRelation = permissionsResources?.relationships?.filter((r: any) => r.name === resource.name && r.name === r.fromModel)
               return (
                 <TableRow key={resource.name}>

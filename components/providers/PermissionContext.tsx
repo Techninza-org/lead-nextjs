@@ -71,7 +71,6 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
         if (data?.getRolePermissions) {
             setPermissions(data.getRolePermissions.map((x: any) => ({ name: `${x.permission.actions.toUpperCase()}:${x.permission.resource.toUpperCase()}` })));
             setCompanyPermissions(data.getRolePermissions.map((x: any) => ({ name: `${x.permission.actions}:${x.permission.resource}` })));
-            console.log(data.getRolePermissions.map((x: any) => ({ name: `${x.permission.actions}:${x.permission.resource}` })), 'companyPermissions')
         }
         // if (companyPermission?.getCompanyPermissions) {
         //     setCompanyPermissions(companyPermission.getCompanyPermissions.permissions);

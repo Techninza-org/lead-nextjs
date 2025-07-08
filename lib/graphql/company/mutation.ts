@@ -72,6 +72,40 @@ mutation otpConfig(
     )
 }
 `;
+const CREATE_COMPANY_FUNCTION = `
+mutation createCompanyFunction(
+  $orgId: String!
+  $functionName: String!
+  $functionType: String!
+  $desc: String!
+  $viewName: String!
+  $returnType: JSON!
+  $companyId: String!
+  $tags: [String!]
+  $isUserIntervation: Boolean!
+  $isValid: Boolean!
+  $variables: [String!]
+  $individualButton: Boolean = false
+) {
+  createCompanyFunction(
+    orgId: $orgId
+    functionName: $functionName
+    functionType: $functionType
+    desc: $desc
+    viewName: $viewName
+    returnType: $returnType
+    companyId: $companyId
+    tags: $tags
+    isUserIntervation: $isUserIntervation
+    isValid: $isValid
+    variables: $variables
+    individualButton: $individualButton
+  ) {
+    id
+    functionName 
+  }
+}`;
+
 
 const FUNCTION_EXCUTE = `
 mutation executeDynamicFunction(
@@ -108,6 +142,26 @@ const UPDATE_COMPANY_TABLE_PAGE_CONFIG = `
     tablePageConfig(id: $id, pageSize: $pageSize) 
 }
 `
+
+const EDIT_COMPANY_FUNCTION = `
+mutation editCompanyFunctionDescriptionAndisValid(
+  $functionId: ID!
+  $desc: String!
+  $isValid: Boolean!
+  $tags: [String!]
+) {
+  editCompanyFunctionDescriptionAndisValid(
+    functionId: $functionId
+    desc: $desc
+    isValid: $isValid
+    tags: $tags
+  ) {
+    desc
+  }
+}
+`;
+
+
 export const companyMutation = {
   UPDATE_COMPANY_TABLE_PAGE_CONFIG,
   FUNCTION_EXCUTE,
@@ -119,4 +173,6 @@ export const companyMutation = {
   UPDATE_ROLE_FORM,
   DELETE_BROADCAST,
   UPDATE_BROADCAST_FORM,
+  CREATE_COMPANY_FUNCTION,
+  EDIT_COMPANY_FUNCTION,
 }

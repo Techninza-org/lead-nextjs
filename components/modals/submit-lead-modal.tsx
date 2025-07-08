@@ -169,7 +169,7 @@ export const SubmitLeadModal = () => {
                     variables: {
                         formName: fields?.name,
                         dependentOnFormName: fields?.childName,
-                        deptId: "user?.deptId",
+                        deptId: user?.deptId,
                         leadId: lead?.id || "",
                         callStatus: "SUCCESS",
                         paymentStatus: "PENDING",

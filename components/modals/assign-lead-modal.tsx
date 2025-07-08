@@ -53,6 +53,7 @@ export const AssignLeadModal = () => {
     const { isOpen, onClose, type, data: modalData } = useModal();
     const { leads, apiUrl, query: formName } = modalData;
     const leadIds = leads?.map((lead: z.infer<typeof createLeadSchema>) => lead?._id || lead?.id)
+    const leadCount = leadIds?.length || 0;
 
     const [leadAssignTo, { loading: assignLoading }] = useMutation(apiUrl ?? "")
 
@@ -131,7 +132,7 @@ export const AssignLeadModal = () => {
                 </DialogHeader>
                 <ScrollArea className="h-60 w-full rounded-md border">
                     <div className="p-4">
-                        <h4 className="mb-4 text-sm font-medium leading-none">Selected {formName} <Badge className="ml-2" variant={'secondary'} >{searchParms.get("size")}</Badge></h4>
+                        <h4 className="mb-4 text-sm font-medium leading-none">Selected {formName} <Badge className="ml-2" variant={'secondary'} >{leadIds?.length}</Badge></h4>
                         {leads && leads.map((lead) => (
                             <>
                                 <div key={lead.id} className="text-sm grid-cols-2 grid">

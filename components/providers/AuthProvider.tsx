@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(user);
       const expiresDate = new Date();
       expiresDate.setDate(expiresDate.getDate() + 1);
-
+      localStorage.setItem('orgName', "ORG_" + user.name.toUpperCase().trim())
       setCookie('x-lead-user', user, { expires: expiresDate });
       setCookie('x-lead-token', JSON.stringify(user.token), { expires: expiresDate });
 

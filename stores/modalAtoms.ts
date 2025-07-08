@@ -3,7 +3,7 @@ import { atom } from "jotai";
 import { createLeadSchema, leadSchema } from "@/types/lead";
 import { CompanyDeptFieldSchema } from "@/types/company";
 
-export type ModalType = "paymentGateway" | "addLead" | "assignLead" | "submitLead" | "bidForm" | "createBroadcast" | "finacerBidApproval" | 'viewLeadInfo' | "addMember" | "enquiryDetails" | "updateDepartmentFields" | "broadcastDetails" | "updateGlobalDepartmentFields" | "updateGlobalBroadcastForm" | "uploadPrspectModal" | "addProspect" | "uploadLeadModal" | "addDept" | 'editLeadFormValue' | "viewProspectInfo" | "assignForm" | "role:permission_config" | "create:role" | "childDetails:table" | "bulk:operation" | "editDeptForm" | "admin:company:settings";
+export type ModalType = "paymentGateway" | "addLead" | "DynamicFunctionParametersModal" | "assignLead" | "submitLead" | "bidForm" | "createBroadcast" | "finacerBidApproval" | 'viewLeadInfo' | "addMember" | "enquiryDetails" | "updateDepartmentFields" | "broadcastDetails" | "updateGlobalDepartmentFields" | "updateGlobalBroadcastForm" | "uploadPrspectModal" | "addProspect" | "uploadLeadModal" | "uploadFormModal" | "addDept" | 'editLeadFormValue' | "viewProspectInfo" | "assignForm" | "role:permission_config" | "create:role" | "childDetails:table" | "bulk:operation" | "editDeptForm" | "admin:company:settings";
 export interface ModalData {
     customerId?: string;
 
@@ -21,6 +21,7 @@ export interface ModalData {
     role?: any;
     data?: any;
     relationships?: any;
+    formName?: string;
 
     apiUrl?: string;
     query?: string;

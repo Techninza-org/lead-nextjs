@@ -30,7 +30,7 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
         setSearchTerm(term);
     };
 
-    const employeeRoutes = allowedPermission.filter((perm: any) => perm.name.includes("VIEW") && !perm.name.includes("Lead") && !perm.name.includes("Prospect"))
+    const employeeRoutes = allowedPermission.filter((perm: any) => perm.name.includes("VIEW") && !perm.name.includes("Lead") && !perm.name.includes("Prospects"))
 
     const [user] = useAtom(userAtom)
     const role = user?.role?.name?.toLowerCase().replaceAll(" ", "") || "";

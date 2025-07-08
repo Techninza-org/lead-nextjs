@@ -238,6 +238,9 @@ const  GET_COMPANY_FUNCTION = `
       order
       viewName
       isActive
+      isUserIntervation
+      isValid
+      variables
     }
   }
 `

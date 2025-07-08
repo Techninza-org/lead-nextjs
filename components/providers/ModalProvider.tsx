@@ -26,6 +26,8 @@ import { CreateRoleModal } from "../modals/create-role-modal";
 import { BulkOperationModal } from "../modals/bulk-operation-modal";
 import { EditDeptFormModal } from "../modals/edit-form-modal";
 import { CompanySettingsModal } from "../modals/company-settings-modal";
+import DynamicFunctionParametersModal from "../dynamic/dynamic-funciton-parameters-modal";
+import { UploadFormModal } from "../modals/upload-form-rows-modal";
 
 
 export const ModalProvider = () => {
@@ -62,8 +64,10 @@ export const ModalProvider = () => {
       <UpdateGlobalBroadcastModal />
       <UploadProspectModal />
       <UploadLeadModal />
+      <UploadFormModal />
       <RolePerimssionFilterListConfig />
       <EditLeadFormValueModal />
+      <DynamicFunctionParametersModal />
     </>
   );
 };

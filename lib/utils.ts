@@ -378,6 +378,7 @@ export const genHardCodedFields = (formName: string) => {
 
 export const formatPermissions = (permissions: any[]): any[] => {
   const resourceMap = new Map<string, any>();
+  
 
   permissions.forEach(perm => {
     if (!resourceMap.has(perm.resource)) {

@@ -32,8 +32,6 @@ import { useModal } from "@/hooks/use-modal-store"
 import type { leadSchema } from "@/types/lead"
 import type { z } from "zod"
 import { format, isWithinInterval, parseISO } from "date-fns"
-import { useQuery } from "graphql-hooks"
-import { adminQueries } from "@/lib/graphql/admin/queries"
 
 export const multiSelectFilter: FilterFn<any> = (row, columnId, filterValue: string[]) => {
   if (!filterValue.length) return true
@@ -69,7 +67,7 @@ export const multiSelectFilter: FilterFn<any> = (row, columnId, filterValue: str
 //   )
 // }
 
-export default function AdvancedDataTableForms({
+export default function AdvancedDataTableFormsDynamic({
   leadProspectCols = [],
   data = [],
   columnNames = [],
@@ -78,7 +76,6 @@ export default function AdvancedDataTableForms({
   MoreInfo,
   tableName,
   showTools = true,
-  pagination = { total: data.length, page: 1, limit: 10, totalPages: Math.ceil(data.length / 10) }
 }: {
   data: any[]
   columnNames: string[]
@@ -88,13 +85,11 @@ export default function AdvancedDataTableForms({
   leadProspectCols?: any[]
   MoreInfo?: any
   showTools?: boolean
-  pagination?: { total: number; page: number; limit: number; totalPages: number };
 }) {
-  const [currentPage, setCurrentPage] = React.useState(pagination.page);
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
+  const [rowSelection, setRowSelection] = React.useState({})
   const [selectedColumn, setSelectedColumn] = React.useState<string | null>(null)
   const [globalFilter, setGlobalFilter] = React.useState("")
   const [activeFilters, setActiveFilters] = React.useState<Record<string, string[] | { start?: string; end?: string }>>(
@@ -102,39 +97,23 @@ export default function AdvancedDataTableForms({
   )
   const [searchFilters, setSearchFilters] = React.useState<Record<string, string>>({})
   const [columnOrder, setColumnOrder] = React.useState<string[]>([])
- 
+
   const { checkPermission } = usePermissions()
   const { onOpen } = useModal()
 
-  React.useEffect(() => {
-    setRowSelection({});
-  }, [currentPage]);
-
-
-   // Local pagination state
-   
-   const rowsPerPage = pagination.limit;
- 
-   // Slice data for current page
-   const paginatedData = React.useMemo(() => {
-     const start = (currentPage - 1) * rowsPerPage;
-     return data.slice(start, start + rowsPerPage);
-   }, [data, currentPage, rowsPerPage]);
-
-
   const columns: ColumnDef<any>[] = Boolean(leadProspectCols.length)
-  ? leadProspectCols
-  : generateColumns({
+    ? leadProspectCols
+    : generateColumns({
       columnNames,
       dependentCols,
       tableName,
-      changeView,                   // array of modal keys, e.g. ["viewLeadInfo"]
-      onOpen,                       // the modal opener
-      hasCreatePermission: checkPermission(`CREATE:${tableName.toUpperCase()}`),
+      changeView,
+      hasCreatePermission: checkPermission(`CREATE:${tableName?.toUpperCase()}`),
+      onOpen,
     })
 
   const table = useReactTable({
-    data: paginatedData,
+    data,
     columns,
     state: {
       sorting,
@@ -183,6 +162,7 @@ export default function AdvancedDataTableForms({
   //       })
   //     }
   //   }
+
   const getColumnBackground = (columnId: string) => {
     if (columnId === "select" || columnId === "skuCode" || columnId === "expander") {
       return "bg-white"
@@ -224,8 +204,6 @@ export default function AdvancedDataTableForms({
   //       return ""
   //   }
   // }
-
-  const totalPages = Math.ceil(pagination.total / rowsPerPage);
 
   const handleFilterChange = (columnId: string, filterValue: string | { start?: string; end?: string }) => {
     if (columnId === "createdAt") {
@@ -320,7 +298,7 @@ export default function AdvancedDataTableForms({
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="flex items-center justify-between">
         {showTools && (
           <div className="flex items-center space-x-2">
             <Input
@@ -472,14 +450,6 @@ export default function AdvancedDataTableForms({
             </Popover>
           </div>
         )}
-        </div>
-      <div className="flex items-center justify-between">
-        
-      <div className="flex gap-2">
-            <Button variant="secondary">Rows/page: {rowsPerPage}</Button>
-            <Button variant="secondary">Total Rows: {pagination.total}</Button>
-          </div>
-      
         {MoreInfo && <MoreInfo selectedLeads={selectedRows} />}
       </div>
       {Object.entries(activeFilters).map(([columnId, filters]) => {
@@ -548,20 +518,10 @@ export default function AdvancedDataTableForms({
                   <React.Fragment key={row.id}>
                     <TableRow
                       data-state={row.getIsSelected() && "selected"}
-                      onClick={() =>
-  setRowSelection(prev => {
-    const next = { ...prev };
-    if (next[row.id]) {
-      // if already selected, remove key to clear selection
-      delete next[row.id];
-    } else {
-      // select the row
-      next[row.id] = true;
-    }
-    return next;
-  })
-}
-                  className={rowSelection[row.id] ? "bg-blue-100" : undefined}
+                      className={`
+                          ${rowIndex % 2 === 0 ? "bg-gray-50" : ""}
+                          ${row.getIsSelected() ? "bg-blue-100" : ""}
+                        `}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
@@ -603,25 +563,19 @@ export default function AdvancedDataTableForms({
             {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
             selected.
           </div>
-          <div className="flex items-center justify-end space-x-2 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage <= 1}
-          >
-            Previous
-          </Button>
-          <span className="text-sm">Page {currentPage} of {totalPages}</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage >= totalPages}
-          >
-            Next
-          </Button>
-        </div>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+              Next
+            </Button>
+          </div>
         </div>
       )}
     </div>
@@ -657,7 +611,6 @@ export const generateColumns = ({
   hasCreatePermission,
   onOpen,
 }: GenerateColumnsProps): ColumnDef<any>[] => {
-  
   const baseColumns: ColumnDef<any>[] = [
     {
       id: "select",
@@ -696,16 +649,14 @@ export const generateColumns = ({
   }
 
   const nameColumn =
-    // tableName?.toLowerCase() === "lead" &&
-     columnNames.includes("name")
+    columnNames.includes("name")
       ? [
         {
           accessorKey: "name",
           header: "Name",
           cell: ({ row }: any) => {
             const value = row.getValue("name")
-            // return hasCreatePermission ? <ViewLeadInfo lead={row.original} /> : <span>{value}</span>
-            return <span>{value}</span>
+            return hasCreatePermission ? <ViewLeadInfo lead={row.original} /> : <span>{value}</span>
           },
           enableSorting: true,
           enableHiding: true,

@@ -36,7 +36,7 @@ import { useState } from "react"
 import { useCompany } from "../providers/CompanyProvider"
 
 export const AssignMemberModal = () => {
-    const { companyMemberRoles: filteredRoles } = useCompany()
+    const { roles: filteredRoles } = useCompany() //companyMemberRoles changed this
     const { toast } = useToast()
     const user = useAtomValue(userAtom)
     const [createUser, { loading, error, data }] = useMutation(CREATE_USER);

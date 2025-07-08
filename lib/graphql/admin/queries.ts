@@ -25,9 +25,39 @@ const GET_DEPT_FIELDS = `
   }
 `;
 
+const getCompanyForms = `
+  query GetCompanyForms($companyId: String!) {
+    getCompanyForms(companyId: $companyId)
+  }
+`
+
 const getCompnayFunctions = `
 query GetCompnayFunctionsAdmin($orgId: String!){
  getCompnayFunctionsAdmin(orgId: $orgId)
+}
+`
+
+const getCompanyFunctionsDefault = `
+query GetCompanyFunctionsDefault($orgId: String!){
+ getCompanyFunctionsDefault(orgId: $orgId)
+}
+`
+
+const getCompanyFunctionById = `
+query GetCompanyFunctionById($id: String!) {
+  getCompanyFunctionById(functionId: $id) {
+    id
+    orgId
+    functionName
+    functionType
+    desc
+    viewName
+    tags
+    isUserIntervation
+    isValid
+    returnType
+    individualButton
+  }
 }
 `
 
@@ -47,4 +77,7 @@ export const adminQueries = {
   GET_DEPT_FIELDS,
   ASSIGNFORMTOROOT,
   getCompnayFunctions,
+  getCompanyFunctionsDefault,
+  getCompanyFunctionById,
+  getCompanyForms,
 };

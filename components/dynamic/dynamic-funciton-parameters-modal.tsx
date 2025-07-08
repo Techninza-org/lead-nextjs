@@ -25,6 +25,8 @@ import { cn, genHardCodedFields, parseCSVToJson } from '@/lib/utils'
 import { ScrollArea } from '../ui/scroll-area'
 import { NestedCombobox } from '../ui/nested-combobox'
 import TableConfigPage from '@/app/(root_manager)/settings/config/page'
+import { useModal } from '@/hooks/use-modal-store'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 
 const DepartmentSchema = z.object({
     deptFields: z.array(z.object({
@@ -38,7 +40,6 @@ const DepartmentSchema = z.object({
         isDisabled: z.boolean(),
         isHardCoded: z.boolean().optional(),
         isRelation: z.boolean().optional().default(false),
-        isUnique: z.boolean().optional(),
     })).default([]),
 })
 
@@ -60,7 +61,9 @@ export const fieldTypes = [
 ]
 
 
-const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
+const DynamicFunctionParametersModal = () => {
+    const { isOpen, onClose, type } = useModal();
+    const isModalOpen = isOpen && type === "DynamicFunctionParametersModal";
     const [currIdx, setCurrIdx] = useState(0)
     const userInfo = useAtomValue(userAtom)
     const [currentOptionsIndx, setCurrentOptionsIndx] = useState(0)
@@ -77,6 +80,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
 
     const [searchTerm, setSearchTerm] = useState('')
     const [editingIndex, setEditingIndex] = useState(null);
+    
 
     const [updateDepartmentFields] = useMutation(DeptMutation.UPDATE_DEPT)
 
@@ -90,12 +94,14 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
         name: "deptFields",
     })
 
-    const hardCodedFields = genHardCodedFields(deptName);
+    // const hardCodedFields = genHardCodedFields(deptName);
 
-    const { data } = useQuery(deptQueries.GET_COMPANY_DEPT_FIELDS, {
-        variables: { deptId },
-        skip: !userInfo?.token || !deptId,
-    })
+    // const { data } = useQuery(deptQueries.GET_COMPANY_DEPT_FIELDS, {
+    //     variables: { deptId },
+    //     skip: !userInfo?.token || !deptId,
+    // })
+    const data = []
+    const deptName = ''
 
     const filteredDeptFields = useMemo(() =>
         data?.getCompanyDeptFields?.filter(field => String(field.name) === String(decodeURIComponent(deptName))) || [],
@@ -105,7 +111,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
         if (filteredDeptFields.length > 0) {
             const sortedSubDeptFields = filteredDeptFields[0]?.fields?.sort((a, b) => a.order - b.order) || []
             // form.reset({ deptFields: sortedSubDeptFields })
-            form.reset({ deptFields: [...hardCodedFields, ...sortedSubDeptFields] })
+            // form.reset({ deptFields: [...hardCodedFields, ...sortedSubDeptFields] })
         }
         setCompanyDeptFormId(filteredDeptFields[0]?.id)
     }, [filteredDeptFields, form])
@@ -161,7 +167,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
             setLoading(false)
             console.error(error);
         }
-    }, [categoryName, companyDeptFormId, deptId, deptName, toast, updateDepartmentFields])
+    }, [ deptName, toast, updateDepartmentFields])
 
     const handleSelectChange = useCallback((value, index) => {
         form.setValue(`deptFields.${index}.fieldType`, value)
@@ -666,11 +672,20 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
         console.log('Selected value:', value);
     };
     return (
+        <Dialog open={isModalOpen} onOpenChange={onClose}>
+        <DialogContent className="text-black max-w-screen-sm">
+            {/* <DialogHeader className="pt-8 px-6">
+                <DialogTitle className="text-2xl text-center font-bold">
+                    Add Parameters
+                </DialogTitle>
+            </DialogHeader> */}
+
+
         <Form {...form}>
-            <Card className="grid grid-cols-7 gap-2">
+            {/* <Card className="grid grid-cols-7 gap-2"> */}
                 <Card className="col-span-4">
                     <CardHeader>
-                        <CardTitle className="text-2xl text-center font-bold">Form Builder {filteredDeptFields[0]?.name || ''}</CardTitle>
+                        <CardTitle className="text-2xl text-center font-bold">Function Parameters</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -820,24 +835,6 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                     </FormItem>
                                                 )}
                                             />
-                                             <FormField
-                                                control={form.control}
-                                                name={`deptFields.${index}.isUnique`}
-                                                render={({ field: disabledField }) => (
-                                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <Checkbox
-                                                                checked={disabledField.value}
-                                                                onCheckedChange={(checked) => {
-                                                                    disabledField.onChange(checked);
-                                                                    form.trigger(`deptFields.${index}.isUnique`);
-                                                                }}
-                                                            />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">Unique</FormLabel>
-                                                    </FormItem>
-                                                )}
-                                            />
                                             <FormField
                                                 control={form.control}
                                                 name={`deptFields.${index}.isRelation`}
@@ -867,10 +864,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                             })}
                             <Button
                                 type="button"
-                                onClick={() => append({ name: '', fieldType: '', order: fields.length + 1, isRequired: true, isDisabled: false, ddOptionId: null, isHardCoded: false, isUnique: false })}
+                                onClick={() => append({ name: '', fieldType: '', order: fields.length + 1, isRequired: true, isDisabled: false, ddOptionId: null, isHardCoded: false, })}
                                 className="mt-4 bg-blue-500 text-white"
                             >
-                                Add Field
+                                Add Parameter
                             </Button>
                             <div className="mt-6 flex justify-end">
                                 <Button type="button" className="mr-2 bg-gray-500 text-white">Cancel</Button>
@@ -881,17 +878,20 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                     </CardContent>
                 </Card>
 
-                <Card className="col-span-3">
+                {/* <Card className="col-span-3">
                     <CardHeader>
                         <CardTitle className="text-2xl text-center font-bold">Field Options</CardTitle>
                     </CardHeader>
                     <CardContent className='p-3'>
                         {!form.watch(`deptFields.${currIdx}.isRelation`) && renderFieldOptions()}
                     </CardContent>
-                </Card>
-            </Card>
+                </Card> */}
+            {/* </Card> */}
         </Form>
+
+        </DialogContent>
+    </Dialog>
     )
 }
 
-export default UpdateDepartmentFieldsModal
+export default DynamicFunctionParametersModal

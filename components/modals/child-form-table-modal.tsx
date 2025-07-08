@@ -57,15 +57,42 @@ export const ChildDetailsModal = () => {
    const formateForms = updateDependentFields(companyDeptFields || [])
    const formateFields: any = useMemo(() => formateForms?.find((x: any) => x.name === modalData?.table?.label) || [], [formateForms, modalData?.table?.label])
 
-   const defaultValues = useMemo(() =>
-      Object.keys(formateFields?.fields || {}).reduce((acc: any, key) => {
-         acc[key] = formateFields.fields[key].reduce((fieldAcc: any, field: any) => {
-            fieldAcc[field.name] = "";
-            return fieldAcc;
-         }, {});
-         return acc;
-      }, {}),
-      [formateFields]);
+const defaultValues = useMemo(() => {
+  const fields = formateFields?.fields;
+  if (!fields) return {};
+
+  // CASE A: fields is an array → a single “flat” form
+  if (Array.isArray(fields)) {
+    return fields.reduce((acc, f: any) => {
+      acc[f.name] = "";
+      return acc;
+    }, {} as Record<string, any>);
+  }
+
+  // CASE B: fields is an object whose values should be arrays
+  return Object.entries(fields).reduce((acc, [groupName, groupFields]) => {
+    if (Array.isArray(groupFields)) {
+      acc[groupName] = groupFields.reduce((groupAcc: any, field: any) => {
+        groupAcc[field.name] = "";
+        return groupAcc;
+      }, {});
+    } else {
+      // “just in case” — if someone stuck in a non‐array, skip it
+      acc[groupName] = {};
+    }
+    return acc;
+  }, {} as Record<string, any>);
+}, [formateFields])
+
+   // const defaultValues = useMemo(() =>
+   //    Object.keys(formateFields?.fields || {}).reduce((acc: any, key) => {
+   //       acc[key] = formateFields.fields[key].reduce((fieldAcc: any, field: any) => {
+   //          fieldAcc[field.name] = "";
+   //          return fieldAcc;
+   //       }, {});
+   //       return acc;
+   //    }, {}),
+   //    [formateFields]);
 
    const form = useForm({
       defaultValues
@@ -114,8 +141,14 @@ export const ChildDetailsModal = () => {
 
    const isModalOpen = isOpen && type === "childDetails:table";
 
-   // Only render child tables (dcp and dcp2)
-   const childTables = Object.entries(formateFields?.fields || {}).filter(([key]) => key !== 'cp');
+   const childTables = Object
+     .entries(formateFields.fields || {})
+     .filter(([key, def]) =>
+       key !== modalData.table?.label
+       && Array.isArray(def)
+       && def.length > 0
+     ) as [string, any[]][];
+     console.log(childTables, "Child Tables Data")
 
    return (
       <Dialog open={isModalOpen} onOpenChange={handleClose}>

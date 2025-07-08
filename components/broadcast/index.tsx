@@ -43,12 +43,13 @@ type FormData = {
 export const BroadcastForm = ({ broadcastFormStructure }: { broadcastFormStructure: any }) => {
     const user = useAtomValue(userAtom)
     const [formStructure, setFormStructure] = useState<BroadcastForm[]>([])
+    
+    const { control, handleSubmit, watch, setValue } = useForm<FormData>()
 
     useEffect(() => {
         setFormStructure(broadcastFormStructure)
     }, [broadcastFormStructure])
 
-    const { control, handleSubmit, watch, setValue } = useForm<FormData>()
     const watchSubCategory = watch('subCategory')
     const watchOption = watch('option')
 

@@ -180,6 +180,8 @@ export const FileUploader = forwardRef<
                 files.forEach((file) => {
                     if (newValues.length < maxFiles) {
                         const renamedFile = new File([file], `${fieldName}`, { type: file.type });
+                        console.log(`Renamed file: ${renamedFile.name}`);
+                        
                         newValues.push(renamedFile);
                     }
                 });

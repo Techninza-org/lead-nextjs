@@ -67,6 +67,7 @@ export const RolePerimssionFilterListConfig = () => {
   const userInfo = useAtomValue(userAtom)
   const { isOpen, onClose, type, data: modalData } = useModal()
   const { role, table, relationships } = modalData
+  
   const isModalOpen = isOpen && type === "role:permission_config"
 
   const getCurrentRole = useCallback(() => {

@@ -9,7 +9,7 @@ export const ROOT_NAV_LINKS = [
     {
         title: "Prospects",
         icon: FileTextIcon,
-        href: "/prospect",
+        href: "/prospects",
     },
     {
         title: "Leads",
@@ -85,7 +85,7 @@ export const MANAGER_NAV_LINKS = [
     {
         title: "Prospect",
         icon: FileTextIcon,
-        href: "/prospect",
+        href: "/prospects",
     },
     // {
     //     title: "Leads",

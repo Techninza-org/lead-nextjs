@@ -146,7 +146,6 @@ export const EnquiryDetailsModal = () => {
         });
     }
 
-    console.log(lead, table, "lead")
 
     return (
 

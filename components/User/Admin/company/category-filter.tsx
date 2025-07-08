@@ -384,20 +384,10 @@ export default function OptimizedFilterDropdown({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <div className="flex items-center gap-2">
-        {/* Filter Button */}
-        <Button
-          variant="outline"
-          onClick={() => setIsOpen(!isOpen)}
-          className={cn("flex items-center gap-2", totalApplied > 0 ? "bg-primary/10" : "")}
-        >
-          <Filter className="h-4 w-4" />
-          <span>{totalApplied > 0 ? `Filters (${totalApplied})` : "Filters"}</span>
-          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
 
-        {/* Search Input */}
-        <div className="relative">
+      <div className="flex items-center gap-2">
+         {/* Search Input */}
+      <div className="relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search..."
@@ -411,6 +401,18 @@ export default function OptimizedFilterDropdown({
             </div>
           )}
         </div>
+        {/* Filter Button */}
+        <Button
+          variant="outline"
+          onClick={() => setIsOpen(!isOpen)}
+          className={cn("flex items-center gap-2", totalApplied > 0 ? "bg-primary/10" : "")}
+        >
+          <Filter className="h-4 w-4" />
+          <span>{totalApplied > 0 ? `Filters (${totalApplied})` : "Filters"}</span>
+          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </Button>
+
+        
       </div>
 
       {/* Applied Filters */}
@@ -440,6 +442,8 @@ export default function OptimizedFilterDropdown({
           )}
         </div>
       )}
+
+     
 
       {/* Dropdown Filter UI */}
       {isOpen && (

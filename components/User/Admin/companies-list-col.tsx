@@ -6,7 +6,7 @@ import { CategoryModal } from "./company/category-modal";
 import { Button } from "@/components/ui/button";
 import { CompanyFuncTagModal } from "./company/company-func-tag-modal";
 import { useModal } from "@/hooks/use-modal-store";
-import { Settings, Settings2 } from "lucide-react";
+import { FunctionSquare, Settings, Settings2 } from "lucide-react";
 
 export function getCategoryNames(category: any) {
     const categories = []
@@ -28,9 +28,9 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
             const orgId = row.original.orgId
             return (
                 <div className="flex items-center">
-                    <Link href={`/admin/companies/${orgId}`} className="ml-2 text-blue-800">
+                    {/* <Link href={`/admin/companies/${orgId}`} className="ml-2 text-blue-800"> */}
                         <span>{id}</span>
-                    </Link>
+                    {/* </Link> */}
                 </div>
             )
         }
@@ -75,7 +75,7 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
             const categories = getCategoryNames(categorires)
             return (
                 <p>
-                    {[...categories, ...row.getValue("tags")]
+                    {[...categories, ...(row.getValue("tags") as any[])]
                         // .sort((a, b) => {
                         //     const levelA = a?.level ?? 99 // If undefined, push to end
                         //     const levelB = b?.level ?? 99
@@ -88,6 +88,19 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
                         ))}
                 </p>
             )
+        }
+    },
+    {
+        header: 'Functions',
+        cell: ({ row }) => {
+            return (
+                <Link href={`/admin/companies/${row.original.orgId}`} className="ml-2 text-blue-800">
+                  <Button variant={'secondary'} className="mx-auto" size={'icon'} >
+                    <FunctionSquare />
+                  </Button>
+               </Link>
+            )
+
         }
     },
     {
@@ -122,10 +135,14 @@ export const CompanyFunctionCols: ColumnDef<z.infer<any>>[] = [
         accessorKey: "functionName",
         header: 'Function Name',
         cell: ({ row }) => {
+            console.log(row.getValue("functionName"), " name row original");
+            
             return (
+                <Link href={`/admin/companies/function/edit/${row.original.id}`} className="text-blue-800 hover:underline">
                 <div className="flex items-center">
                     {row.getValue("functionName")}
                 </div>
+                </Link>
             )
         }
     },
@@ -152,27 +169,45 @@ export const CompanyFunctionCols: ColumnDef<z.infer<any>>[] = [
         accessorKey: 'tags',
         header: 'Tags',
         cell: ({ row }) => {
+            const tags = row.original.tags || [];
+            if (Array.isArray(tags)) {
+                return (
+                    <span>
+                        {tags.map((tag, index) => (
+                            <Button key={index} size="sm" className="mx-1" variant="secondary">
+                                {tag}
+                            </Button>
+                        ))}
+                    </span>
+                )
+            }
+        }
+    },
+    {
+        accessorKey: 'isValid',
+        header: 'isValid',
+        cell: ({ row }) => {
             return (
-                <span>{row.getValue("tags")}</span>
+                <span>{row.getValue("isValid") == true ? 'True' : "False" }</span>
             )
 
         }
     },
-    {
-        id: "actions",
-        cell: ({ row }) => {
-            const company = row.original
-            return (
-                <CompanyFuncTagModal
-                    companyId={company.id}
-                    initialData={{ categories: row.original.categories, tags: row.original.tags }}
-                    onSuccess={() => {
-                        // Refresh your data here
-                    }}
-                />
-            )
-        }
-    }
+    // {
+    //     id: "actions",
+    //     cell: ({ row }) => {
+    //         const company = row.original
+    //         return (
+    //             <CompanyFuncTagModal
+    //                 companyId={company.id}
+    //                 initialData={{ categories: row.original.categories, tags: row.original.tags }}
+    //                 onSuccess={() => {
+    //                     // Refresh your data here
+    //                 }}
+    //             />
+    //         )
+    //     }
+    // }
 ];
 
 const CompanySettings = ({ row }: any) => {
