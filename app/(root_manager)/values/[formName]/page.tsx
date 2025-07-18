@@ -22,6 +22,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
 import { companyMutation } from "@/lib/graphql/company/mutation";
+import { deptQueries } from "@/lib/graphql/dept/queries";
 
 export default function Page({ params }: { params: { formName: string } }) {
   const [companyFunctions, setCompanyFunctions] = useState([])
@@ -83,7 +84,19 @@ export default function Page({ params }: { params: { formName: string } }) {
       const [companyFunctions, setCompanyFunctions] = useState<any[]>([])
       const [individualCompanyFunctions, setIndividualCompanyFunctions] = useState<any[]>([])
       const [loadingFunctions, setLoadingFunctions] = useState(false);
+      const [prevTags, setPrevTags] = useState<string[]>([]);
       const selectedIds = selectedLeads.map(lead => lead._id);
+
+      const { } = useQuery(deptQueries.GET_TAGS_BY_FORM_NAME, {
+        skip: !formName,
+        variables: {
+           formName: formName
+        },
+        onSuccess: ({ data }: {data: any}) => {
+           const tags = data?.getTagsByFormName || [];
+           setPrevTags(tags);
+        },
+     })
 
       const { } = useQuery(adminQueries.getCompanyFunctionsDefault, {
         variables: {
@@ -91,7 +104,8 @@ export default function Page({ params }: { params: { formName: string } }) {
         },
         onSuccess: ({ data }: {data: any}) => {
            console.log(data, "data")
-           setIndividualCompanyFunctions(data?.getCompanyFunctionsDefault || []);
+           const filteredFunctions = data?.getCompanyFunctionsDefault?.filter((fn: any) => fn.viewName === formName) || [];
+           setIndividualCompanyFunctions(filteredFunctions);
         },
      })
   
@@ -136,28 +150,13 @@ export default function Page({ params }: { params: { formName: string } }) {
   
       const handleSubmitClick = () => {
         if (!selectedFn) return;
-        handleFunctionCall(selectedFn, { ids: selectedIds });
-        setShowForm(false);
-        setSelectedFn(null);
-        setPopoverOpen(false);
-        // if (selectedFn.isUserIntervation) {
-        //   setShowForm(true);
-        // } else {
-        //   handleFunctionCall(selectedFn);
-        //   setPopoverOpen(false);
-        // }
-      };
-  
-      const handleFormChange = (key: string, value: any) => {
-        setFormValues(prev => ({ ...prev, [key]: value }));
-      };
-  
-      const handleFormSubmit = () => {
-        if (!selectedFn) return;
-        handleFunctionCall(selectedFn, formValues);
-        setShowForm(false);
-        setSelectedFn(null);
-        setPopoverOpen(false);
+        if (selectedFn.isUserIntervation) {
+          setShowForm(true);
+          onOpen("functionParameters", {id: selectedFn.id, selectedFnName: selectedFn.functionName, selectedFormNameIds: selectedIds });
+        } else {
+          handleFunctionCall(selectedFn);
+          setPopoverOpen(false);
+        }
       };
   
       return (
@@ -210,7 +209,7 @@ export default function Page({ params }: { params: { formName: string } }) {
   
                 </CommandList>
               </Command>
-              {showForm && selectedFn?.variables && (
+              {/* {showForm && (
                 <div className="p-4 space-y-3 border-t">
                   {selectedFn.variables.map((v: any) => (
                     <div key={v} className="flex flex-col">
@@ -229,7 +228,7 @@ export default function Page({ params }: { params: { formName: string } }) {
                     </Button>
                   </div>
                 </div>
-              )}
+              )} */}
             </PopoverContent>
           </Popover>
          {individualCompanyFunctions.map((fn: any) => (
@@ -247,7 +246,7 @@ export default function Page({ params }: { params: { formName: string } }) {
           variant="default"
           size="sm"
           className="items-center gap-1"
-          onClick={() => onOpen('uploadFormModal', { formName: formName, fields: formateFields })}
+          onClick={() => onOpen('uploadFormModal', { formName: formName, fields: formateFields, existingTags: prevTags })}
         >
           <UploadIcon size={15} />
           <span>Upload {formName}</span>

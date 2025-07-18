@@ -86,6 +86,7 @@ mutation createCompanyFunction(
   $isValid: Boolean!
   $variables: [String!]
   $individualButton: Boolean = false
+  $parameters: JSON = null
 ) {
   createCompanyFunction(
     orgId: $orgId
@@ -100,6 +101,7 @@ mutation createCompanyFunction(
     isValid: $isValid
     variables: $variables
     individualButton: $individualButton
+    parameters: $parameters
   ) {
     id
     functionName 

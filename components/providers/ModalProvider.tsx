@@ -28,6 +28,7 @@ import { EditDeptFormModal } from "../modals/edit-form-modal";
 import { CompanySettingsModal } from "../modals/company-settings-modal";
 import DynamicFunctionParametersModal from "../dynamic/dynamic-funciton-parameters-modal";
 import { UploadFormModal } from "../modals/upload-form-rows-modal";
+import { FunctionParametersModal } from "../modals/FunctionParametersModal";
 
 
 export const ModalProvider = () => {
@@ -68,6 +69,7 @@ export const ModalProvider = () => {
       <RolePerimssionFilterListConfig />
       <EditLeadFormValueModal />
       <DynamicFunctionParametersModal />
+      <FunctionParametersModal />
     </>
   );
 };

@@ -37,13 +37,20 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { Card, CardContent } from "@/components/ui/card";
 import { updateDependentFields } from '@/lib/utils';
 import { useCompany } from '../providers/CompanyProvider';
+import { useMutation, useQuery } from 'graphql-hooks';
+import { companyQueries } from '@/lib/graphql/company/queries';
+import { useToast } from '../ui/use-toast';
+import { DeptMutation } from '@/lib/graphql/dept/mutation';
 export const ChildDetailsModal = () => {
    const { isOpen, onClose, type, data: modalData } = useModal();
    const { companyDeptFields } = useCompany()
+   const { toast } = useToast();
 
    const [tableData, setTableData] = useState<Record<string, any[]>>({});
    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
    const [activeForm, setActiveForm] = useState<string | null>(null);
+   const [childRows, setChildRows] = useState<Record<string, any[]>>({});
+   const [addChildToParent] = useMutation(DeptMutation.ADD_CHILD_TO_PARENT)
 
    useEffect(() => {
       if (modalData?.table?.data?.children) {
@@ -56,6 +63,34 @@ export const ChildDetailsModal = () => {
 
    const formateForms = updateDependentFields(companyDeptFields || [])
    const formateFields: any = useMemo(() => formateForms?.find((x: any) => x.name === modalData?.table?.label) || [], [formateForms, modalData?.table?.label])
+
+   const childTables = Object
+     .entries(formateFields.fields || {})
+     .filter(([key, def]) =>
+       key !== modalData.table?.label
+       && Array.isArray(def)
+       && def.length > 0
+     ) as [string, any[]][];
+     console.log(childTables, "Child Tables Data")
+
+   const parentId = modalData?.table?.data?._id;
+   console.log(parentId, "Parent ID");
+   
+   const childTableNames = childTables.map(([name]) => name);
+   console.log(childTableNames, "Child Table Names");
+   
+   const { } = useQuery(companyQueries.GET_CHILD_DATA, {
+      skip: !parentId || childTableNames.length === 0,
+      variables: { parentId, childTableNames },
+      onSuccess: ({ data }: { data: any }) => {
+        // data.getChildFromParent is an array of arrays, in same order as childTableNames
+        const mapping: Record<string, any[]> = {};
+        childTableNames.forEach((tbl, i) => {
+          mapping[tbl] = data.getChildFromParent[i] || [];
+        });
+        setChildRows(mapping);
+      },
+    });
 
 const defaultValues = useMemo(() => {
   const fields = formateFields?.fields;
@@ -110,12 +145,38 @@ const defaultValues = useMemo(() => {
       }));
    };
 
-   const handleAddRow = (tableName: string) => {
+   const handleAddRow = async (tableName: string) => {
       const formData = form.getValues()[tableName];
-      setTableData((prev: any) => ({
-         ...prev,
-         [tableName]: [...(prev[tableName] || []), formData]
-      }));
+      console.log(formData, "Form Data to Add Row");
+      const obj = {
+         parentId: modalData.table?.data?._id,
+         parentTable: modalData.table?.label,
+         childTable: tableName,
+      }
+      const dataToAdd = {
+         ...obj,
+         fields: {
+            ...formData
+         }
+      }
+      console.log(dataToAdd, "Data to be added to child table");
+      const { error } = await addChildToParent({
+         variables: {
+             input: {
+                   ...dataToAdd,
+             }
+         },
+     });
+
+   //  if (error) {
+   //     const message = (error.graphQLErrors as Array<{ message: string }>).map((e) => e.message).join(", ");
+   //     toast({
+   //        title: 'Error',
+   //        description: message || "Something went wrong",
+   //        variant: "destructive"
+   //     });
+   //     return;
+   //  }
 
       const resetData = {
          ...form.getValues(),
@@ -126,29 +187,26 @@ const defaultValues = useMemo(() => {
       };
       form.reset(resetData);
       setActiveForm(null);
+        toast({
+         variant: "default",
+         title: "Child data submitted Successfully!",
+     });
    };
 
-   const handleUpdateRow = (tableName: string, rowIndex: number, newData: any) => {
-      setTableData((prev: any) => ({
-         ...prev,
-         [tableName]: prev[tableName].map((row: any, index: number) =>
-            index === rowIndex ? { ...row, ...newData } : row
-         )
-      }));
-   };
+   // const handleUpdateRow = (tableName: string, rowIndex: number, newData: any) => {
+   //    setTableData((prev: any) => ({
+   //       ...prev,
+   //       [tableName]: prev[tableName].map((row: any, index: number) =>
+   //          index === rowIndex ? { ...row, ...newData } : row
+   //       )
+   //    }));
+   // };
 
    if (!modalData?.table) return null;
 
    const isModalOpen = isOpen && type === "childDetails:table";
 
-   const childTables = Object
-     .entries(formateFields.fields || {})
-     .filter(([key, def]) =>
-       key !== modalData.table?.label
-       && Array.isArray(def)
-       && def.length > 0
-     ) as [string, any[]][];
-     console.log(childTables, "Child Tables Data")
+   
 
    return (
       <Dialog open={isModalOpen} onOpenChange={handleClose}>
@@ -187,7 +245,9 @@ const defaultValues = useMemo(() => {
                   </Card>
 
                   {/* Child Tables */}
-                  {childTables.map(([formName, fields]: any) => (
+                  {childTables.map(([formName, fields]: any) => {
+                     const rows = childRows[formName] || [];
+                     return (
                      <Card key={formName} className="overflow-hidden">
                         <div
                            className="flex items-center justify-between p-4 cursor-pointer bg-gray-50"
@@ -215,36 +275,24 @@ const defaultValues = useMemo(() => {
 
                         {expandedSections[formName] && (
                            <CardContent className="pt-4">
-                              {(tableData[formName]?.length || 0) > 0 ? (
+                              {(rows.length || 0) > 0 ? (
                                  <Table>
                                     <TableHeader>
                                        <TableRow>
                                           {fields.map((field: any) => (
                                              <TableHead className='font-bold' key={field.name}>{field.name}</TableHead>
                                           ))}
-                                          <TableHead>Actions</TableHead>
+                                          {/* <TableHead>Actions</TableHead> */}
                                        </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                       {(tableData[formName] || []).map((row: any, rowIndex: number) => (
-                                          <TableRow key={row._id || rowIndex}>
-                                             {fields.map((field: any) => (
-                                                <TableCell key={field.name}>{row[field.name]}</TableCell>
-                                             ))}
-                                             <TableCell>
-                                                <DropdownMenu>
-                                                   <DropdownMenuTrigger>
-                                                      <MoreHorizontal className="h-4 w-4" />
-                                                   </DropdownMenuTrigger>
-                                                   <DropdownMenuContent>
-                                                      <DropdownMenuItem onClick={() => handleUpdateRow(formName, rowIndex, {})}>
-                                                         Update
-                                                      </DropdownMenuItem>
-                                                   </DropdownMenuContent>
-                                                </DropdownMenu>
-                                             </TableCell>
-                                          </TableRow>
-                                       ))}
+                                    {rows.map((row, idx) => (
+              <TableRow key={row._id?.$oid ?? idx}>
+                {fields.map((f: { name: React.Key | null | undefined; }) => (
+                  <TableCell key={f.name}>{row[f.name]}</TableCell>
+                ))}
+              </TableRow>
+            ))}
                                     </TableBody>
                                  </Table>
                               ) : (
@@ -297,7 +345,8 @@ const defaultValues = useMemo(() => {
                            </CardContent>
                         )}
                      </Card>
-                  ))}
+                     )}
+                  )}
                </div>
             </ScrollArea>
          </DialogContent>

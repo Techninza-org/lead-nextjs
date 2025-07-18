@@ -552,10 +552,8 @@ export default function AdvancedDataTableForms({
   setRowSelection(prev => {
     const next = { ...prev };
     if (next[row.id]) {
-      // if already selected, remove key to clear selection
       delete next[row.id];
     } else {
-      // select the row
       next[row.id] = true;
     }
     return next;

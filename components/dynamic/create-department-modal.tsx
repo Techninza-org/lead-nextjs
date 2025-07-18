@@ -38,7 +38,7 @@ const DepartmentSchema = z.object({
         isDisabled: z.boolean(),
         isHardCoded: z.boolean().optional(),
         isRelation: z.boolean().optional().default(false),
-        isUnique: z.boolean().optional(),
+        isUnique: z.boolean().optional().default(false),
     })).default([]),
 })
 
@@ -66,6 +66,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
     const [currentOptionsIndx, setCurrentOptionsIndx] = useState(0)
     const [loading, setLoading] = useState(false)
     const tableConfigRef = useRef<TableConfigPageRef>(null)
+    const [uniqueFields, setUniqueFields] = useState<string[]>([])
 
     const { toast } = useToast()
 
@@ -110,6 +111,11 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
         setCompanyDeptFormId(filteredDeptFields[0]?.id)
     }, [filteredDeptFields, form])
 
+    useEffect(() => {
+        console.log(uniqueFields, "uniqueFields in effect");
+        
+    }, [uniqueFields])
+
     const onSubmit = useCallback(async (values) => {
         setLoading(true)
         const filteredFields = values.deptFields.map(field => {
@@ -122,6 +128,8 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
 
 
         try {
+            console.log(uniqueFields, "uniqueFields");
+            
             const { data, error } = await updateDepartmentFields({
                 variables: {
                     input: {
@@ -132,6 +140,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                         order: 4,
                         subDeptFields: filteredFields,
                         companyDeptFormId: companyDeptFormId,
+                        uniqueFields: uniqueFields,
                     }
                 },
             });
@@ -161,7 +170,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
             setLoading(false)
             console.error(error);
         }
-    }, [categoryName, companyDeptFormId, deptId, deptName, toast, updateDepartmentFields])
+    }, [categoryName, companyDeptFormId, deptId, deptName, toast, updateDepartmentFields, uniqueFields])
 
     const handleSelectChange = useCallback((value, index) => {
         form.setValue(`deptFields.${index}.fieldType`, value)
@@ -194,17 +203,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
             const file = files[0];
             const parsedJson = await parseCSVToJson(file);
             form.setValue(`deptFields.${currIdx}.options.${currentOptionsIndx}.value`, parsedJson)
-            // setJsonData(parsedJson);
-            // const { data, error } = await updateDepartmentFields({
-            //     variables: {
-            //         input: {
-            //             companyDeptId: deptId || "",
-            //             name: deptName,
-            //             order: 4,
-            //             subDeptFields: form.getValues(`deptFields`),
-            //         }
-            //     },
-            // });
+           
         } catch (error) {
             console.error("Error parsing CSV:", error);
         }
@@ -865,13 +864,74 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                     </div>
                                 )
                             })}
+                            
+                            <div className='flex justify-between'>
+
                             <Button
                                 type="button"
                                 onClick={() => append({ name: '', fieldType: '', order: fields.length + 1, isRequired: true, isDisabled: false, ddOptionId: null, isHardCoded: false, isUnique: false })}
                                 className="mt-4 bg-blue-500 text-white"
-                            >
+                                >
                                 Add Field
                             </Button>
+
+                            <Popover>
+  <PopoverTrigger asChild>
+    <FormControl>
+      <Button
+        variant="outline"
+        role="combobox"
+        className={cn(
+          "w-[270px] justify-between",
+          uniqueFields.length === 0 && "text-muted-foreground"
+        )}
+      >
+        {uniqueFields.length > 0 ? uniqueFields.join(", ") : "Select unique fields combination"}
+        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+    </FormControl>
+  </PopoverTrigger>
+  <PopoverContent className="w-[250px] p-0">
+    <Command>
+      <CommandInput placeholder="Search fields..." />
+      <CommandList>
+        <CommandEmpty>No fields found.</CommandEmpty>
+        <CommandGroup>
+          {filteredDeptFields[currIdx]?.fields.map((f, index) => (
+            <CommandItem
+              key={`unique-${f.name}-${index}`}
+              value={f.name}
+              onSelect={() => {
+                if (typeof f.name !== 'string') return;
+              
+                setUniqueFields((prev) => {
+                  const updated = prev.includes(f.name)
+                    ? prev.filter((v) => v !== f.name)
+                    : [...prev, f.name];
+              
+                  console.log('uniqueFields now:', updated);
+                  return updated;
+                });
+              }}
+            >
+              <Check
+                className={cn(
+                  "mr-2 h-4 w-4",
+                  uniqueFields.includes(f.name)
+                    ? "opacity-100"
+                    : "opacity-0"
+                )}
+              />
+              {f.name}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  </PopoverContent>
+</Popover>
+
+                                </div>
                             <div className="mt-6 flex justify-end">
                                 <Button type="button" className="mr-2 bg-gray-500 text-white">Cancel</Button>
                                 <Button type="submit" variant="default" className="text-white">Submit</Button>

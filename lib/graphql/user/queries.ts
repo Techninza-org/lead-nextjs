@@ -231,20 +231,17 @@ const  GET_DISCTINT_CATEGORY = `
 
 const  GET_COMPANY_FUNCTION = `
   query getCompanyFunctions {
-    getCompanyFunctions {
-      functionName
-      desc
-      returnType
-      order
-      viewName
-      isActive
-      isUserIntervation
-      isValid
-      variables
-    }
+    getCompanyFunctions
+  }
+`
+
+const  GET_COMPANY_FUNCTION_FIELDS = `
+  query getCompanyFunctionFields($functionId: String!) {
+    getCompanyFunctionFields(functionId: $functionId)
   }
 `
 export const userQueries = {
+  GET_COMPANY_FUNCTION_FIELDS,
   GET_COMPANY_FUNCTION,
   GET_COMPANIES_CATEGORIES,
   GET_COMPANY_DEPT_MEMBERS,

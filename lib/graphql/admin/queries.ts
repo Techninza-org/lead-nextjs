@@ -45,19 +45,7 @@ query GetCompanyFunctionsDefault($orgId: String!){
 
 const getCompanyFunctionById = `
 query GetCompanyFunctionById($id: String!) {
-  getCompanyFunctionById(functionId: $id) {
-    id
-    orgId
-    functionName
-    functionType
-    desc
-    viewName
-    tags
-    isUserIntervation
-    isValid
-    returnType
-    individualButton
-  }
+  getCompanyFunctionById(functionId: $id) 
 }
 `
 

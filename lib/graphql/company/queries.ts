@@ -23,6 +23,7 @@ const GET_COMPANY_DEPT_FIELDS = `
         options 
         isDisabled
         isRequired
+        isUnique
         imgLimit
         order
       }
@@ -187,6 +188,12 @@ const GET_TABLE_CHILD_DATA = `
     }
 `
 
+const GET_CHILD_DATA = `
+    query getChildFromParent($parentId: String!, $childTableNames: [String!]!) {
+      getChildFromParent(parentId: $parentId, childTableNames: $childTableNames) 
+    }
+`
+
 export const companyQueries = {
   XCHANGE_CUSTOMER_LIST,
   GET_TABLE_CHILD_DATA,
@@ -202,5 +209,6 @@ export const companyQueries = {
   GET_XCHANGE_LEAD_IMGS,
   GET_LEADS_PHOTOS,
   GET_SUBMITTED_FORM_VALUE,
-  GET_TABLE_FILTER_OPTIONS
+  GET_TABLE_FILTER_OPTIONS,
+  GET_CHILD_DATA
 }

@@ -16,6 +16,12 @@ mutation createNUpdateCompanyDeptOptForm($input: CreateDeptFormInput!) {
 }
 `;
 
+const ADD_CHILD_TO_PARENT = `
+mutation addChildToParent($input: AddChildToParentInput!) {
+  addChildToParent(input: $input) 
+}
+`
+
 const CREATE_OR_UPDATE_GLOBAL_DEPTS = ` 
   mutation createDept($input: CreateDeptInput!) {
     createDept(input: $input) {
@@ -57,5 +63,6 @@ export const DeptMutation = {
   UPDATE_DEPT,
   CREATE_OR_UPDATE_GLOBAL_DEPTS,
   GET_BROADCAST_FORM,
-  UPDATE_DEPT_OPT
+  UPDATE_DEPT_OPT,
+  ADD_CHILD_TO_PARENT,
 };

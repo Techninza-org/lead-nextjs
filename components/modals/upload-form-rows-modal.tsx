@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { useAtomValue } from "jotai"
 import { userAtom } from "@/lib/atom/userAtom"
 import { useModal } from "@/hooks/use-modal-store"
-import { generateCSV, parseCSVToJson } from "@/lib/utils"
+import { cn, generateCSV, parseCSVToJson } from "@/lib/utils"
 
 import {
   Dialog,
@@ -56,18 +56,47 @@ export const UploadFormModal = () => {
   const { isOpen, onClose, type, data: modalData } = useModal()
   const isModalOpen = isOpen && type === "uploadFormModal"
 
-  const { formName = "Items", fields } = modalData || {}
-  const dynamicFields = fields?.fields || []
-  console.log("Dynamic fields:", dynamicFields);
-  console.log(fields, "fields from modalData");
-  
+  const { formName = "Items", fields, existingTags } = modalData || {}
+  // const dynamicFields = fields?.fields || []
+  console.log(fields, "fields in upload modal");
   
 
-  // Sort server-provided fields into the order you want
-  const sortedFields = useMemo(
-    () => [...dynamicFields].sort((a, b) => a.order - b.order),
-    [dynamicFields]
-  )
+  // Replace your current dynamicFields logic with this:
+const dynamicFields = useMemo(() => {
+  if (!fields) return [];
+
+  // Case 1: fields itself is an array
+  if (Array.isArray(fields)) {
+    return fields;
+  }
+
+  // If fields.fields exists…
+  const { fields: flds } = fields as { fields?: any };
+
+  if (!flds) {
+    return [];
+  }
+
+  // Case 2: fields.fields is an array
+  if (Array.isArray(flds)) {
+    return flds;
+  }
+
+  // Case 3: fields.fields is an object whose values are arrays
+  if (typeof flds === "object") {
+    return Object.values(flds).flat();
+  }
+
+  return [];
+}, [fields]);
+
+
+  const sortedFields = useMemo(() => {
+    if (!Array.isArray(dynamicFields)) return []
+    return dynamicFields
+      .map((f, i) => ({ order: f.order ?? i, ...f }))
+      .sort((a, b) => a.order - b.order)
+  }, [dynamicFields])
 
   // Build validation rules & default-values from sortedFields
   const validationSchema = useMemo(
@@ -96,44 +125,43 @@ export const UploadFormModal = () => {
   const [uploadedCSVHeaders, setUploadedCSVHeaders] = useState<string[]>([])
   const [uploadCSVData, setUploadCSVData] = useState<any[]>()
 
-  // Parse user-uploaded CSV into JSON + headers
-//   const handleCSVChange = async ({ files }: { files: File[] | null }) => {
-//     if (!files || files.length === 0) return
-//     try {
-//       const { jsonData, headers } = await parseCSVToJson(files[0])
-//       setUploadCSVData(jsonData)
-//       setUploadedCSVHeaders(headers)
-//     } catch (err) {
-//       console.error("Error parsing CSV:", err)
-//     }
-//   }
-
-const handleCSVChange = async (newFiles: File[] | null) => {
-  setFiles(newFiles);
-  if (!newFiles || newFiles.length === 0) return;
-  try {
-    const { jsonData, headers } = await parseCSVToJson(newFiles[0]);
-    setUploadCSVData(jsonData);
-    setUploadedCSVHeaders(headers);
-
-    // Track mapped headers
-    const mappedHeaders = new Set<string>();
-
-    sortedFields.forEach((field) => {
-      if (headers.includes(field.name)) {
-        form.setValue(field.name, field.name);
-        mappedHeaders.add(field.name);
-      } else {
-        form.setValue(field.name, ""); // explicitly clear non-matched
+  const handleCSVChange = async (newFiles: File[] | null) => {
+    setFiles(newFiles);
+    if (!newFiles || newFiles.length === 0) return;
+    try {
+      const { jsonData, headers } = await parseCSVToJson(newFiles[0]);
+      setUploadCSVData(jsonData);
+      setUploadedCSVHeaders(headers);
+  
+      const mappedHeaders = new Set<string>();
+  
+      sortedFields.forEach((field) => {
+        if (headers.includes(field.name)) {
+          form.setValue(field.name, field.name);
+          mappedHeaders.add(field.name);
+        } else {
+          form.setValue(field.name, "");
+        }
+      });
+  
+      if (fields?.childName && Array.isArray(fields?.fields?.[fields.childName])) {
+        fields.fields[fields.childName].forEach((childField: any) => {
+          const key = `${fields.childName}-${childField.name}`; // hyphenated name
+          if (headers.includes(key)) {
+            form.setValue(`${fields.childName}-${childField.name}`, key); // 🟢 Use hyphen
+            mappedHeaders.add(key);
+          } else {
+            form.setValue(`${fields.childName}-${childField.name}`, ""); // 🟢 Use hyphen
+          }
+        });
       }
-    });
-
-    // Save mappedHeaders to state for easy reference
-    setMappedHeaders(Array.from(mappedHeaders));
-  } catch (err) {
-    console.error("Error parsing CSV:", err);
-  }
-};
+  
+      setMappedHeaders(Array.from(mappedHeaders));
+    } catch (err) {
+      console.error("Error parsing CSV:", err);
+    }
+  };
+  
 
 const updateMappedHeaders = (fieldName: string, selectedHeader: string) => {
   setMappedHeaders((prev) => {
@@ -144,53 +172,139 @@ const updateMappedHeaders = (fieldName: string, selectedHeader: string) => {
 };
 
 
-  // Remap each CSV row into your form-field keys
-  const updateCsvKeys = (
-    csvData: any[],
-    formDataMapping: Record<string, string>
-  ) =>
-    csvData.map((row) => {
-      const out: Record<string, any> = {}
-      Object.entries(formDataMapping).forEach(([formKey, csvKey]) => {
-        out[formKey] = row[csvKey]
-      })
-      return out
-    })
+const updateCsvKeys = (
+  csvData: any[],
+  formDataMapping: Record<string, string>
+) =>
+  csvData.map((row) => {
+    const out: Record<string, any> = {};
+    Object.entries(formDataMapping).forEach(([formKey, csvKey]) => {
+      out[formKey] = row[csvKey];
+    });
+    return out;
+  });
 
-  // Wrap any non-static fields into dynamicFieldValue
   const wrapFieldsInDynamicFieldValueArray = (
-    fields: any[],
+    allFields: any,
     inputData: any[],
     tags: string[] = []
-  ) =>
-    inputData.map((data) => {
-      const dynamicFieldValue: Record<string, any> = {}
-      const updatedData: Record<string, any> = { ...data }
+  ) => {
+    const childName = allFields?.childName;
+    console.log("allFields in wrapFieldsInDynamicFieldValueArray:", allFields);
+    console.log(childName, "childName in wrapFieldsInDynamicFieldValueArray");
+    
+    
+    const childFields = Array.isArray(allFields?.fields?.[childName])
+      ? allFields.fields[childName]
+      : [];
 
-      fields.forEach((field) => {
-        if (data[field.name] !== undefined) {
-          dynamicFieldValue[field.name] = data[field.name]
-          dynamicFieldValue['dateUploaded'] = new Date()
-          delete updatedData[field.name]
+    console.log("childFields in wrapFieldsInDynamicFieldValueArray:", childFields);
+    
+  
+    // Create keys like "RelationTest.name"
+    const childFieldKeys = new Set(
+      childFields.map((f: any) => `${childName}-${f.name}`)
+    );
+    console.log("childFieldKeys in wrapFieldsInDynamicFieldValueArray:", childFieldKeys);
+    
+  
+    const cleanedData = inputData.filter((row) =>
+      Object.values(row).some(
+        (val) => val != null && String(val).trim() !== ""
+      )
+    );  
+    console.log("cleanedData in wrapFieldsInDynamicFieldValueArray:", cleanedData);
+    
+  
+    return cleanedData.map((row) => {
+      const dynamicFieldValue: Record<string, any> = {};
+      const childFieldValue: Record<string, any> = {};
+  
+      for (const [key, value] of Object.entries(row)) {
+        if (childFieldKeys.has(key)) {
+          const fieldName = key.replace(`${childName}-`, "");
+          childFieldValue[fieldName] = value;
+        } else {
+          dynamicFieldValue[key] = value;
         }
-      })
-      
-      updatedData.dynamicFieldValue = dynamicFieldValue
-      updatedData.tags = tags // Add tags directly to the row
-      updatedData.form = formName // Add table details
-      return updatedData
-    })
+      }
+  
+      dynamicFieldValue.dateUploaded = new Date();
+  
+      return {
+        form: allFields?.name || "UnnamedForm",
+        tags,
+        dynamicFieldValue,
+        childFormName: childName,
+        childFieldValue,
+      };
+    });
+  };
+  
+  
+  
+  
 
   // Generate a one-row “sample” CSV with every header = your dynamic field names
-  const handleDownloadSample = () => {
-    const sampleRow = sortedFields.reduce<Record<string, string>>((acc, fld) => {
-      acc[fld.name] = ""
-      return acc
-    }, {})
-    const arr = Object.keys(sampleRow).map(key=>({ name:key }));
+  // const handleDownloadSample = () => {
+  //   const sampleRow = sortedFields.reduce<Record<string, string>>((acc, fld) => {
+  //     acc[fld.name] = ""
+  //     return acc
+  //   }, {})
+  //   const arr = Object.keys(sampleRow).map(key=>({ name:key }));
     
-    generateCSV(arr, `${formName}-sample`)
-  }
+  //   generateCSV(arr, `${formName}-sample`)
+  // }
+  type Field = {
+    name: string;
+    order?: number;
+    isRequired?: boolean;
+    isUnique?: boolean;
+    children?: Field[];
+    [key: string]: any;
+  };
+  
+  const handleDownloadSample = () => {
+    if (!fields) return;
+  
+    const childName = fields.childName;
+    const parentFields: Field[] = Array.isArray(fields.fields)
+      ? fields.fields
+      : Array.isArray(fields?.fields?.[childName])
+        ? (Object.values(fields.fields).flat() as Field[]).filter((fld: Field) =>
+            !fields.fields[childName].some((cf: Field) => cf.name === fld.name)
+          )
+        : [];
+  
+    const childFields: Field[] = Array.isArray(fields?.fields?.[childName])
+      ? fields.fields[childName]
+      : [];
+  
+    // Flatten function for nested children (if needed)
+    const flattenFields = (flds: Field[], prefix = ''): { name: string }[] => {
+      return flds.flatMap((fld) => {
+        const namePrefix = prefix ? `${prefix}-` : '';
+        if (Array.isArray(fld.children)) {
+          return flattenFields(fld.children, `${namePrefix}${fld.name}`);
+        }
+        return [{ name: `${namePrefix}${fld.name}` }];
+      });
+    };
+  
+    const parentHeaders = flattenFields(parentFields);
+    const childHeaders = flattenFields(childFields, childName);
+  
+    const allHeaders = [...parentHeaders, ...childHeaders];
+  
+    const sampleRow = allHeaders.reduce<Record<string, string>>((acc, fld) => {
+      acc[fld.name] = '';
+      return acc;
+    }, {});
+  
+    generateCSV(allHeaders, `${formName}-sample`);
+  };
+  
+  
   
 
   // Submit handler
@@ -200,10 +314,10 @@ const updateMappedHeaders = (fieldName: string, selectedHeader: string) => {
     const tags = form.getValues("tags") || []
     const mapped = updateCsvKeys(uploadCSVData, mapping)
     const payload = wrapFieldsInDynamicFieldValueArray(
-      sortedFields,
+      fields,  // <-- full config object with .name and .childName
       mapped,
       tags
-    )
+    );
 
     try {
       const res = await fetch(
@@ -254,133 +368,182 @@ const updateMappedHeaders = (fieldName: string, selectedHeader: string) => {
   };
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-screen-md text-black">
-        <DialogHeader className="pt-6">
-          <DialogTitle className="flex justify-between text-2xl font-bold">
-            <span>Upload {formName}</span>
-            {/* {files && files.length > 0 && (
-  <div className="mb-4 text-sm text-gray-700">
-    Uploaded file: <span className="font-medium">{files[0].name}</span>
-  </div>
-)} */}
-          </DialogTitle>
-        </DialogHeader>
+<Dialog open={isModalOpen} onOpenChange={handleClose}>
+  <DialogContent className="max-w-screen-sm text-black">
+    <DialogHeader className="pt-8 px-6">
+      <DialogTitle className="text-2xl text-center font-bold">
+        {fields?.name || "Submit Lead"}
+      </DialogTitle>
+    </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="flex justify-center w-full">
-              {uploadedCSVHeaders.length ? (
-                <ScrollArea className="h-[390px] w-full p-2">
-                    <FilterableList
-                  form={form}
-                  name="tags"
-                  value={form.watch("tags")}
-                  placeholder="Select or create tags..."
-                />
-                  <div className="grid grid-cols-2 gap-2">
-                    {sortedFields.map((fld) => (
-                     <FormField
-                     key={fld.id}
-                     control={form.control}
-                     name={fld.name}
-                     rules={validationSchema[fld.name] || {}}
-                     render={({ field }) => {
-                       const isMatched = mappedHeaders.includes(fld.name);
-                       return (
-                         <FormItem>
-                           <FormLabel>
-                             {fld.name}{" "}
-                             {/* {!isMatched && (
-                               <span className="text-red-500 text-xs">(unmatched)</span>
-                             )} */}
-                           </FormLabel>
-                           <Select
-                             disabled={!uploadedCSVHeaders.length}
-                             onValueChange={(val) => {
-                               field.onChange(val);
-                               updateMappedHeaders(fld.name, val);
-                             }}
-                             value={field.value}
-                           >
-                             <FormControl>
-                               <SelectTrigger
-                                 className={isMatched ? "" : "border-red-500"}
-                               >
-                                 <SelectValue placeholder="Select column" />
-                               </SelectTrigger>
-                             </FormControl>
-                             <SelectContent>
-                               {uploadedCSVHeaders
-                                 .filter(
-                                   (h) =>
-                                     !Object.entries(form.getValues()).some(
-                                       ([key, value]) => value === h && key !== fld.name
-                                     )
-                                 )
-                                 .map((h) => (
-                                   <SelectItem key={h} value={h}>
-                                     {h}
-                                   </SelectItem>
-                                 ))}
-                             </SelectContent>
-                           </Select>
-                           <FormMessage />
-                         </FormItem>
-                       );
-                     }}
-                   />
-                   
-                    ))}
-                  </div>
-                </ScrollArea>
-              ) : (
-                <FileUploader
-                  value={files}
-                  fieldName={"file"}
-                  onValueChange={handleCSVChange}
-                  dropzoneOptions={dropzone}
-                  imgLimit={1}
-                  className="w-full"
-                >
-                  <FileInput>
-                    <div className="flex items-center justify-center h-32 border bg-background rounded-md">
-                      <p className="text-gray-400">Drop CSV here</p>
-                    </div>
-                  </FileInput>
-                  <FileUploaderContent className="flex items-center gap-2">
-                    {/* no preview for CSV */}
-                  </FileUploaderContent>
-                </FileUploader>
-              )}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {uploadedCSVHeaders.length > 0 && (
+          <>
+            <FilterableList
+              form={form}
+              name="tags"
+              value={form.watch("tags")}
+              existing={existingTags}
+              placeholder="Select or create tags..."
+            />
+
+            {/* Parent Fields */}
+            <div className="grid grid-cols-2 gap-2">
+              {sortedFields
+                .filter((fld) => {
+                  if (!fields?.childName || !Array.isArray(fields.fields?.[fields.childName])) return true;
+                  return !fields.fields[fields.childName].some((cf: any) => cf.name === fld.name);
+                })
+                .map((fld) => (
+                  <FormField
+                    key={fld.id || fld.name}
+                    control={form.control}
+                    name={fld.name}
+                    rules={validationSchema[fld.name] || {}}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {fld.name} {fld.isUnique && (
+                            <span className="text-red-500 text-xs ml-3">Unique</span>
+                          )}
+                        </FormLabel>
+                        <Select
+                          disabled={!uploadedCSVHeaders.length}
+                          onValueChange={(val) => {
+                            field.onChange(val);
+                            updateMappedHeaders(fld.name, val);
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select column" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {uploadedCSVHeaders.map((h) => (
+                              <SelectItem
+                                key={h}
+                                value={h}
+                                className={cn(!mappedHeaders.includes(h) && "text-red-500 font-semibold")}
+                              >
+                                {h}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
             </div>
 
-            <div className="flex justify-between mt-6">
-             {!uploadedCSVHeaders.length &&  <Button
-                variant="default"
-                color="primary"
-                size="sm"
-                className="items-center gap-1"
-                onClick={handleDownloadSample}
-              >
-                <UploadIcon size={15} />
-                <span>Sample {formName}</span>
-              </Button>}
+            {/* Child Fields */}
+            {fields?.childName && Array.isArray(fields?.fields?.[fields.childName]) && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">{fields.childName}</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {fields.fields[fields.childName].map((fld: any) => (
+                    <FormField
+                      key={fld.id || fld.name}
+                      control={form.control}
+                      name={`${fields.childName}-${fld.name}`}
+                      rules={fld.isRequired ? { required: `${fld.name} is required` } : {}}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            {fld.name} {fld.isUnique && (
+                              <span className="text-red-500 text-xs ml-3">Unique</span>
+                            )}
+                          </FormLabel>
+                          <Select
+                            disabled={!uploadedCSVHeaders.length}
+                            onValueChange={(val) => {
+                              field.onChange(val);
+                              updateMappedHeaders(`${fields.childName}.${fld.name}`, val);
+                            }}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select column" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {uploadedCSVHeaders.map((h) => (
+                                <SelectItem
+                                  key={h}
+                                  value={h}
+                                  className={cn(!mappedHeaders.includes(h) && "text-red-500 font-semibold")}
+                                >
+                                  {h}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
-            {uploadedCSVHeaders.length > 0 && <Button
-            variant="default"
-            color="primary"
-            size="sm"
-            type="submit"
-            className="items-center gap-1"
+        {/* File Upload (when no CSV yet) */}
+        {!uploadedCSVHeaders.length && (
+          <FileUploader
+            value={files}
+            fieldName="file"
+            onValueChange={handleCSVChange}
+            dropzoneOptions={dropzone}
+            imgLimit={1}
+            className="w-full"
+          >
+            <FileInput>
+              <div className="flex items-center justify-center h-32 border bg-background rounded-md">
+                <p className="text-gray-400">Drop CSV here</p>
+              </div>
+            </FileInput>
+            <FileUploaderContent className="flex items-center gap-2" />
+          </FileUploader>
+        )}
+
+        <div className="flex justify-between pt-2">
+          {!uploadedCSVHeaders.length && (
+            <Button
+              variant="default"
+              color="primary"
+              size="sm"
+              className="items-center gap-1"
+              onClick={handleDownloadSample}
+              type="button"
             >
-            Submit {formName}
-            </Button>}
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+              <UploadIcon size={15} />
+              <span>Sample {formName}</span>
+            </Button>
+          )}
+
+          {uploadedCSVHeaders.length > 0 && (
+            <Button
+              variant="default"
+              color="primary"
+              size="sm"
+              type="submit"
+              className="items-center gap-1"
+            >
+              Submit {formName}
+            </Button>
+          )}
+        </div>
+      </form>
+    </Form>
+  </DialogContent>
+</Dialog>
   )
 }
 
@@ -391,11 +554,13 @@ function FilterableList({
     name,
     value,
     placeholder = "Select tags...",
+    existing: existingTags = [],
   }: {
     form: any;
     name: string;
     value?: any;
     placeholder?: string;
+    existing?: string[];
   }) {
     return (
       <FormField
@@ -414,7 +579,7 @@ function FilterableList({
                 }}
                 creatable
                 hidePlaceholderWhenSelected
-                options={[]} 
+                options={(existingTags || []).map(tag => ({ label: tag, value: tag } as any))}
                 badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
                 triggerSearchOnFocus
                 placeholder={placeholder}

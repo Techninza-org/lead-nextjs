@@ -43,6 +43,15 @@ const DepartmentSchema = z.object({
     })).default([]),
 })
 
+export type ParsedData = z.infer<typeof DepartmentSchema>['deptFields'][0]
+
+interface Props {
+  isOpen: boolean
+  initialValues: ParsedData[]
+  onSave: (vals: ParsedData[]) => void
+  onCancel: () => void
+}
+
 export const fieldTypes = [
     { value: "xId", label: "Custom Id" },
     { value: "INPUT", label: "Input" },
@@ -61,113 +70,37 @@ export const fieldTypes = [
 ]
 
 
-const DynamicFunctionParametersModal = () => {
-    const { isOpen, onClose, type } = useModal();
-    const isModalOpen = isOpen && type === "DynamicFunctionParametersModal";
+
+export default function DynamicFunctionParametersModal({
+  isOpen, initialValues, onSave, onCancel
+}: Props) {
     const [currIdx, setCurrIdx] = useState(0)
     const userInfo = useAtomValue(userAtom)
     const [currentOptionsIndx, setCurrentOptionsIndx] = useState(0)
     const [loading, setLoading] = useState(false)
     const tableConfigRef = useRef<TableConfigPageRef>(null)
 
-    const { toast } = useToast()
-
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [jsonData, setJsonData] = useState<ParsedData[] | null>(null);
 
-    const [companyDeptFormId, setCompanyDeptFormId] = useState(null)
 
 
     const [searchTerm, setSearchTerm] = useState('')
     const [editingIndex, setEditingIndex] = useState(null);
-    
 
-    const [updateDepartmentFields] = useMutation(DeptMutation.UPDATE_DEPT)
-
-    const form = useForm({
-        resolver: zodResolver(DepartmentSchema),
-        defaultValues: { deptFields: [] },
+    const form = useForm<{ deptFields: ParsedData[] }>({
+      resolver: zodResolver(DepartmentSchema),
+      defaultValues: { deptFields: initialValues },
     })
-
+    
     const { fields, append, remove, update } = useFieldArray({
         control: form.control,
         name: "deptFields",
     })
-
-    // const hardCodedFields = genHardCodedFields(deptName);
-
-    // const { data } = useQuery(deptQueries.GET_COMPANY_DEPT_FIELDS, {
-    //     variables: { deptId },
-    //     skip: !userInfo?.token || !deptId,
-    // })
-    const data = []
-    const deptName = ''
-
-    const filteredDeptFields = useMemo(() =>
-        data?.getCompanyDeptFields?.filter(field => String(field.name) === String(decodeURIComponent(deptName))) || [],
-        [data, deptName])
-
-    useEffect(() => {
-        if (filteredDeptFields.length > 0) {
-            const sortedSubDeptFields = filteredDeptFields[0]?.fields?.sort((a, b) => a.order - b.order) || []
-            // form.reset({ deptFields: sortedSubDeptFields })
-            // form.reset({ deptFields: [...hardCodedFields, ...sortedSubDeptFields] })
-        }
-        setCompanyDeptFormId(filteredDeptFields[0]?.id)
-    }, [filteredDeptFields, form])
-
-    const onSubmit = useCallback(async (values) => {
-        setLoading(true)
-        const filteredFields = values.deptFields.map(field => {
-            if (field.fieldType === "xId" && field.name !== "xId") {
-                return { ...field, name: "xId" };
-            }
-            return field;
-        }).filter(field => !field.isHardCoded);
-        const hasXIdField = values.deptFields.some((field) => field.fieldType === "xId")
-
-
-        try {
-            const { data, error } = await updateDepartmentFields({
-                variables: {
-                    input: {
-                        companyDeptId: deptId || "",
-                        categoryName: decodeURIComponent(categoryName),
-                        name: decodeURIComponent(deptName),
-                        deptName,
-                        order: 4,
-                        subDeptFields: filteredFields,
-                        companyDeptFormId: companyDeptFormId,
-                    }
-                },
-            });
-
-            if (error) {
-                setLoading(false)
-                const message = error?.graphQLErrors?.map((e) => e.message).join(", ");
-                toast({
-                    title: 'Error',
-                    description: message || "Something went wrong",
-                    variant: "destructive"
-                });
-                return;
-            }
-
-            if (hasXIdField && tableConfigRef.current) {
-                await tableConfigRef.current.handleSubmit()
-            }
-
-
-            toast({
-                variant: "default",
-                title: "Department Form Updated Successfully!",
-            });
-
-        } catch (error) {
-            setLoading(false)
-            console.error(error);
-        }
-    }, [ deptName, toast, updateDepartmentFields])
+    
+    const handleSave = form.handleSubmit(data => {
+      onSave(data.deptFields)
+    })
 
     const handleSelectChange = useCallback((value, index) => {
         form.setValue(`deptFields.${index}.fieldType`, value)
@@ -200,17 +133,6 @@ const DynamicFunctionParametersModal = () => {
             const file = files[0];
             const parsedJson = await parseCSVToJson(file);
             form.setValue(`deptFields.${currIdx}.options.${currentOptionsIndx}.value`, parsedJson)
-            // setJsonData(parsedJson);
-            // const { data, error } = await updateDepartmentFields({
-            //     variables: {
-            //         input: {
-            //             companyDeptId: deptId || "",
-            //             name: deptName,
-            //             order: 4,
-            //             subDeptFields: form.getValues(`deptFields`),
-            //         }
-            //     },
-            // });
         } catch (error) {
             console.error("Error parsing CSV:", error);
         }
@@ -665,30 +587,30 @@ const DynamicFunctionParametersModal = () => {
         }
 
         return null
-    }, [form, currIdx, searchTerm, editingIndex, filteredDeptFields, handleFileChange])
+    }, [form, currIdx, searchTerm, editingIndex, handleFileChange])
 
 
     const handleSelect = (value: string) => {
         console.log('Selected value:', value);
     };
     return (
-        <Dialog open={isModalOpen} onOpenChange={onClose}>
-        <DialogContent className="text-black max-w-screen-sm">
-            {/* <DialogHeader className="pt-8 px-6">
+        <Dialog  open={isOpen} onOpenChange={onCancel}>
+        <DialogContent className="text-black max-w-screen-lg">
+            <DialogHeader className="pt-8 px-6">
                 <DialogTitle className="text-2xl text-center font-bold">
                     Add Parameters
                 </DialogTitle>
-            </DialogHeader> */}
+            </DialogHeader>
 
 
         <Form {...form}>
-            {/* <Card className="grid grid-cols-7 gap-2"> */}
-                <Card className="col-span-4">
+            <div className="grid grid-cols-10 gap-2">
+                <Card className="col-span-7">
                     <CardHeader>
                         <CardTitle className="text-2xl text-center font-bold">Function Parameters</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={form.handleSubmit(onSubmit)}>
+                        <form onSubmit={handleSave}>
                             {fields.map((field, index) => {
                                 const isDisabled = form.watch(`deptFields.${index}.isDisabled`);
                                 const isHardCoded = form.watch(`deptFields.${index}.isHardCoded`);
@@ -870,28 +792,30 @@ const DynamicFunctionParametersModal = () => {
                                 Add Parameter
                             </Button>
                             <div className="mt-6 flex justify-end">
-                                <Button type="button" className="mr-2 bg-gray-500 text-white">Cancel</Button>
-                                <Button type="submit" variant="default" className="text-white">Submit</Button>
+                            <Button variant={"secondary"} type="button" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" variant={"default"}>
+              Save Parameters
+            </Button>
                             </div>
                         </form>
 
                     </CardContent>
                 </Card>
 
-                {/* <Card className="col-span-3">
+                <Card className="col-span-3">
                     <CardHeader>
                         <CardTitle className="text-2xl text-center font-bold">Field Options</CardTitle>
                     </CardHeader>
                     <CardContent className='p-3'>
                         {!form.watch(`deptFields.${currIdx}.isRelation`) && renderFieldOptions()}
                     </CardContent>
-                </Card> */}
-            {/* </Card> */}
+                </Card>
+            </div>
         </Form>
 
         </DialogContent>
     </Dialog>
     )
 }
-
-export default DynamicFunctionParametersModal

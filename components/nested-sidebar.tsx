@@ -88,7 +88,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 // Helper function to create URL-friendly slugs
 function createSlug(name: string): string {
-  return name.toLowerCase().replace(/\s+/g, "-")
+  return name.replace(/\s+/g, "-")
 }
 
 // Helper function to flatten the navigation tree for searching

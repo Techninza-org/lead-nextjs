@@ -40,6 +40,7 @@ const GET_COMPANY_DEPT_FIELDS = `
           options 
           isDisabled
           isRequired
+          isUnique
           imgLimit
           order
         }
@@ -47,8 +48,15 @@ const GET_COMPANY_DEPT_FIELDS = `
     }
 `;
 
+const GET_TAGS_BY_FORM_NAME = `
+query getTagsByFormName($formName: String!){
+  getTagsByFormName(formName: $formName)
+}
+`
+
 export const deptQueries = {
   GET_DEPT_FIELDS,
   GET_COMPANY_DEPTS,
   GET_COMPANY_DEPT_FIELDS,
+  GET_TAGS_BY_FORM_NAME
 };

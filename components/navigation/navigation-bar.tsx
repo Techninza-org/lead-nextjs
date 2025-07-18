@@ -121,9 +121,9 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
                         }
                     )}
                 >
-                    <Nav isCollapsed={isNavCollapsed} links={navLinks} />
+                    {/* <Nav isCollapsed={isNavCollapsed} links={navLinks} /> */}
                     {/* Pass the hierarchy with category information */}
-                    {/* <NestedSidebar data={hierarchy} searchTerm={searchTerm} /> */}
+                    <NestedSidebar data={hierarchy} searchTerm={searchTerm} />
                 </div>
                 <div
                     className={cn(
