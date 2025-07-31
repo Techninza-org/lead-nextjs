@@ -171,8 +171,8 @@ const GET_LEADS_PHOTOS = `
 `
 
 const GET_SUBMITTED_FORM_VALUE = `
-    query getFormValuesByFormName($formName: String!) {
-      getFormValuesByFormName(formName: $formName)
+    query getFormValuesByFormName($formName: String!, $sort: String!) {
+      getFormValuesByFormName(formName: $formName, sort: $sort) 
     }
 `
 

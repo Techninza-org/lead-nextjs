@@ -82,6 +82,8 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
         // variables,
         // refetchAfterMutations: [leadAssignTo, UPDATE_USER_COMPANY],
         onSuccess: ({ data }) => {
+            console.log(data.getDistinctCategories, "distinct categories data in company provider");
+            
             if (data?.getDistinctCategories) setCompanyCategories(data.getDistinctCategories)
         }
     });

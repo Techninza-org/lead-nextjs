@@ -14,7 +14,7 @@ export default function Page({ params }: { params: { formName: string } }) {
     const formName = decodeURIComponent(params?.formName);
     const { data, loading, error } = useQuery(companyQueries.GET_SUBMITTED_FORM_VALUE, {
         variables: {
-            formName
+            formName,
         }
     })
     const formData = data?.getFormValuesByFormName;

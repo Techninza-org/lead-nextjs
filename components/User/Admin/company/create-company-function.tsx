@@ -54,7 +54,10 @@ const FunctionFormSchema = z.object({
     name: z.string().optional(),
     ddOptionId: z.string().optional(),
     optionId: z.string().optional(),
-    isHardCoded: z.boolean().optional()
+    isHardCoded: z.boolean().optional(),
+    relationFormId: z.string().optional(),
+    relationFormName: z.string().optional(),
+    relationFormFieldName: z.string().optional(),
   })).default([]),
 });
 
@@ -130,6 +133,9 @@ export default function CreateCompanyFunction({ id }: { id: string }) {
             ddOptionId: field.ddOptionId,
             optionId: field.optionId,
             isHardCoded: field.isHardCoded || false,
+            // relationFormId: '6863b55131dd5ae49fbbd852',
+            // relationFormName: 'Leads',
+            // relationFormFieldName: 'name',
           }))
         },
       });
@@ -258,19 +264,6 @@ export default function CreateCompanyFunction({ id }: { id: string }) {
                 )} />
               </div>
               <div className='mt-6'>
-                {/* <FormField
-                                    control={form.control}
-                                    name="tags"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Tags</FormLabel>
-                                            <FormControl>
-                                                <TagsInput value={field.value} onChange={field.onChange} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                /> */}
                 <FilterableList
                   form={form}
                   name="tags"

@@ -40,6 +40,9 @@ const DepartmentSchema = z.object({
         isDisabled: z.boolean(),
         isHardCoded: z.boolean().optional(),
         isRelation: z.boolean().optional().default(false),
+        relationFormId: z.string().optional(),
+        relationFormName: z.string().optional(),
+        relationFormFieldName: z.string().optional(),
     })).default([]),
 })
 
@@ -83,6 +86,9 @@ export default function DynamicFunctionParametersModal({
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [jsonData, setJsonData] = useState<ParsedData[] | null>(null);
 
+    const { data } = useQuery(deptQueries.GET_COMPANY_DEPT_FIELDS, {
+        variables: { deptId: '685b9e5e8866a61c35741875' }
+    })
 
 
     const [searchTerm, setSearchTerm] = useState('')

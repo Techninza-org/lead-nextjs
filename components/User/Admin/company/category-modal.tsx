@@ -1,203 +1,133 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Pencil } from "lucide-react"
 import MultipleSelector from "@/components/multi-select-shadcn-expension"
+import { useMutation } from "graphql-hooks"
+import { companyMutation } from "@/lib/graphql/company/mutation"
+import { useCompany } from "@/components/providers/CompanyProvider"
 
 export function CategoryModal({ initialData }: any) {
   const [open, setOpen] = useState(false)
-  const [formData, setFormData] = useState(initialData || {})
+  const { companyCategories, rootInfo } = useCompany()
 
-  // Category selection state
-  const [categoryMode, setCategoryMode] = useState<"select" | "create">("select")
-  const [subCategoryMode, setSubCategoryMode] = useState<"select" | "create">("select")
-  const [subSubCategoryMode, setSubSubCategoryMode] = useState<"select" | "create">("select")
-  const [subSubSubCategoryMode, setSubSubSubCategoryMode] = useState<"select" | "create">("select")
+  const [updateCompanyCategories] = useMutation(
+    companyMutation.UPDATE_COMPANY_CATEGORIES
+  )
 
-  // Extract category IDs from initialData
-  const [selectedCategory, setSelectedCategory] = useState("")
-  const [selectedSubCategory, setSelectedSubCategory] = useState("")
-  const [selectedSubSubCategory, setSelectedSubSubCategory] = useState("")
-  const [selectedSubSubSubCategory, setSelectedSubSubSubCategory] = useState("")
+  // Level 0 state and options
+  const [level0Opts, setLevel0Opts] = useState<any[]>([])
+  const [sel0, setSel0] = useState("")
 
-  const [newCategory, setNewCategory] = useState("")
-  const [newSubCategory, setNewSubCategory] = useState("")
-  const [newSubSubCategory, setNewSubSubCategory] = useState("")
-  const [newSubSubSubCategory, setNewSubSubSubCategory] = useState("")
+  // Level 1 state and options
+  const [level1Opts, setLevel1Opts] = useState<any[]>([])
+  const [sel1, setSel1] = useState("")
 
-  // Tags state
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [newTag, setNewTag] = useState("")
-  const [customTags, setCustomTags] = useState<string[]>([])
+  // Level 2 state and options
+  const [level2Opts, setLevel2Opts] = useState<any[]>([])
+  const [sel2, setSel2] = useState("")
 
-  // Extract category options from initialData
-  const [categoryOptions, setCategoryOptions] = useState<any[]>([])
-  const [subCategoryOptions, setSubCategoryOptions] = useState<any[]>([])
-  const [subSubCategoryOptions, setSubSubCategoryOptions] = useState<any[]>([])
-  const [subSubSubCategoryOptions, setSubSubSubCategoryOptions] = useState<any[]>([])
+  // Level 3 state and options
+  const [level3Opts, setLevel3Opts] = useState<any[]>([])
+  const [sel3, setSel3] = useState("")
+
+  // Tags
+  const [tagOpts, setTagOpts] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>([])
+
+  // Initialize options and selections
+  useEffect(() => {
+    setLevel0Opts(
+      companyCategories?.categories?.filter((c: any) => c.level === 0)
+    )
+    setTagOpts(companyCategories.tags || [])
+
+    if (initialData?.categories) {
+      const hierarchy: any[] = []
+      let ptr = initialData.categories
+      while (ptr) {
+        hierarchy.unshift(ptr)
+        ptr = ptr.parent
+      }
+      if (hierarchy[0]) setSel0(hierarchy[0].id)
+      if (hierarchy[1]) setSel1(hierarchy[1].id)
+      if (hierarchy[2]) setSel2(hierarchy[2].id)
+      if (hierarchy[3]) setSel3(hierarchy[3].id)
+      setTags(initialData.tags || [])
+    }
+  }, [companyCategories, rootInfo, initialData])
+
+  // Populate dependent levels
+  useEffect(() => {
+    const p = companyCategories?.categories?.find((c: any) => c.id === sel0)
+    setLevel1Opts((p?.children || []).filter((c: any) => c.level === 1))
+    setSel1("")
+    setLevel2Opts([])
+    setSel2("")
+    setLevel3Opts([])
+    setSel3("")
+  }, [sel0, companyCategories])
 
   useEffect(() => {
-    if (initialData) {
-      setFormData(initialData)
-      setSelectedTags(initialData.tags || [])
+    const p = level1Opts.find((c) => c.id === sel1)
+    setLevel2Opts((p?.children || []).filter((c: any) => c.level === 2))
+    setSel2("")
+    setLevel3Opts([])
+    setSel3("")
+  }, [sel1, level1Opts])
 
-      // Extract category hierarchy from initialData
-      if (initialData.categories) {
-        // Level 3 (current category)
-        if (initialData.categories.id) {
-          setSelectedSubSubSubCategory(initialData.categories.id)
-          setSubSubSubCategoryOptions([
-            {
-              id: initialData.categories.id,
-              name: initialData.categories.name,
-              level: initialData.categories.level,
-              parentId: initialData.categories.parentId,
-            },
-          ])
-        }
+  useEffect(() => {
+    const p = level2Opts.find((c) => c.id === sel2)
+    setLevel3Opts((p?.children || []).filter((c: any) => c.level === 3))
+    setSel3("")
+  }, [sel2, level2Opts])
 
-        // Level 2 (parent)
-        if (initialData.categories.parent) {
-          setSelectedSubSubCategory(initialData.categories.parent.id)
-          setSubSubCategoryOptions([
-            {
-              id: initialData.categories.parent.id,
-              name: initialData.categories.parent.name,
-              level: initialData.categories.parent.level,
-              parentId: initialData.categories.parent.parentId,
-            },
-          ])
-        }
-
-        // Level 1 (grandparent)
-        if (initialData.categories.parent?.parent) {
-          setSelectedSubCategory(initialData.categories.parent.parent.id)
-          setSubCategoryOptions([
-            {
-              id: initialData.categories.parent.parent.id,
-              name: initialData.categories.parent.parent.name,
-              level: initialData.categories.parent.parent.level,
-              parentId: initialData.categories.parent.parent.parentId,
-            },
-          ])
-        }
-
-        // Level 0 (great-grandparent)
-        if (initialData.categories.parent?.parent?.parent) {
-          setSelectedCategory(initialData.categories.parent.parent.parent.id)
-          setCategoryOptions([
-            {
-              id: initialData.categories.parent.parent.parent.id,
-              name: initialData.categories.parent.parent.parent.name,
-              level: initialData.categories.parent.parent.parent.level,
-              parentId: initialData.categories.parent.parent.parent.parentId,
-            },
-          ])
-        }
-      }
-    }
-  }, [initialData])
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData({
-      ...formData,
-      [name]: value,
-    })
-  }
-
-  const handleTagToggle = (tag: string) => {
-    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
-  }
-
-  const handleAddCustomTag = () => {
-    if (newTag && !selectedTags.includes(newTag) && !customTags.includes(newTag)) {
-      setCustomTags((prev) => [...prev, newTag])
-      setSelectedTags((prev) => [...prev, newTag])
-      setNewTag("")
-    }
-  }
-
-  const handleRemoveCustomTag = (tag: string) => {
-    setCustomTags((prev) => prev.filter((t) => t !== tag))
-    setSelectedTags((prev) => prev.filter((t) => t !== tag))
-  }
-
+  // Submit handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const path = [
+      level0Opts.find((c) => c.id === sel0)?.name || "",
+      level1Opts.find((c) => c.id === sel1)?.name || "",
+      level2Opts.find((c) => c.id === sel2)?.name || "",
+      level3Opts.find((c) => c.id === sel3)?.name || "",
+    ]
 
-    // Prepare the category data
-    let finalCategoryId = ""
-    let categoryData = null
-
-    if (subSubSubCategoryMode === "select" && selectedSubSubSubCategory) {
-      finalCategoryId = selectedSubSubSubCategory
-    } else if (subSubSubCategoryMode === "create" && newSubSubSubCategory) {
-      // Create new level 3 category
-      finalCategoryId = `new-l3-${Date.now()}`
-      categoryData = {
-        id: finalCategoryId,
-        name: newSubSubSubCategory,
-        level: 3,
-        parentId: subSubCategoryMode === "select" ? selectedSubSubCategory : `new-l2-${Date.now()}`,
-      }
-    } else if (subSubCategoryMode === "select" && selectedSubSubCategory) {
-      finalCategoryId = selectedSubSubCategory
-    } else if (subSubCategoryMode === "create" && newSubSubCategory) {
-      // Create new level 2 category
-      finalCategoryId = `new-l2-${Date.now()}`
-      categoryData = {
-        id: finalCategoryId,
-        name: newSubSubCategory,
-        level: 2,
-        parentId: subCategoryMode === "select" ? selectedSubCategory : `new-l1-${Date.now()}`,
-      }
-    } else if (subCategoryMode === "select" && selectedSubCategory) {
-      finalCategoryId = selectedSubCategory
-    } else if (subCategoryMode === "create" && newSubCategory) {
-      // Create new level 1 category
-      finalCategoryId = `new-l1-${Date.now()}`
-      categoryData = {
-        id: finalCategoryId,
-        name: newSubCategory,
-        level: 1,
-        parentId: categoryMode === "select" ? selectedCategory : `new-l0-${Date.now()}`,
-      }
-    } else if (categoryMode === "select" && selectedCategory) {
-      finalCategoryId = selectedCategory
-    } else if (categoryMode === "create" && newCategory) {
-      // Create new level 0 category
-      finalCategoryId = `new-l0-${Date.now()}`
-      categoryData = {
-        id: finalCategoryId,
-        name: newCategory,
-        level: 0,
-        parentId: null,
-      }
-    }
-
-    // Prepare the updated data
-    const updatedData = {
-      ...formData,
-      tags: selectedTags,
-      categoryId: finalCategoryId,
-      newCategory: categoryData,
-      customTags: customTags,
-    }
-
-    console.log("Form submitted:", updatedData, {
-      category: initialData?.categories?.parent?.parent?.parent?.name,
-      subCategory: initialData?.categories?.parent?.parent?.name,
-      subSubCategory: initialData?.categories?.parent?.name,
-      subSubSubCategory: initialData?.categories?.name,
+    updateCompanyCategories({
+      variables: {
+        companyId: initialData.companyId,
+        category: path[0],
+        subCategory: path[1],
+        subCategory2: path[2],
+        subCategory3: path[3],
+        tags,
+      },
     })
+      // .then(() => refetchCompany())
+      .catch(console.error)
 
     setOpen(false)
+  }
+
+  // Helper to add new created values
+  const handleValueChange = (
+    selected: string,
+    opts: any[],
+    setOpts: React.Dispatch<React.SetStateAction<any[]>>, 
+    setSel: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    if (selected && !opts.find((c) => c.id === selected)) {
+      setOpts([...opts, { id: selected, name: selected, children: [] }])
+    }
+    setSel(selected)
   }
 
   return (
@@ -207,197 +137,100 @@ export function CategoryModal({ initialData }: any) {
           <Pencil size={14} />
         </Button>
       </DialogTrigger>
+
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Lead Information</DialogTitle>
+          <DialogTitle>Edit Categories & Tags</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div className="space-y-4">
-              <Label>Category Hierarchy</Label>
-
-              <div className="grid grid-cols-1 gap-4">
-                {/* Level 0 - Category */}
-                <div className="space-y-3">
-                  <Label htmlFor="category" className="text-sm font-medium">
-                    Category (Level 0)
-                  </Label>
-
-                  <MultipleSelector
-                    value={
-                      selectedCategory
-                        ? [
-                            {
-                              label: categoryOptions.find((cat) => cat.id === selectedCategory)?.name || "",
-                              value: selectedCategory,
-                            },
-                          ]
-                        : []
-                    }
-                    onChange={(value) => setSelectedCategory(value[0]?.value || "")}
-                    badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                    options={categoryOptions.map((category) => ({
-                      value: category.id,
-                      label: category.name,
-                      // isDisabled: selectedCategory === category.id,
-                    }))}
-                    placeholder="Select Category"
-                    emptyIndicator={
-                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                        No Categories found.
-                      </p>
-                    }
-                    hidePlaceholderWhenSelected
-                    triggerSearchOnFocus
-                  />
-                </div>
-
-                {/* Level 1 - Sub-Category */}
-                <div className="space-y-3">
-                  <Label htmlFor="subCategory" className="text-sm font-medium">
-                    Sub-Category (Level 1)
-                  </Label>
-
-                  <MultipleSelector
-                    value={
-                      selectedSubCategory
-                        ? [
-                            {
-                              label: subCategoryOptions.find((cat) => cat.id === selectedSubCategory)?.name || "",
-                              value: selectedSubCategory,
-                            },
-                          ]
-                        : []
-                    }
-                    onChange={(value) => setSelectedSubCategory(value[0]?.value || "")}
-                    badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                    options={subCategoryOptions
-                      .filter((sub) => sub.parentId === selectedCategory)
-                      .map((subCategory) => ({
-                        value: subCategory.id,
-                        label: subCategory.name,
-                        // isDisabled: selectedSubCategory === subCategory.id,
-                      }))}
-                    placeholder="Select Sub-Category"
-                    emptyIndicator={
-                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                        No Sub-Categories found.
-                      </p>
-                    }
-                    hidePlaceholderWhenSelected
-                    triggerSearchOnFocus
-                    // disabled={categoryMode === "create" || !selectedCategory}
-                  />
-                </div>
-
-                {/* Level 2 - Sub-Sub-Category */}
-                <div className="space-y-3">
-                  <Label htmlFor="subSubCategory" className="text-sm font-medium">
-                    Sub-Sub-Category (Level 2)
-                  </Label>
-                  <MultipleSelector
-                    value={
-                      selectedSubSubCategory
-                        ? [
-                            {
-                              label: subSubCategoryOptions.find((cat) => cat.id === selectedSubSubCategory)?.name || "",
-                              value: selectedSubSubCategory,
-                            },
-                          ]
-                        : []
-                    }
-                    onChange={(value) => setSelectedSubSubCategory(value[0]?.value || "")}
-                    badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                    options={subSubCategoryOptions
-                      .filter((subSub) => subSub.parentId === selectedSubCategory)
-                      .map((subSubCategory) => ({
-                        value: subSubCategory.id,
-                        label: subSubCategory.name,
-                        // isDisabled: selectedSubSubCategory === subSubCategory.id,
-                      }))}
-                    placeholder="Select Sub-Sub-Category"
-                    emptyIndicator={
-                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                        No Sub-Sub-Categories found.
-                      </p>
-                    }
-                    hidePlaceholderWhenSelected
-                    triggerSearchOnFocus
-                    // disabled={subCategoryMode === "create" || !selectedSubCategory}
-                    creatable
-                  />
-                </div>
-
-                {/* Level 3 - Sub-Sub-Sub-Category */}
-                <div className="space-y-3">
-                  <Label htmlFor="subSubSubCategory" className="text-sm font-medium">
-                    Sub-Sub-Sub-Category (Level 3)
-                  </Label>
-
-                  <MultipleSelector
-                    value={
-                      selectedSubSubSubCategory
-                        ? [
-                            {
-                              label:
-                                subSubSubCategoryOptions.find((cat) => cat.id === selectedSubSubSubCategory)?.name ||
-                                "",
-                              value: selectedSubSubSubCategory,
-                            },
-                          ]
-                        : []
-                    }
-                    onChange={(value) => setSelectedSubSubSubCategory(value[0]?.value || "")}
-                    badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                    options={subSubSubCategoryOptions
-                      .filter((subSubSub) => subSubSub.parentId === selectedSubSubCategory)
-                      .map((subSubSubCategory) => ({
-                        value: subSubSubCategory.id,
-                        label: subSubSubCategory.name,
-                        // isDisabled: selectedSubSubSubCategory === subSubSubCategory.id,
-                      }))}
-                    placeholder="Select Sub-Sub-Sub-Category"
-                    emptyIndicator={
-                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                        No Sub-Sub-Sub-Categories found.
-                      </p>
-                    }
-                    hidePlaceholderWhenSelected
-                    triggerSearchOnFocus
-                    // disabled={subSubCategoryMode === "create" || !selectedSubSubCategory}
-                    creatable
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t pt-3">
-              <Label className="text-sm mb-2 block">Tags</Label>
-              <div className="flex gap-2">
-                <MultipleSelector
-                  value={selectedTags.map((tag) => ({ value: tag, label: tag }))}
-                  onChange={(values) => setSelectedTags(values.map((v) => v.value))}
-                  badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
-                  options={
-                    initialData?.tags?.map((tag: string) => ({
-                      value: tag,
-                      label: tag,
-                    })) || []
-                  }
-                  placeholder="Select Tags"
-                  emptyIndicator={
-                    <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">No Tags found.</p>
-                  }
-                  hidePlaceholderWhenSelected
-                  triggerSearchOnFocus
-                  creatable
-                />
-              </div>
-            </div>
+          {/* Level 0 */}
+          <div className="space-y-2">
+            <Label>Category (Level 0)</Label>
+            <MultipleSelector
+              creatable
+              options={level0Opts?.map((c) => ({ value: c.id, label: c.name }))}
+              value={
+                sel0
+                  ? [{ value: sel0, label: level0Opts.find((c) => c.id === sel0)?.name || '' }]
+                  : []
+              }
+              onChange={(items) => handleValueChange(items[0]?.value || "", level0Opts, setLevel0Opts, setSel0)}
+              placeholder="Select or create category"
+              hidePlaceholderWhenSelected
+              triggerSearchOnFocus
+            />
           </div>
 
-          <div className="flex justify-end space-x-2">
+          {/* Level 1 */}
+          <div className="space-y-2">
+            <Label>Sub-Category (Level 1)</Label>            
+            <MultipleSelector
+              creatable
+              options={level1Opts?.map((c) => ({ value: c.id, label: c.name }))}
+              value={
+                sel1
+                  ? [{ value: sel1, label: level1Opts.find((c) => c.id === sel1)?.name }]
+                  : []
+              }
+              onChange={(items) => handleValueChange(items[0]?.value || "", level1Opts, setLevel1Opts, setSel1)}
+              placeholder="Select or create sub-category"
+              hidePlaceholderWhenSelected
+              triggerSearchOnFocus
+            />
+          </div>
+
+          {/* Level 2 */}
+          <div className="space-y-2">
+            <Label>Sub-Sub-Category (Level 2)</Label>
+            <MultipleSelector
+              creatable
+              options={level2Opts?.map((c) => ({ value: c.id, label: c.name }))}
+              value={
+                sel2
+                  ? [{ value: sel2, label: level2Opts.find((c) => c.id === sel2)?.name }]
+                  : []
+              }
+              onChange={(items) => handleValueChange(items[0]?.value || "", level2Opts, setLevel2Opts, setSel2)}
+              placeholder="Select or create sub-sub-category"
+              hidePlaceholderWhenSelected
+              triggerSearchOnFocus
+            />
+          </div>
+
+          {/* Level 3 */}
+          <div className="space-y-2">
+            <Label>Sub-Sub-Sub-Category (Level 3)</Label>
+            <MultipleSelector
+              creatable
+              options={level3Opts?.map((c) => ({ value: c.id, label: c.name }))}
+              value={
+                sel3
+                  ? [{ value: sel3, label: level3Opts.find((c) => c.id === sel3)?.name || "" }]
+                  : []
+              }
+              onChange={(items) => handleValueChange(items[0]?.value || "", level3Opts, setLevel3Opts, setSel3)}
+              placeholder="Select or create sub-sub-sub-category"
+              hidePlaceholderWhenSelected
+              triggerSearchOnFocus
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="border-t pt-4 space-y-2">
+            <Label>Tags</Label>
+            <MultipleSelector
+              creatable
+              options={tagOpts?.map((t) => ({ value: t, label: t }))}
+              value={tags.map((t) => ({ value: t, label: t }))}
+              onChange={(items) => setTags(items.map((i) => i.value))}
+              placeholder="Select or create tags"
+              hidePlaceholderWhenSelected
+              triggerSearchOnFocus
+            />
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>

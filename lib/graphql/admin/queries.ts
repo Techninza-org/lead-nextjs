@@ -25,6 +25,12 @@ const GET_DEPT_FIELDS = `
   }
 `;
 
+const GET_COMPANIES_DATA = ` 
+  query getCompaniesData{
+    getCompaniesData
+  }
+`
+
 const getCompanyForms = `
   query GetCompanyForms($companyId: String!) {
     getCompanyForms(companyId: $companyId)
@@ -68,4 +74,5 @@ export const adminQueries = {
   getCompanyFunctionsDefault,
   getCompanyFunctionById,
   getCompanyForms,
+  GET_COMPANIES_DATA
 };

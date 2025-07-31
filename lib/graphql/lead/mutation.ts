@@ -243,7 +243,24 @@ const EDIT_LEAD_FORM_VALUE = `
   }
 `;
 
+const EDIT_FIELD_VALUE = `
+  mutation editFieldValue(
+    $formName: String!,
+    $fieldName: String!,
+    $docId: String!,
+    $fieldValue: String!
+  ){
+  editFieldValue(
+    formName: $formName,
+    fieldName: $fieldName,
+    docId: $docId,
+    fieldValue: $fieldValue
+  )
+  }
+`
+
 export const leadMutation = {
+  EDIT_FIELD_VALUE,
   EDIT_LEAD_FORM_VALUE,
   CREATE_LEAD,
   CREATE_PROSPECT,

@@ -119,7 +119,7 @@ export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
             return (
                 <CategoryModal
                     companyId={company.id}
-                    initialData={{ categories: row.original.categories, tags: row.original.tags }}
+                    initialData={{ categories: row.original.categories, tags: row.original.tags, companyId: company.id }}
                     onSuccess={() => {
                         // Refresh your data here
                     }}

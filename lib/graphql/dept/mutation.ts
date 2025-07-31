@@ -58,6 +58,15 @@ const GET_BROADCAST_FORM = `
   }
 `;
 
+const UPDATE_FORM_VALUE = `
+mutation UpdateFormValue($input: UpdateFormValueInput!) {
+  updateFormValue(input: $input) {
+    id
+    name
+  }
+}
+`
+
 
 export const DeptMutation = {
   UPDATE_DEPT,
@@ -65,4 +74,5 @@ export const DeptMutation = {
   GET_BROADCAST_FORM,
   UPDATE_DEPT_OPT,
   ADD_CHILD_TO_PARENT,
+  UPDATE_FORM_VALUE
 };

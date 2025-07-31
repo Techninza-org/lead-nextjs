@@ -26,6 +26,9 @@ export interface ModalData {
     id?: string;
     selectedFnName?: string;
     selectedFormNameIds?: string[];
+    selectedData?: any;
+    formNameIds?: string[];
+    unselectedFormNameIds?: string[];
 
     apiUrl?: string;
     query?: string;

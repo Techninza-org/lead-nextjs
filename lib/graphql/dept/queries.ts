@@ -54,9 +54,16 @@ query getTagsByFormName($formName: String!){
 }
 `
 
+const GET_OPTIONS = `
+query getOptions($key: String!, $formName: String!) {
+  getOptions(key: $key, formName: $formName) 
+}
+` 
+
 export const deptQueries = {
   GET_DEPT_FIELDS,
   GET_COMPANY_DEPTS,
   GET_COMPANY_DEPT_FIELDS,
-  GET_TAGS_BY_FORM_NAME
+  GET_TAGS_BY_FORM_NAME,
+  GET_OPTIONS
 };

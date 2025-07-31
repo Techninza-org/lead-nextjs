@@ -29,6 +29,9 @@ import { DataTablePagination } from "@/components/ui/table-pagination"
 import FilterDropdown from "./company/category-filter"
 import { useCompany } from "@/components/providers/CompanyProvider"
 import { useDebounce } from "@/components/multi-select-shadcn-expension"
+import { Button } from "@/components/ui/button"
+import { useQuery } from "graphql-hooks"
+import { adminQueries } from "@/lib/graphql/admin/queries"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -48,6 +51,33 @@ export function RootTable<TData, TValue>({
         []
     )
     const [sorting, setSorting] = React.useState<SortingState>([])
+    const [downloadTrigger, setDownloadTrigger] = React.useState(false);
+    
+    function b64ToBlob(b64: string, mime: string) {
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      return new Blob([bytes], { type: mime });
+    }
+    
+    const { data: companiesData, refetch } = useQuery(adminQueries.GET_COMPANIES_DATA, {
+        skip: !downloadTrigger, // Skip the query if downloadTrigger is false
+        pause: true, 
+      });
+      
+      React.useEffect(() => {
+        if (companiesData?.getCompaniesData) {
+          const res = companiesData.getCompaniesData;
+          if (res?.type === "file") {
+            const blob = b64ToBlob(res.base64, res.mimeType);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = res.filename;
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+        }
+      }, [companiesData]);
+    
 
     // Custom global filter
     const [filter, setFilter] = React.useState<string>("")
@@ -126,6 +156,7 @@ export function RootTable<TData, TValue>({
         fetchData()
     }, [debouncedQuery, appliedFilters])
 
+
     return (
         <div className="space-y-4">
             <div className="flex justify-between">
@@ -137,8 +168,12 @@ export function RootTable<TData, TValue>({
                             onApplyFilters={setAppliedFilters} //
                         />
                     </div>
+                    
                     {/* <DataTableToolbar table={table} setFilter={setFilter} /> */}
                 </div>
+                <Button onClick={() => refetch()} >
+                      Export Companies
+                    </Button>
             </div>
 
             <div className="rounded-md border">
