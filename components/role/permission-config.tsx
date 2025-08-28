@@ -18,6 +18,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 export function PermissionConfig() {
   const [roles, setRoles] = useState<any[]>([])
   const { roles: apiRole, permissions: resources, permissionsResources } = useCompany()
+  console.log(resources, 'resources in permission-config.tsx');
+  console.log(permissionsResources, 'permissionsResources in permission-config.tsx');
+  
   const [selectedRole, setSelectedRole] = useState<string>("")
   const [openResource, setOpenResource] = useState<string | null>(null)
   const [UpdateRolePermissions] = useMutation(UPDATE_ROLE_PERMISSIONS)
@@ -164,6 +167,8 @@ export function PermissionConfig() {
               
 
               const currResource = permissionsResources?.models?.find((r: any) => r.name == resource.name)
+              console.log(currResource, 'currResource in permission-config.tsx');
+              
               const currResourceRelation = permissionsResources?.relationships?.filter((r: any) => r.name === resource.name && r.name === r.fromModel)
               return (
                 <TableRow key={resource.name}>

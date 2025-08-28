@@ -204,7 +204,7 @@ export default function Page({ params }: { params: { formName: string } }) {
           unselectedFormNameIds: unselectedRows,
         })
       } else {
-        handleFunctionCall(selectedFn)
+        handleFunctionCall(selectedFn, { ids: selectedIds })
         setPopoverOpen(false)
       }
     }

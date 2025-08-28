@@ -127,7 +127,7 @@ export const ChildDetailsModal = () => {
       }
 
       try {
-         const { data } = await updateFormValue({
+         const { data } = awaituupdateFormValue({
             variables: {
                input: {
                   key,

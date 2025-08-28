@@ -184,6 +184,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const { } = useQuery(userQueries.COMPANY_RESOURCES, {
         skip,
         onSuccess: ({ data }) => {
+            console.log(data, 'data in company provider');
             
             if (data.permissioResources)
                 setPermissionsResources(data.permissioResources)
