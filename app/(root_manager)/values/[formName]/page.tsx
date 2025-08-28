@@ -37,24 +37,48 @@ export default function Page({ params }: { params: { formName: string } }) {
   const pathname = usePathname()
   const router = useRouter()
 
+  // multi-column sort string
   const [sortParam, setSortParam] = useState<string>("")
+  // pagination
+  const [page, setPage] = useState<number>(1)
+  const limit = 5
 
   const [executeDynamicFunction] = useMutation(companyMutation.FUNCTION_EXCUTE)
 
-  const { data, loading, error, refetch } = useQuery(companyQueries.GET_SUBMITTED_FORM_VALUE, {
-    variables: { formName, sort: sortParam },
-    notifyOnNetworkStatusChange: true,
-  })
+  const { data, loading, error, refetch } = useQuery(
+    companyQueries.GET_SUBMITTED_FORM_VALUE,
+    {
+      variables: {
+        formName,
+        filters: {},   // no extra filters on this page
+        page,
+        limit,
+        sort: sortParam,
+      },
+      notifyOnNetworkStatusChange: true,
+    }
+  )
 
-  // Sync sort param from URL
+  // Sync sort param from URL (and reset to page 1)
   useEffect(() => {
     const urlSort = searchParams.get("sort") || ""
     setSortParam(urlSort)
-    refetch({ formName, sort: urlSort })
+    setPage(1)
+    refetch({
+      formName,
+      filters: {},
+      page: 1,
+      limit,
+      sort: urlSort,
+    })
   }, [searchParams, formName, refetch])
 
   // Multi-column URL-based sorting handler
-  const updateSortInUrl = useCallback((index: number, isDesc: boolean | null, event: React.MouseEvent) => {
+  const updateSortInUrl = useCallback((
+    index: number,
+    isDesc: boolean | null,
+    event: React.MouseEvent
+  ) => {
     event.preventDefault()
 
     const currentSort = searchParams.get("sort") || ""
@@ -65,70 +89,62 @@ export default function Page({ params }: { params: { formName: string } }) {
 
     if (isDesc === null) {
       sortArray = sortArray.filter(s => Math.abs(parseInt(s)) !== columnIndex)
+    } else if (columnSort) {
+      sortArray = sortArray.map(s =>
+        Math.abs(parseInt(s)) === columnIndex
+          ? (isDesc ? `-${columnIndex}` : `${columnIndex}`)
+          : s
+      )
     } else {
-      if (columnSort) {
-        sortArray = sortArray.map(s =>
-          Math.abs(parseInt(s)) === columnIndex ? (isDesc ? `-${columnIndex}` : `${columnIndex}`) : s
-        )
-      } else {
-        sortArray.push(isDesc ? `-${columnIndex}` : `${columnIndex}`)
-      }
+      sortArray.push(isDesc ? `-${columnIndex}` : `${columnIndex}`)
     }
 
     const newSearchParams = new URLSearchParams(searchParams.toString())
-    if (sortArray.length > 0) {
-      newSearchParams.set("sort", sortArray.join(","))
-    } else {
-      newSearchParams.delete("sort")
-    }
+    if (sortArray.length) newSearchParams.set("sort", sortArray.join(","))
+    else newSearchParams.delete("sort")
 
     router.replace(`${pathname}?${newSearchParams.toString()}`, { scroll: false })
   }, [pathname, router, searchParams])
 
-  const formData = data?.getFormValuesByFormName
+  // our payload now comes back as
+  // { data, pagination, listView, changeView }
+  const formData = data?.getFormValuesByFormName || {}
 
   const formateFields = useMemo(() =>
     updateDependentFields(companyDeptFields || []).find(
       (x: any) => x.name?.toLowerCase() === formName.toLowerCase()
-    ) || [], [companyDeptFields, formName]
+    ) || [],
+    [companyDeptFields, formName]
   )
 
   function b64ToBlob(b64: string, mime: string) {
-    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-    return new Blob([bytes], { type: mime });
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0))
+    return new Blob([bytes], { type: mime })
   }
 
   const handleFunctionCall = async (fn: any, params: Record<string, any> = {}) => {
-    const variables = {
-      functionName: fn.functionName,
-      params: params,
-    }
+    const variables = { functionName: fn.functionName, params }
     const { data: formRes, error } = await executeDynamicFunction({ variables })
-    console.log("Function execution response:", formRes.executeDynamicFunction, error);
     if (error) {
       const message = error.graphQLErrors?.map((e: any) => e.message).join(", ")
       toast({ title: 'Error', description: message || 'Something went wrong', variant: 'destructive' })
       return
     }
-    const res = formRes?.executeDynamicFunction;
+    const res = formRes?.executeDynamicFunction
     if (res?.type === "file") {
-      const blob = b64ToBlob(res.base64, res.mimeType);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = res.filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      const blob = b64ToBlob(res.base64, res.mimeType)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = res.filename
+      a.click()
+      URL.revokeObjectURL(url)
     }
-
     if (res?.type === "html") {
-      const htmlElement = document.getElementById("html-render");
-      if (htmlElement) {
-        htmlElement.innerHTML = res.data || '';
-
-        setTimeout(() => {
-          htmlElement.innerHTML = '';
-        }, res?.timeout);
+      const htmlEl = document.getElementById("html-render")
+      if (htmlEl) {
+        htmlEl.innerHTML = res.data || ''
+        setTimeout(() => { htmlEl.innerHTML = '' }, res.timeout)
       }
     }
     toast({ variant: 'default', title: 'Function executed successfully!' })
@@ -140,7 +156,7 @@ export default function Page({ params }: { params: { formName: string } }) {
     const [companyFunctions, setCompanyFunctions] = useState<any[]>([])
     const [individualCompanyFunctions, setIndividualCompanyFunctions] = useState<any[]>([])
     const [prevTags, setPrevTags] = useState<string[]>([])
-    const selectedIds = selectedLeads.map(lead => lead._id)
+    const selectedIds = selectedLeads.map(l => l._id)
 
     useQuery(deptQueries.GET_TAGS_BY_FORM_NAME, {
       skip: !formName,
@@ -150,51 +166,30 @@ export default function Page({ params }: { params: { formName: string } }) {
       },
     })
 
-    const { data } = useQuery(adminQueries.getCompanyFunctionsDefault, {
+    const { data: defaultFn } = useQuery(adminQueries.getCompanyFunctionsDefault, {
       skip: !formName,
       variables: { orgId: 'ORG_GEAR' },
-    });
-
-    useEffect(() => {
-      if (data?.getCompanyFunctionsDefault && formName) {
-        setIndividualCompanyFunctions(
-          data.getCompanyFunctionsDefault.filter((fn: any) => fn.viewName === formName && fn.functionType !== 'INDIVIDUAL')
-        );
-      }
-    }, [data, formName]);
-
-    const funcs = useQuery(adminQueries.getCompnayFunctions, {
-      variables: { orgId: 'ORG_GEAR' },
-      skip: true,
-      onSuccess: ({ data }: { data: any }) => {
-        setCompanyFunctions(
-          data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === formName && !fn.individualButton) || []
-        )
-      }
     })
-
-    const fetchCompanyFunctions = async () => {
-      const { data } = await funcs.refetch()
-      if (data?.getCompnayFunctionsAdmin) {
-        setCompanyFunctions(
-          data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === formName && !fn.individualButton)
+    useEffect(() => {
+      if (defaultFn?.getCompanyFunctionsDefault && formName) {
+        setIndividualCompanyFunctions(
+          defaultFn.getCompanyFunctionsDefault.filter((fn: any) =>
+            fn.viewName === formName && fn.functionType !== 'INDIVIDUAL'
+          )
         )
       }
-    }
+    }, [defaultFn, formName])
 
-    const handlePopoverChange = (open: boolean) => {
-      setPopoverOpen(open)
-      if (open) fetchCompanyFunctions()
-      else {
-        setCompanyFunctions([])
-        setSelectedFn(null)
-      }
-    }
-
-    const onSelectFunction = (fnName: string) => {
-      const fn = companyFunctions.find((f: any) => f.functionName === fnName) || null
-      setSelectedFn(fn)
-    }
+    const funcs = useQuery(adminQueries.getCompnayFunctions, { variables: { orgId: 'ORG_GEAR' }, skip: true })
+    useEffect(() => {
+      funcs.refetch().then(({ data }) => {
+        setCompanyFunctions(
+          data?.getCompnayFunctionsAdmin?.filter((fn: any) =>
+            fn.viewName === formName && !fn.individualButton
+          ) || []
+        )
+      })
+    }, [])
 
     const handleSubmitClick = () => {
       if (!selectedFn) return
@@ -205,7 +200,7 @@ export default function Page({ params }: { params: { formName: string } }) {
           selectedData: selectedLeads,
           selectedFormNameIds: selectedIds,
           formName,
-          formNameIds: selectedIds.slice(0, 2),
+          formNameIds: selectedIds.slice(0,2),
           unselectedFormNameIds: unselectedRows,
         })
       } else {
@@ -216,11 +211,11 @@ export default function Page({ params }: { params: { formName: string } }) {
 
     return (
       <div className="flex gap-2 ml-auto">
-        <Popover open={popoverOpen} onOpenChange={handlePopoverChange}>
+        <Popover open={popoverOpen} onOpenChange={o => setPopoverOpen(o)}>
           <PopoverTrigger asChild>
             <Button variant="outline" className="w-[200px] justify-between">
-              {selectedFn ? selectedFn.functionName : 'Select function...'}
-              <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              {selectedFn?.functionName || 'Select function...'}
+              <ChevronsUpDownIcon className="ml-2 h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[220px] p-0">
@@ -234,24 +229,22 @@ export default function Page({ params }: { params: { formName: string } }) {
               <CommandList>
                 <CommandEmpty>No function found.</CommandEmpty>
                 <CommandGroup>
-                  {companyFunctions.map((item: any) => (
+                  {companyFunctions.map(fn => (
                     <CommandItem
-                      key={item.functionName}
-                      value={item.functionName}
-                      onSelect={onSelectFunction}
-                      className="cursor-pointer flex items-center gap-2"
+                      key={fn.functionName}
+                      value={fn.functionName}
+                      onSelect={() => setSelectedFn(fn)}
+                      className="flex items-center gap-2"
                     >
-                      <div
-                        className={cn(
-                          "h-4 w-4 border rounded-sm flex items-center justify-center transition",
-                          selectedFn?.functionName === item.functionName ? "bg-primary text-white" : "bg-transparent"
-                        )}
-                      >
-                        {selectedFn?.functionName === item.functionName && (
-                          <CheckIcon className="w-3 h-3" />
-                        )}
+                      <div className={cn(
+                        "h-4 w-4 border rounded-sm flex items-center justify-center",
+                        selectedFn?.functionName === fn.functionName
+                          ? "bg-primary text-white"
+                          : "bg-transparent"
+                      )}>
+                        {selectedFn?.functionName === fn.functionName && <CheckIcon className="w-3 h-3" />}
                       </div>
-                      <span>{item.functionName}</span>
+                      <span>{fn.functionName}</span>
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -260,18 +253,15 @@ export default function Page({ params }: { params: { formName: string } }) {
           </PopoverContent>
         </Popover>
 
-        {individualCompanyFunctions.map((fn: any) => (
+        {individualCompanyFunctions.map(fn => (
           <Button
             key={fn.id}
             variant="default"
             size="sm"
             className="items-center gap-1"
-            onClick={() => handleFunctionCall(fn, {
-              ids: selectedLeads.map(lead => lead._id),
-              unselectedIds: []// unselectedRows
-            })}
+            onClick={() => handleFunctionCall(fn, { ids: selectedIds, unselectedIds: [] })}
           >
-            <span>{fn.functionName}</span>
+            {fn.functionName}
           </Button>
         ))}
 
@@ -290,10 +280,10 @@ export default function Page({ params }: { params: { formName: string } }) {
         </Button>
 
         <Button
-          onClick={() => onOpen("submitLead", { fields: formateFields })}
           variant="default"
           size="sm"
           className="items-center gap-1"
+          onClick={() => onOpen("submitLead", { fields: formateFields })}
         >
           <PlusCircleIcon size={15} /> <span>Add New {formName}</span>
         </Button>
@@ -323,9 +313,10 @@ export default function Page({ params }: { params: { formName: string } }) {
       <CardContent>
         <AdvancedDataTableForms
           dependentCols={[]}
-          columnNames={formData?.listView || []}
-          changeView={formData?.changeView || []}
-          data={formData?.data || []}
+          columnNames={formData.listView || []}
+          changeView={formData.changeView || []}
+          data={formData.data  || []}
+          pagination={formData.pagination || { total:0, page:1, limit, totalPages:0 }}
           MoreInfo={MoreInfoLead}
           tableName={formName}
           onUnselectedRowsChange={setUnselectedRows}

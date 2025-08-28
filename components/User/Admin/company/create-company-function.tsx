@@ -18,13 +18,16 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { companyMutation } from '@/lib/graphql/company/mutation';
 import { useMutation, useQuery } from 'graphql-hooks';
-import { X } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useModal } from '@/hooks/use-modal-store';
 import MultipleSelector from '@/components/multi-select-shadcn-expension';
 import { adminQueries } from '@/lib/graphql/admin/queries';
 import DynamicFunctionParametersModal, { ParsedData } from '@/components/dynamic/dynamic-funciton-parameters-modal';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from '@/lib/utils';
 
 const FunctionFormSchema = z.object({
   orgId: z.string().min(1, "Org ID is required"),
@@ -205,32 +208,70 @@ export default function CreateCompanyFunction({ id }: { id: string }) {
                   </FormItem>
                 )} />
                 <FormField
-                  control={form.control}
-                  name="viewName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>View/Table Name</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a View/Table" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {companyForms.map((item: any) => (
-                            <SelectItem key={item.id} value={item.name}>
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+  control={form.control}
+  name="viewName"
+  render={({ field, fieldState }) => {
+    const [open, setOpen] = React.useState(false)
+    const selected = companyForms.find((c: any) => c.name === field.value)
+    return (
+      <FormItem>
+        <FormLabel className='mr-8'>View/Table Name</FormLabel>
+
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-[200px] justify-between"
+            >
+              {/* @ts-ignore */}
+              {selected?.name || "Select a View/Table"}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Search view/table..." />
+              <CommandList>
+                <CommandEmpty>No view or table found.</CommandEmpty>
+                <CommandGroup>
+                  {companyForms.map((item: any) => (
+                    <CommandItem
+                      key={item.id}
+                      value={item.name}
+                      onSelect={(currentValue) => {
+                        // toggle off if same value, else set new
+                        field.onChange(
+                          currentValue === field.value ? "" : currentValue
+                        )
+                        setOpen(false)
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          field.value === item.name
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                      {item.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        <FormMessage />
+      </FormItem>
+    )
+  }}
+/>
+
                 <FormField control={form.control} name="returnType" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Return Type</FormLabel>

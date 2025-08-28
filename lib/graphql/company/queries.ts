@@ -170,10 +170,22 @@ const GET_LEADS_PHOTOS = `
     }
 `
 
-const GET_SUBMITTED_FORM_VALUE = `
-    query getFormValuesByFormName($formName: String!, $sort: String!) {
-      getFormValuesByFormName(formName: $formName, sort: $sort) 
-    }
+export const GET_SUBMITTED_FORM_VALUE = `
+  query getFormValuesByFormName(
+    $formName: String!
+    $filters: JSON
+    $page: Int
+    $limit: Int
+    $sort: String!
+  ) {
+    getFormValuesByFormName(
+      formName: $formName
+      filters: $filters
+      page: $page
+      limit: $limit
+      sort: $sort
+    )
+  }
 `
 
 const GET_TABLE_FILTER_OPTIONS = `

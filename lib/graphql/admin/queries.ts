@@ -26,8 +26,8 @@ const GET_DEPT_FIELDS = `
 `;
 
 const GET_COMPANIES_DATA = ` 
-  query getCompaniesData{
-    getCompaniesData
+  query getCompaniesData($selectedRootIds: [String!]){
+    getCompaniesData(selectedRootIds: $selectedRootIds)
   }
 `
 
@@ -66,6 +66,17 @@ const ASSIGNFORMTOROOT = `
       )
   }
 `
+const BACKBONETOROOT = `
+  mutation backboneC2C(
+      $sourceValue: String
+      $destinationRootId: String
+  ) {
+      backboneC2C(
+          sourceValue: $sourceValue
+          destinationRootId: $destinationRootId
+      )
+  }
+`
 
 export const adminQueries = {
   GET_DEPT_FIELDS,
@@ -74,5 +85,6 @@ export const adminQueries = {
   getCompanyFunctionsDefault,
   getCompanyFunctionById,
   getCompanyForms,
-  GET_COMPANIES_DATA
+  GET_COMPANIES_DATA,
+  BACKBONETOROOT
 };

@@ -15,9 +15,20 @@ import MultipleSelector from "@/components/multi-select-shadcn-expension"
 import { useMutation } from "graphql-hooks"
 import { companyMutation } from "@/lib/graphql/company/mutation"
 import { useCompany } from "@/components/providers/CompanyProvider"
+import { cn } from "@/lib/utils"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 export function CategoryModal({ initialData }: any) {
   const [open, setOpen] = useState(false)
+  const [openCategory, setOpenCategory] = useState(false)
   const { companyCategories, rootInfo } = useCompany()
 
   const [updateCompanyCategories] = useMutation(
@@ -152,7 +163,7 @@ export function CategoryModal({ initialData }: any) {
               options={level0Opts?.map((c) => ({ value: c.id, label: c.name }))}
               value={
                 sel0
-                  ? [{ value: sel0, label: level0Opts.find((c) => c.id === sel0)?.name || '' }]
+                  ? [{ value: sel0, label: level0Opts?.find((c) => c.id === sel0)?.name || '' }]
                   : []
               }
               onChange={(items) => handleValueChange(items[0]?.value || "", level0Opts, setLevel0Opts, setSel0)}

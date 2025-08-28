@@ -15,6 +15,8 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
+import { Checkbox } from "@/components/ui/checkbox"
+
 
 import {
     Table,
@@ -32,6 +34,11 @@ import { useDebounce } from "@/components/multi-select-shadcn-expension"
 import { Button } from "@/components/ui/button"
 import { useQuery } from "graphql-hooks"
 import { adminQueries } from "@/lib/graphql/admin/queries"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AssignFormToRoot } from "@/components/admin/AssignFormToRoot"
+import { ChevronDown } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
+import { BackboneCopyToRoot } from "@/components/admin/BackboneCopyToRoot"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -52,32 +59,16 @@ export function RootTable<TData, TValue>({
     )
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [downloadTrigger, setDownloadTrigger] = React.useState(false);
-    
+
     function b64ToBlob(b64: string, mime: string) {
-      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      return new Blob([bytes], { type: mime });
+        const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+        return new Blob([bytes], { type: mime });
     }
+
     
-    const { data: companiesData, refetch } = useQuery(adminQueries.GET_COMPANIES_DATA, {
-        skip: !downloadTrigger, // Skip the query if downloadTrigger is false
-        pause: true, 
-      });
-      
-      React.useEffect(() => {
-        if (companiesData?.getCompaniesData) {
-          const res = companiesData.getCompaniesData;
-          if (res?.type === "file") {
-            const blob = b64ToBlob(res.base64, res.mimeType);
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = res.filename;
-            a.click();
-            URL.revokeObjectURL(url);
-          }
-        }
-      }, [companiesData]);
+
     
+
 
     // Custom global filter
     const [filter, setFilter] = React.useState<string>("")
@@ -122,8 +113,64 @@ export function RootTable<TData, TValue>({
         getFacetedUniqueValues: getFacetedUniqueValues(),
     })
 
+    const selectedRootIds = React.useMemo(
+        () =>
+            table
+                .getSelectedRowModel()
+                .rows
+                .map((r) => (r.original as any).rootId)
+                .filter(Boolean),
+        [table.getSelectedRowModel().rows]
+
+    )
+
+    const { data: companiesData, refetch } = useQuery(adminQueries.GET_COMPANIES_DATA, {
+        skip: !downloadTrigger, // Skip the query if downloadTrigger is false
+        pause: true,
+        variables: {
+            selectedRootIds
+        }
+    });
+
+    React.useEffect(() => {
+        if (companiesData?.getCompaniesData) {
+
+            const res = companiesData.getCompaniesData;
+            if (res?.type === "file") {
+                const blob = b64ToBlob(res.base64, res.mimeType);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = res.filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+    }, [companiesData]);
+
+    const singleSelected = selectedRootIds.length === 1 ? selectedRootIds[0] : null;
+    const selectedRowsData = React.useMemo(
+        () =>
+            table
+                .getSelectedRowModel()
+                .rows
+                .map((r) => r.original)
+                .filter(Boolean),
+        [table.getSelectedRowModel().rows]
+    )
+    const singleSelectedRowData = selectedRowsData.filter((row) => row.rootId === singleSelected)[0] || null;
+    console.log(singleSelectedRowData, "singleSelected row data");
+    
+
+    const rootInfoForAssign = singleSelected
+      ? [{ id: singleSelectedRowData.id, name: singleSelectedRowData.name }]
+      : [];
+
     const [searchQuery, setSearchQuery] = React.useState('')
     const [searchResults, setSearchResults] = React.useState<string[]>([])
+    const {toast} = useToast();
+    const [open, setOpen] = React.useState(false);
+    const [open2, setOpen2] = React.useState(false);
     const [appliedFilters, setAppliedFilters] = React.useState<{
         categories: { id: string; name: string }[]
         tags: string[]
@@ -156,6 +203,28 @@ export function RootTable<TData, TValue>({
         fetchData()
     }, [debouncedQuery, appliedFilters])
 
+    const handleToggle = () => {
+        if (selectedRootIds.length !== 1) {
+            toast({
+                title: "Select a single company to assign a form.",
+                variant: "destructive",
+              })
+          return;
+        }
+        setOpen((prev) => !prev);
+      };
+    const handleToggle2 = () => {
+        if (selectedRootIds.length !== 1) {
+            toast({
+                title: "Select a single company to assign a form.",
+                variant: "destructive",
+              })
+          return;
+        }
+        setOpen2((prev) => !prev);
+      };
+    
+
 
     return (
         <div className="space-y-4">
@@ -168,12 +237,23 @@ export function RootTable<TData, TValue>({
                             onApplyFilters={setAppliedFilters} //
                         />
                     </div>
-                    
+
                     {/* <DataTableToolbar table={table} setFilter={setFilter} /> */}
                 </div>
-                <Button onClick={() => refetch()} >
-                      Export Companies
-                    </Button>
+                <Button
+                    onClick={() => {
+                        console.log(selectedRootIds, "selectedRootIds");
+                        if (selectedRootIds.length === 0) {
+                            return;
+                        }
+                        refetch({
+                            ids: selectedRootIds,
+                        });
+                    }}
+                    disabled={selectedRootIds.length === 0}
+                >
+                    Export Selected Companies
+                </Button>
             </div>
 
             <div className="rounded-md border">
@@ -227,6 +307,69 @@ export function RootTable<TData, TValue>({
                 </Table>
             </div>
             <DataTablePagination table={table} />
+            <div className="w-full flex gap-4 pt-12 pb-12">
+                <Card className="overflow-hidden w-full">
+                    <div
+                        className="flex justify-between items-center cursor-pointer px-6 py-4"
+                        onClick={
+                            handleToggle}
+                    >
+                        <div className="flex items-center gap-2">
+                            <CardTitle className="m-0 font-bold text-lg">Assign Form</CardTitle>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <ChevronDown
+                                className={`transition-transform duration-200 ${open ? "rotate-180" : "rotate-0"}`}
+                                size={20}
+                            />
+                        </div>
+                    </div>
+
+                    <div
+                        style={{
+                            maxHeight: open ? "2000px" : "0px",
+                            transition: "max-height 0.25s ease",
+                        }}
+                        className="px-6 overflow-hidden"
+                    >
+                        {open && (
+                            <div className="pt-2 pb-4">
+                                <AssignFormToRoot selectedCompany={rootInfoForAssign} />
+                            </div>
+                        )}
+                    </div>
+                </Card>
+                <Card className="overflow-hidden w-full">
+                    <div
+                        className="flex justify-between items-center cursor-pointer px-6 py-4"
+                        onClick={handleToggle2}
+                    >
+                        <div className="flex items-center gap-2">
+                            <CardTitle className="m-0 font-bold text-lg">Backbone</CardTitle>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <ChevronDown
+                                className={`transition-transform duration-200 ${open2 ? "rotate-180" : "rotate-0"}`}
+                                size={20}
+                            />
+                        </div>
+                    </div>
+
+                    <div
+                        style={{
+                            maxHeight: open2 ? "2000px" : "0px",
+                            transition: "max-height 0.25s ease",
+                        }}
+                        className="px-6 overflow-hidden"
+                    >
+                        {open2 && (
+                            <div className="pt-2 pb-4">
+                                <BackboneCopyToRoot selectedCompany={rootInfoForAssign}  />
+                            </div>
+                        )}
+                    </div>
+                </Card>
+            </div>
         </div>
     )
 }

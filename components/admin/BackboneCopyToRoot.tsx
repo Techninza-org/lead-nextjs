@@ -16,14 +16,14 @@ interface AssignFormToRootProps {
    selectedCompany?: { id: string; name: string }[]; // expected single-element array when provided
  }
 
-export function AssignFormToRoot({ selectedCompany }: AssignFormToRootProps) {
+export function BackboneCopyToRoot({ selectedCompany }: AssignFormToRootProps) {
    const [openSource, setOpenSource] = React.useState(false)
    const [openTarget, setOpenTarget] = React.useState(false)
    const [sourceValue, setSourceValue] = React.useState("")
    const [targetValue, setTargetValue] = React.useState("")
    const { rootInfo: contextRootInfo  } = useCompany()
    const { toast } = useToast()
-   const [assignFormC2C] = useMutation(adminQueries.ASSIGNFORMTOROOT);
+   const [backboneC2C] = useMutation(adminQueries.BACKBONETOROOT);
 
    const effectiveRootInfo = selectedCompany && selectedCompany.length > 0
    ? selectedCompany
@@ -65,7 +65,7 @@ export function AssignFormToRoot({ selectedCompany }: AssignFormToRootProps) {
       if (sourceValue && targetValue) {
 
          try {
-            const { data, error } = await assignFormC2C({
+            const { data, error } = await backboneC2C({
                variables: {
                   sourceValue: sourceValue,
                   destinationRootId: targetValue

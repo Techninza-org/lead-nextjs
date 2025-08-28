@@ -60,7 +60,7 @@ export default function AdvanceDataTable({
   MoreInfo,
   tableName,
   showTools = true,
-  pagination = { total: 0, page: 1, limit: 50, totalPages: 0 },
+  pagination = { total: 0, page: 1, limit: 5, totalPages: 0 },
   onPageChange,
   onFilterChange,
   onSortChange,

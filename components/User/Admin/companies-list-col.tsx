@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { CompanyFuncTagModal } from "./company/company-func-tag-modal";
 import { useModal } from "@/hooks/use-modal-store";
 import { FunctionSquare, Settings, Settings2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox"
+import type { CheckedState } from "@radix-ui/react-checkbox";
 
 export function getCategoryNames(category: any) {
     const categories = []
@@ -20,7 +22,36 @@ export function getCategoryNames(category: any) {
     return categories.map(cat => cat.name)
 }
 
+const selectionColumn: ColumnDef<any, any> = {
+    id: "select",
+    header: ({ table }) => {
+      const headerChecked: CheckedState = table.getIsAllRowsSelected()
+        ? true
+        : table.getIsSomeRowsSelected()
+        ? "indeterminate"
+        : false;
+  
+      return (
+        <Checkbox
+          aria-label="Select all rows"
+          checked={headerChecked}
+          onCheckedChange={(v) => table.toggleAllRowsSelected(!!v)}
+        />
+      );
+    },
+    cell: ({ row }) => (
+      <Checkbox
+        aria-label={`Select row ${row.id}`}
+        checked={row.getIsSelected()}
+        onCheckedChange={(v) => row.toggleSelected(!!v)}
+      />
+    ),
+    enableSorting: false,
+    size: 1,
+  };
+
 export const CompaniesListCol: ColumnDef<z.infer<any>>[] = [
+    selectionColumn,
     {
         header: 'Root Id',
         cell: ({ row }) => {

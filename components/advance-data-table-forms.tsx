@@ -387,7 +387,7 @@ pathname: string
       {showTools && (
         <div className="flex items-center space-x-2">
           <Input
-            placeholder="Filter all columns..."
+            placeholder="Search all columns..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(String(event.target.value))}
             className="max-w-sm"
@@ -396,14 +396,14 @@ pathname: string
             <PopoverTrigger asChild>
               <Button variant="outline" className="ml-auto">
                 <Search className="mr-2 h-4 w-4" />
-                Search Columns
+                Filter Columns
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[400px]">
               <div className="grid gap-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium leading-none">Search Columns</h4>
+                    <h4 className="font-medium leading-none">Filter Columns</h4>
                     <p className="text-sm text-muted-foreground mt-1">Select columns to filter the table</p>
                   </div>
                   <Button
