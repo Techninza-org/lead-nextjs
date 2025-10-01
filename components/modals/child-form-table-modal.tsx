@@ -37,7 +37,8 @@ import {
    Edit2Icon,
    Edit3,
    PencilLineIcon,
-   Pen
+   Pen,
+   History
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
@@ -64,7 +65,7 @@ import { Select } from '../ui/select';
 import { deptQueries } from '@/lib/graphql/dept/queries';
 
 export const ChildDetailsModal = () => {
-   const { isOpen, onClose, type, data: modalData } = useModal();
+   const { isOpen, onClose, onOpen, type, data: modalData } = useModal();
    const { companyDeptFields } = useCompany()
    const { toast } = useToast();
    const [popoverOpen, setPopoverOpen] = useState(false)
@@ -78,6 +79,8 @@ export const ChildDetailsModal = () => {
    const [editedValue, setEditedValue] = useState<string>("");
    const [editOptions, setEditOptions] = useState<Record<string, any>>({});
    const [mainData, setMainData] = useState<any>(null);
+   const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
+   const [editingTableName, setEditingTableName] = useState<string | null>(null);
 
    const [addChildToParent] = useMutation(DeptMutation.ADD_CHILD_TO_PARENT)
    const [executeDynamicFunction] = useMutation(companyMutation.FUNCTION_EXCUTE);
@@ -118,9 +121,11 @@ export const ChildDetailsModal = () => {
       fetchCompanyFunctions();
    }, [isOpen])
 
-   const handleEditClick = (key: string, value: string) => {
+   const handleEditClick = (key: string, value: string, documentId?: string, tableName?: string) => {
       setEditingKey(key);
       setEditedValue(value);
+      setEditingDocumentId(documentId || null);
+      setEditingTableName(tableName || null);
       refetchOptions(); // Trigger fetching of options
    };
 
@@ -137,8 +142,8 @@ export const ChildDetailsModal = () => {
       try {
          const { data } = await editFieldValue({
             variables: {
-               formName: modalData?.table?.label,
-               docId: modalData?.table?.data?._id,
+               formName: editingTableName || modalData?.table?.label,
+               docId: editingDocumentId || modalData?.table?.data?._id,
                values: { [key]: editedValue },
             },
          });
@@ -273,6 +278,11 @@ export const ChildDetailsModal = () => {
    const handleClose = () => {
       onClose();
       setActiveForm(null);
+      setEditingKey(null);
+      setEditedValue("");
+      setEditOptions({});
+      setEditingDocumentId(null);
+      setEditingTableName(null);
    };
 
    const toggleSection = (sectionName: string) => {
@@ -360,6 +370,14 @@ export const ChildDetailsModal = () => {
       // }
    }
 
+   const handleShowHistory = (documentId: string, tableName: string, formName: string) => {
+      onOpen("editHistory", {
+         documentId,
+         tableName,
+         formName
+      });
+   }
+
    if (!modalData?.table) return null;
 
    const isModalOpen = isOpen && type === "childDetails:table";
@@ -372,11 +390,26 @@ export const ChildDetailsModal = () => {
             <DialogHeader className="pt-6">
                <DialogTitle className="text-2xl font-bold">
                   <div className="flex items-center justify-between">
-                     <div>
-                        <Badge variant="outline" className="text-xs text-gray-600 font-medium">
-                           ID: {modalData.table?.data?._id}
-                        </Badge>
-                        <h2 className="pl-2 capitalize">{modalData?.table?.label} Details</h2>
+                     <div className="flex items-center gap-4">
+                        <div>
+                           <Badge variant="outline" className="text-xs text-gray-600 font-medium">
+                              ID: {modalData.table?.data?._id}
+                           </Badge>
+                           <h2 className="pl-2 capitalize">{modalData?.table?.label} Details</h2>
+                        </div>
+                        <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => handleShowHistory(
+                              modalData.table?.data?._id,
+                              modalData.table?.label,
+                              modalData.table?.label
+                           )}
+                           className="flex items-center gap-2"
+                        >
+                           <History className="h-4 w-4" />
+                           History
+                        </Button>
                      </div>
                      <div className='flex gap-3'>
                         <Popover open={popoverOpen} onOpenChange={handlePopoverChange}>
@@ -506,7 +539,7 @@ export const ChildDetailsModal = () => {
                                              <Pen
                                                 size={18}
                                                 className="cursor-pointer"
-                                                onClick={() => handleEditClick(key, value as string)}
+                                                onClick={() => handleEditClick(key, value as string, modalData?.table?.data?._id, modalData?.table?.label)}
                                              />
                                           </>
                                        )}
@@ -535,17 +568,35 @@ export const ChildDetailsModal = () => {
                                     {(tableData[formName] || []).length}
                                  </Badge>
                               </div>
-                              <Button
-                                 variant="outline"
-                                 size="sm"
-                                 onClick={(e) => {
-                                    e.stopPropagation();
-                                    setActiveForm(activeForm === formName ? null : formName);
-                                 }}
-                              >
-                                 <Plus className="h-4 w-4 mr-2" />
-                                 Add Row
-                              </Button>
+                              <div className="flex gap-2">
+                                 <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                       e.stopPropagation();
+                                       handleShowHistory(
+                                          modalData.table?.data?._id,
+                                          formName,
+                                          formName
+                                       );
+                                    }}
+                                    className="flex items-center gap-2"
+                                 >
+                                    <History className="h-4 w-4" />
+                                    Table History
+                                 </Button>
+                                 <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                       e.stopPropagation();
+                                       setActiveForm(activeForm === formName ? null : formName);
+                                    }}
+                                 >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Row
+                                 </Button>
+                              </div>
                            </div>
 
                            {expandedSections[formName] && (
@@ -557,7 +608,7 @@ export const ChildDetailsModal = () => {
                                              {fields.map((field: any) => (
                                                 <TableHead className='font-bold' key={field.name}>{field.name}</TableHead>
                                              ))}
-                                             {/* <TableHead>Actions</TableHead> */}
+                                             <TableHead className='font-bold'>Actions</TableHead>
                                           </TableRow>
                                        </TableHeader>
                                        <TableBody>
@@ -613,13 +664,28 @@ export const ChildDetailsModal = () => {
                                                                <Pen
                                                                size={18}
                                                                   className="cursor-pointer"
-                                                                  onClick={() => f.name && handleEditClick(f.name as string, f.name ? row[f.name as string] : '')}
+                                                                  onClick={() => f.name && handleEditClick(f.name as string, f.name ? row[f.name as string] : '', row._id?.$oid || row._id, formName)}
                                                                />
                                                             </>
                                                          )}
                                                       </div>
                                                    </TableCell>
                                                 ))}
+                                                <TableCell>
+                                                   <Button
+                                                      variant="outline"
+                                                      size="sm"
+                                                      onClick={() => handleShowHistory(
+                                                         row._id?.$oid || row._id,
+                                                         formName,
+                                                         formName
+                                                      )}
+                                                      className="flex items-center gap-1"
+                                                   >
+                                                      <History className="h-3 w-3" />
+                                                      History
+                                                   </Button>
+                                                </TableCell>
                                              </TableRow>
                                           ))}
                                        </TableBody>

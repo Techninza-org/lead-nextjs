@@ -29,6 +29,7 @@ import { CompanySettingsModal } from "../modals/company-settings-modal";
 import DynamicFunctionParametersModal from "../dynamic/dynamic-funciton-parameters-modal";
 import { UploadFormModal } from "../modals/upload-form-rows-modal";
 import { FunctionParametersModal } from "../modals/FunctionParametersModal";
+import { EditHistoryModal } from "../modals/edit-history-modal";
 
 
 export const ModalProvider = () => {
@@ -70,6 +71,7 @@ export const ModalProvider = () => {
       <EditLeadFormValueModal />
       <DynamicFunctionParametersModal />
       <FunctionParametersModal />
+      <EditHistoryModal />
     </>
   );
 };
