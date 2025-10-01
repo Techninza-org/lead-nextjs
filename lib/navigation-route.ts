@@ -1,4 +1,4 @@
-import { FileTextIcon, HandCoins, Home, Pencil, Pin, Settings, UsersRoundIcon } from "lucide-react";
+import { FileTextIcon, HandCoins, Home, Pencil, Pin, Settings, UsersRoundIcon, Activity } from "lucide-react";
 
 export const ROOT_NAV_LINKS = [
     {
@@ -134,18 +134,8 @@ export const ADMIN_NAV_LINKS = [
         href: "/admin/companies",
     },
     {
-        title: "Assign Forms",
-        icon: FileTextIcon,
-        href: "/admin/assign-forms",
+        title: "Logs",
+        icon: Activity,
+        href: "/admin/logs",
     },
-    // {
-    //     title: "Settings",
-    //     icon: Settings,
-    //     href: "/admin/settings",
-    // },
-    // {
-    //     title: "Departments",
-    //     icon: Pencil,
-    //     href: "/admin/depts",
-    // },
 ]

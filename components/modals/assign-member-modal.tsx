@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { useMutation, useQuery } from "graphql-hooks"
-import { CREATE_USER, LOGIN_USER } from "@/lib/graphql/user/mutations"
+import { ADD_COMPANY_MEMBER, LOGIN_USER } from "@/lib/graphql/user/mutations"
 import { userAtom } from "@/lib/atom/userAtom"
 import { useAtomValue } from "jotai"
 import { deptQueries } from "@/lib/graphql/dept/queries"
@@ -39,7 +39,7 @@ export const AssignMemberModal = () => {
     const { roles: filteredRoles } = useCompany() //companyMemberRoles changed this
     const { toast } = useToast()
     const user = useAtomValue(userAtom)
-    const [createUser, { loading, error, data }] = useMutation(CREATE_USER);
+    const [addCompanyMember, { loading, error, data }] = useMutation(ADD_COMPANY_MEMBER);
     const { isOpen, onClose, type } = useModal();
     const isModalOpen = isOpen && type === "addMember";
 
@@ -66,7 +66,7 @@ export const AssignMemberModal = () => {
     })
 
     const onSubmit = async (data: z.infer<typeof createCompanyMemberSchema>) => {
-        const { error, data: newResData } = await createUser({
+        const { error, data: newResData } = await addCompanyMember({
             variables: {
                 name: data.name,
                 email: data.email,
@@ -79,12 +79,12 @@ export const AssignMemberModal = () => {
         });
 
         if (error) {
-            const message = error?.graphQLErrors?.map((e: any) => e.message).join(", ")
-            toast({
-                title: 'Error',
-                description: message || "Something went wrong",
-                variant: "destructive"
-            })
+            // const message = error?.graphQLErrors?.map((e: any) => e.message).join(", ")
+            // toast({
+            //     title: 'Error',
+            //     // description: message || "Something went wrong",
+            //     variant: "destructive"
+            // })
             return;
         }
 

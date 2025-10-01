@@ -77,6 +77,7 @@ export const ChildDetailsModal = () => {
    const [editingKey, setEditingKey] = useState<string | null>(null);
    const [editedValue, setEditedValue] = useState<string>("");
    const [editOptions, setEditOptions] = useState<Record<string, any>>({});
+   const [mainData, setMainData] = useState<any>(null);
 
    const [addChildToParent] = useMutation(DeptMutation.ADD_CHILD_TO_PARENT)
    const [executeDynamicFunction] = useMutation(companyMutation.FUNCTION_EXCUTE);
@@ -89,22 +90,29 @@ export const ChildDetailsModal = () => {
 
    useEffect(() => {
       if (optionsData?.getOptions?.length > 0) {
-         setEditOptions(optionsData.getOptions[0]); // access the inner array
+         setEditOptions(optionsData.getOptions); // Use the array directly
       } else {
          setEditOptions([]);
       }
    }, [optionsData]);
 
-   const [updateFormValue] = useMutation(DeptMutation.UPDATE_FORM_VALUE);
+   const [editFieldValue] = useMutation(`
+      mutation EditFieldValue($formName: String!, $docId: String!, $values: JSON!) {
+        editFieldValue(formName: $formName, docId: $docId, values: $values)
+      }
+   `);
 
    useEffect(() => {
+      if (modalData?.table?.data) {
+         setMainData(modalData.table.data);
+      }
       if (modalData?.table?.data?.children) {
          setTableData(prevData => ({
             ...prevData,
             ...modalData.table.data.children
          }));
       }
-   }, [modalData?.table?.data?.children]);
+   }, [modalData?.table?.data]);
 
    useEffect(() => {
       fetchCompanyFunctions();
@@ -127,26 +135,31 @@ export const ChildDetailsModal = () => {
       }
 
       try {
-         const { data } = awaituupdateFormValue({
+         const { data } = await editFieldValue({
             variables: {
-               input: {
-                  key,
-                  value: editedValue,
-                  label: modalData?.table?.label,
-               },
+               formName: modalData?.table?.label,
+               docId: modalData?.table?.data?._id,
+               values: { [key]: editedValue },
             },
          });
 
-         if (data?.updateFormValue) {
+         if (data?.editFieldValue) {
             toast({
                title: "Success",
                description: `Updated ${key} successfully!`,
                variant: "default",
             });
 
+            // Update the main data state
+            setMainData((prev: any) => ({
+               ...prev,
+               [key]: editedValue
+            }));
+
+            // Also update tableData if it exists
             setTableData((prev) => ({
                ...prev,
-               [modalData.table.label]: prev[modalData.table.label].map((item: any) =>
+               [modalData.table.label]: (prev[modalData.table.label] || []).map((item: any) =>
                   item._id === modalData.table.data._id ? { ...item, [key]: editedValue } : item
                ),
             }));
@@ -154,6 +167,7 @@ export const ChildDetailsModal = () => {
             throw new Error("Update failed");
          }
       } catch (err) {
+         console.error('Edit field value error:', err);
          toast({
             title: "Error",
             description: "Failed to update value",
@@ -163,7 +177,7 @@ export const ChildDetailsModal = () => {
 
       setEditingKey(null);
       setEditedValue("");
-      setEditOptions({});
+      setEditOptions([]);
    };
 
 
@@ -441,7 +455,7 @@ export const ChildDetailsModal = () => {
 
                      <CardContent className="pt-4">
                         <div className="grid grid-cols-2 gap-4">
-                           {Object.entries(modalData.table?.data || {})
+                           {Object.entries(mainData || {})
                               .filter(([key]) => key !== "children" && key !== "_id")
                               .map(([key, value]) => (
                                  <div key={key} className="flex justify-between items-center p-2 border rounded">
@@ -449,7 +463,7 @@ export const ChildDetailsModal = () => {
                                     <div className="flex gap-5 items-center">
                                        {editingKey === key ? (
                                           <>
-                                             {Object.keys(editOptions).length > 0 ? (
+                                             {Array.isArray(editOptions) && editOptions.length > 0 ? (
                                                 <select
                                                    className="border px-2 py-1 rounded"
                                                    value={editedValue}
@@ -479,7 +493,7 @@ export const ChildDetailsModal = () => {
                                              <button
                                                 onClick={() => {
                                                    setEditingKey(null);
-                                                   setEditOptions({});
+                                                   setEditOptions([]);
                                                 }}
                                                 className="text-gray-500"
                                              >
@@ -556,7 +570,7 @@ export const ChildDetailsModal = () => {
                                                       <div className="flex gap-5 items-center">
                                                          {editingKey === f.name ? (
                                                             <>
-                                                               {Object.keys(editOptions).length > 0 ? (
+                                                               {Array.isArray(editOptions) && editOptions.length > 0 ? (
                                                                   <select
                                                                      className="border px-2 py-1 rounded"
                                                                      value={editedValue}
@@ -578,7 +592,7 @@ export const ChildDetailsModal = () => {
                                                                   />
                                                                )}
                                                                <button
-                                                                  onClick={() => handleSave(row[f.name])}
+                                                                  onClick={() => handleSave(f.name as string)}
                                                                   className="text-green-600 font-semibold"
                                                                >
                                                                   Save
@@ -586,7 +600,7 @@ export const ChildDetailsModal = () => {
                                                                <button
                                                                   onClick={() => {
                                                                      setEditingKey(null);
-                                                                     setEditOptions({});
+                                                                     setEditOptions([]);
                                                                   }}
                                                                   className="text-gray-500"
                                                                >
@@ -595,11 +609,11 @@ export const ChildDetailsModal = () => {
                                                             </>
                                                          ) : (
                                                             <>
-                                                               <span>{row[f.name]}</span>
+                                                               <span>{f.name ? row[f.name as string] : ''}</span>
                                                                <Pen
                                                                size={18}
                                                                   className="cursor-pointer"
-                                                                  onClick={() => handleEditClick(f.name, row[f.name])}
+                                                                  onClick={() => f.name && handleEditClick(f.name as string, f.name ? row[f.name as string] : '')}
                                                                />
                                                             </>
                                                          )}

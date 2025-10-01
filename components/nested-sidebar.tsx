@@ -24,6 +24,7 @@ import {
   Settings,
   User,
   Sliders,
+  MapPin,
   type LucideIcon,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -232,6 +233,32 @@ export function NestedSidebar({ data, searchTerm = "" }: NestedSidebarProps) {
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
+                  {/* Static Members Navigation */}
+                  <SidebarMenuItem>
+                    <Link
+                      href="/members"
+                      className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
+                        usePathname() === "/members" ? "text-white bg-[#2a2d46] rounded-md" : ""
+                      }`}
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>Members</span>
+                    </Link>
+                  </SidebarMenuItem>
+                  
+                  {/* Static Track Navigation */}
+                  <SidebarMenuItem>
+                    <Link
+                      href="/track"
+                      className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
+                        usePathname() === "/track" ? "text-white bg-[#2a2d46] rounded-md" : ""
+                      }`}
+                    >
+                      <MapPin className="mr-2 h-4 w-4" />
+                      <span>Track</span>
+                    </Link>
+                  </SidebarMenuItem>
+                  
                   {searchTerm.trim() !== "" && searchResults.length > 0 ? (
                     <div className="px-2 py-2 text-sm text-gray-400">
                       Search results ({searchResults.length})

@@ -16,12 +16,24 @@ import { CalendarDaysIcon } from 'lucide-react'
 import { Calendar } from './ui/calendar'
 import { DirectionMap } from './map'
 import { useCompany } from './providers/CompanyProvider'
+import { useQuery } from 'graphql-hooks'
+import { userQueries } from '@/lib/graphql/user/queries'
 
 const Track = () => {
-    const { members } = useCompany()
+    const { userInfo } = useCompany()
     const [selectedMember, setSelectedMember] = useState(null)
     const [date, setDate] = useState(null)
     const [show, setShow] = useState(false)
+
+    const { data: membersData, loading: membersLoading, error: membersError } = useQuery(userQueries.GET_ALL_COMPANY_MEMBERS, {
+        variables: {
+            companyId: userInfo?.companyId,
+        },
+        skip: !userInfo?.companyId,
+    })
+
+    const members = membersData?.getCompanyDeptMembers || []
+    console.log('members:', members)
 
     function handleTrack() {
         setShow(true)
@@ -33,14 +45,22 @@ const Track = () => {
             <div className='my-6 flex gap-8'>
                 <Select onValueChange={(value: any) => setSelectedMember(value)}>
                     <SelectTrigger className="w-1/4 bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0">
-                        <SelectValue placeholder="Select Member" />
+                        <SelectValue placeholder={membersLoading ? "Loading members..." : "Select Member"} />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-100 border-0 dark:bg-zinc-700 dark:text-white">
-                        {members?.getMembersByRole?.map((member: any) => (
-                            <SelectItem key={member.id} value={member.id}>
-                                {member.name}
-                            </SelectItem>
-                        ))}
+                        {membersLoading ? (
+                            <div className="p-2 text-sm text-gray-500">Loading members...</div>
+                        ) : membersError ? (
+                            <div className="p-2 text-sm text-red-500">Error loading members</div>
+                        ) : members?.length === 0 ? (
+                            <div className="p-2 text-sm text-gray-500">No members found</div>
+                        ) : (
+                            members?.map((member: any) => (
+                                <SelectItem key={member.id} value={member.id}>
+                                    {member.name} - {member.role?.name} {member.dept?.name ? `(${member.dept.name})` : ''}
+                                </SelectItem>
+                            ))
+                        )}
                     </SelectContent>
                 </Select>
                 <Popover>

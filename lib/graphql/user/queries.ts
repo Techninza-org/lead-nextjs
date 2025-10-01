@@ -12,6 +12,23 @@ const GET_COMPANY_DEPT_MEMBERS = `
   }
 `;
 
+const GET_ALL_COMPANY_MEMBERS = `
+  query GetAllCompanyMembers($companyId: String!) {
+    getCompanyDeptMembers(companyId: $companyId) {
+      id
+      name
+      email
+      phone
+      role { 
+          name
+      }
+      dept {
+          name
+      }
+    }
+  }
+`;
+
 const GET_MEMBERS = `
   query GetMembersByRole($role: String!) {
     getMembersByRole(role: $role) {
@@ -245,6 +262,7 @@ export const userQueries = {
   GET_COMPANY_FUNCTION,
   GET_COMPANIES_CATEGORIES,
   GET_COMPANY_DEPT_MEMBERS,
+  GET_ALL_COMPANY_MEMBERS,
   GET_COMPANIES,
   GET_MEMBERS,
   GET_DISCTINT_CATEGORY,

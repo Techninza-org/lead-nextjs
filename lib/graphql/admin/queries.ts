@@ -78,6 +78,84 @@ const BACKBONETOROOT = `
   }
 `
 
+// Logs Queries
+const GET_LOGS_STATS = `
+  query GetLogAnalytics($startDate: String!, $endDate: String!) {
+    getLogAnalytics(startDate: $startDate, endDate: $endDate) {
+      overallStats {
+        totalErrors
+        totalRequests
+        totalBandwidth
+      }
+      orgSummary {
+        orgName
+        totalErrors
+        totalRequests
+        totalBandwidth
+      }
+      userDetails {
+        orgName
+        users {
+          userId
+          totalErrors
+          totalRequests
+          totalBandwidth
+        }
+      }
+    }
+  }
+`;
+
+const GET_LOGS_FOR_ORG = `
+  query GetLogsByOrg($orgId: String!, $startDate: String!, $endDate: String!) {
+    getLogsByOrg(orgId: $orgId, startDate: $startDate, endDate: $endDate) {
+      timestamp
+      method
+      url
+      httpCode
+      description
+      elapsedTimeMs
+      ip
+      orgId
+      userId
+      rate
+      bandwidthKB
+      userAgent
+      payload
+      isError
+    }
+  }
+`;
+
+const GET_DETAILED_LOGS = `
+  query GetDetailedLogs($startDate: String!, $endDate: String!, $orgId: String, $userId: String, $page: Int, $limit: Int) {
+    getDetailedLogs(startDate: $startDate, endDate: $endDate, orgId: $orgId, userId: $userId, page: $page, limit: $limit) {
+      logs {
+        timestamp
+        method
+        url
+        httpCode
+        description
+        elapsedTimeMs
+        ip
+        orgId
+        userId
+        rate
+        bandwidthKB
+        userAgent
+        payload
+        isError
+      }
+      pagination {
+        total
+        page
+        limit
+        totalPages
+      }
+    }
+  }
+`;
+
 export const adminQueries = {
   GET_DEPT_FIELDS,
   ASSIGNFORMTOROOT,
@@ -86,5 +164,8 @@ export const adminQueries = {
   getCompanyFunctionById,
   getCompanyForms,
   GET_COMPANIES_DATA,
-  BACKBONETOROOT
+  BACKBONETOROOT,
+  GET_LOGS_STATS,
+  GET_LOGS_FOR_ORG,
+  GET_DETAILED_LOGS
 };

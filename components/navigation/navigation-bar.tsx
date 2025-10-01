@@ -33,7 +33,9 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
     const employeeRoutes = allowedPermission.filter((perm: any) => perm.name.includes("VIEW") && !perm.name.includes("Lead") && !perm.name.includes("Prospects"))
 
     const [user] = useAtom(userAtom)
+
     const role = user?.role?.name?.toLowerCase().replaceAll(" ", "") || "";
+    console.log('User role:', role, 'User:', user?.role?.name);
 
     const { companyDeptFields } = useCompany();
 
@@ -87,7 +89,7 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
         ...extendedEmployeeRoutes,
     ];
 
-    const navLinks = [ROOT].includes(role) ? ADMIN_NAV_LINKS : [ADMIN].includes(role) ? extendRootLinks : [MANAGER].includes(role) ? MANAGER_NAV_LINKS : EMP_NAV_LINKS;
+    const navLinks = [ROOT].includes(role) ? ADMIN_NAV_LINKS : [ADMIN].includes(role) ? ADMIN_NAV_LINKS : [MANAGER].includes(role) ? MANAGER_NAV_LINKS : EMP_NAV_LINKS;
 
     useEffect(() => {
         const handleResize = () => {
@@ -121,9 +123,12 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
                         }
                     )}
                 >
+                    {/* {['Admin'].includes(role) ? (
+                        
+                    ) : ( */}
                     {/* <Nav isCollapsed={isNavCollapsed} links={navLinks} /> */}
-                    {/* Pass the hierarchy with category information */}
-                    <NestedSidebar data={hierarchy} searchTerm={searchTerm} />
+                        <NestedSidebar data={hierarchy} searchTerm={searchTerm} />
+                    {/* )} */}
                 </div>
                 <div
                     className={cn(
