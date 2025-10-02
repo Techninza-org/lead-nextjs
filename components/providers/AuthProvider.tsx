@@ -102,7 +102,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Handle navigation
       const role = user?.role?.name?.toLowerCase()?.split(" ").join("");
       router.refresh();
-      router.push([ROOT].includes(role) ? '/dashboard' : '/leads');
+      
+      // Determine redirect based on role and context
+      if (role === 'admin') {
+        // System admin (no companyId) goes to admin dashboard
+        // Company admin (has companyId) goes to company dashboard
+        router.push(user.companyId ? '/dashboard' : '/admin/dashboard');
+      } else if (['root', 'manager'].includes(role)) {
+        router.push('/dashboard');
+      } else {
+        router.push('/leads');
+      }
     } catch (error) {
       console.error('Login error:', error);
       toast({

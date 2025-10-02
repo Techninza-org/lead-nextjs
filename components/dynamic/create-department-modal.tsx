@@ -93,14 +93,23 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
 
     const hardCodedFields = genHardCodedFields(deptName);
 
-    const { data } = useQuery(deptQueries.GET_COMPANY_DEPT_FIELDS, {
+    const { data, loading: queryLoading, error } = useQuery(deptQueries.GET_COMPANY_DEPT_FIELDS, {
         variables: { deptId },
         skip: !userInfo?.token || !deptId,
     })
+    
+    console.log('Form Builder - deptId:', deptId, 'deptName:', deptName);
+    console.log('Form Builder - data:', data);
+    console.log('Form Builder - loading:', queryLoading, 'error:', error);
 
-    const filteredDeptFields = useMemo(() =>
-        data?.getCompanyDeptFields?.filter(field => String(field.name) === String(decodeURIComponent(deptName))) || [],
-        [data, deptName])
+    const filteredDeptFields = useMemo(() => {
+        const allFields = data?.getCompanyDeptFields || [];
+        const filtered = allFields.filter(field => String(field.name) === String(decodeURIComponent(deptName)));
+        console.log('Form Builder - allFields:', allFields.length, allFields.map(f => ({ id: f.id, name: f.name })));
+        console.log('Form Builder - looking for name:', decodeURIComponent(deptName));
+        console.log('Form Builder - filtered:', filtered.length, filtered.map(f => ({ id: f.id, name: f.name })));
+        return filtered;
+    }, [data, deptName])
 
     useEffect(() => {
         if (filteredDeptFields.length > 0) {

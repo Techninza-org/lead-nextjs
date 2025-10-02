@@ -25,6 +25,7 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import { useMutation, useQuery } from "graphql-hooks"
 import { CREATE_OR_UPDATE_MANAGER, LOGIN_USER, UPDATE_USER_COMPANY } from "@/lib/graphql/user/mutations"
+import { userQueries } from "@/lib/graphql/user/queries"
 import { userAtom } from "@/lib/atom/userAtom"
 import { useAtomValue } from "jotai"
 import { deptQueries } from "@/lib/graphql/dept/queries"
@@ -50,7 +51,8 @@ export const UpdateMember = ({ userId }: { userId: string }) => {
         ],
     });
 
-    const { loading: roleLoading, error: roleError, data: rolesData } = useQuery(companyQueries.GET_ALL_ROLES, {
+    const { loading: roleLoading, error: roleError, data: rolesData } = useQuery(userQueries.GET_ROLES, {
+        variables: { companyId: user?.companyId },
         skip: !user?.companyId
     });
 
@@ -216,7 +218,7 @@ export const UpdateMember = ({ userId }: { userId: string }) => {
 
                                         >
                                             {
-                                                rolesData?.getAllRoles?.map((role: any) => (
+                                                rolesData?.getRoles?.map((role: any) => (
                                                     <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
                                                 ))
                                             }

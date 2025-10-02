@@ -17,10 +17,16 @@ import { NestedSidebar } from "../nested-sidebar";
 
 
 export function NavigationBar({ children }: { children: React.ReactNode }) {
-    const { companyForm } = useCompany()
+    const { companyForm, companyDeptFields } = useCompany()
     const { allowedPermission } = usePermissions()
     const [isNavCollapsed, setIsNavCollapsed] = useState<boolean>(false)
     const [searchTerm, setSearchTerm] = useState<string>("")
+
+    console.log('🔍 NavigationBar - Data received:', {
+        companyForm,
+        companyDeptFields,
+        allowedPermission
+    });
     
     const handleNavToggle = () => {
         setIsNavCollapsed(!isNavCollapsed);
@@ -37,8 +43,6 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
     const role = user?.role?.name?.toLowerCase().replaceAll(" ", "") || "";
     console.log('User role:', role, 'User:', user?.role?.name);
 
-    const { companyDeptFields } = useCompany();
-
     const pathname = usePathname();
     const isAdmin = pathname.startsWith("/admin");
     
@@ -52,17 +56,41 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
         };
     });
     
-    // Build hierarchy with category information
-    const hierarchy = newbuildHierarchy(formattedCompanyDeptFields);
+    console.log('🔍 NavigationBar - formattedCompanyDeptFields:', formattedCompanyDeptFields);
     
+    // Create a hierarchy that includes ALL forms from companyForm, not just companyDeptFields
+    const allFormsForHierarchy = companyForm?.map((form: any) => ({
+        _id: { $oid: form.id },
+        name: form.name,
+        order: { $numberLong: "1" },
+        companyDeptId: { $oid: "default" },
+        dependentOnId: form.dependentOnId || "",
+        categoryId: { $oid: "default" },
+        category: form.category || { name: "Uncategorized" },
+        createdAt: { $date: new Date().toISOString() },
+        updatedAt: { $date: new Date().toISOString() }
+    })) || [];
+    
+    console.log('🔍 NavigationBar - allFormsForHierarchy:', allFormsForHierarchy);
+    
+    // Build hierarchy with ALL forms
+    const hierarchy = newbuildHierarchy(allFormsForHierarchy);
+    
+    console.log('🔍 NavigationBar - hierarchy built:', hierarchy);
+    
+    // Standardize routing - use consistent path structure for all roles
     const rootLinks = companyForm?.map((form: any) => ({
         title: form.name,
         icon: FileTextIcon,
-        href: `/values/${form.name}`,
+        href: `/values/${form.name}`, // Keep root manager path as is
         category: form.category?.name // Include category in links
-    })).filter((form: any) => !["LEAD", "PROSPECT", "LEAD FOLLOW UP", "PROSPECT FOLLOW UP"].includes(String(form.title).toUpperCase()));
+    })); // Remove the filter to show ALL forms including Lead and Prospect
+
+    console.log('🔍 NavigationBar - rootLinks created:', rootLinks);
 
     const extendRootLinks = [...ROOT_NAV_LINKS, ...rootLinks];
+    
+    console.log('🔍 NavigationBar - extendRootLinks:', extendRootLinks);
 
     const extendedEmployeeRoutes = employeeRoutes.map((route: any) => {
         const routeNameParts = route.name.split(":");
@@ -71,7 +99,7 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
         return {
             title: routePart,
             icon: FileTextIcon,
-            href: `/${role}/values/${routePart}`,
+            href: `/values/${routePart}`, // Use same path structure as root managers
         };
     });
 
