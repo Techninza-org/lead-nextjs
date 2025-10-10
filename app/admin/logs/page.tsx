@@ -50,18 +50,6 @@ export default function LogsPage() {
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [expandedOrgs, setExpandedOrgs] = useState<Set<string>>(new Set());
 
-  // Test query to see if GraphQL is working
-  const { data: testData } = useQuery(`
-    query TestAnalytics {
-      testAnalytics
-    }
-  `, {
-    onSuccess: ({ data }) => {
-    },
-    onError: (error: any) => {
-      console.error('Frontend: Test analytics query error:', error);
-    }
-  });
 
   // Query for logs statistics
   const { data: logsStats, loading: statsLoading, error: statsError } = useQuery(adminQueries.GET_LOGS_STATS, {
