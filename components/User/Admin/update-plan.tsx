@@ -53,7 +53,6 @@ export const CompanyPlan = ({ row }: { row: any }) => {
                 title: "Company Subscription Updated Successfully!",
             });
         } catch (err) {
-            console.log(err);
         }
 
     }

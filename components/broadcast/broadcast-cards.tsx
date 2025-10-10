@@ -77,7 +77,6 @@ const BroadcastCards = () => {
                 title: "Broadcast Deleted Successfully!",
             });
         } catch (error) {
-            console.log(error);
         }
     }
 

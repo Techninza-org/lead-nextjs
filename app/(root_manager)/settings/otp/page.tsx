@@ -39,7 +39,6 @@ export default function OtpManagement() {
          });
 
       } catch (error) {
-         console.log(error);
       }
 
    }

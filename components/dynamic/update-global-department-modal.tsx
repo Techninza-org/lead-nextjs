@@ -129,7 +129,6 @@ const UpdateGlobalDepartmentFieldsModal = ({ deptName }: { deptName: string }) =
             });
 
         } catch (error) {
-            console.log(error);
         }
 
     };

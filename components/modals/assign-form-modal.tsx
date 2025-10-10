@@ -69,7 +69,6 @@ export const AssignFormModal = () => {
     const isLoading = form.formState.isSubmitting
 
     const onSubmit = async (data: z.infer<typeof assignFormSchema>) => {
-        console.log(data, "data")
 
         const { error } = await upsertCompanyDeptForm({
             variables: {

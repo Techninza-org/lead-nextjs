@@ -42,7 +42,6 @@ export const CompanySettingsModal = () => {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
-  console.log(companyId , "companyId")
   // GraphQL query to fetch company settings
   const {
     data: settingsData,

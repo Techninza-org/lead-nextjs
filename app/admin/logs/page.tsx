@@ -70,6 +70,7 @@ export default function LogsPage() {
       endDate: endDate.toISOString(),
     },
     onSuccess: ({ data }) => {
+      // Logs stats loaded successfully
     },
     onError: (error: any) => {
       console.error('Frontend: GraphQL error:', error);

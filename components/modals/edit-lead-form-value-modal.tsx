@@ -100,7 +100,6 @@ export const EditLeadFormValueModal = () => {
     }, [formFields, setValue]);
 
     const onSubmit = async (data: any) => {
-        console.log(data, "data", formatFormData(fields?.fields, data))
 
         let parentformattedData;
         let childformattedData;

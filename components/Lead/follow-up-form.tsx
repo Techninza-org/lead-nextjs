@@ -125,7 +125,6 @@ const FollowUpForm = ({ lead, isFollowUpActive, setIsFollowUpActive, forLead }: 
             });
 
         } catch (error) {
-            console.log(error);
         }
     }
 

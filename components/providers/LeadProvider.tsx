@@ -172,7 +172,6 @@ export const LeadProvider = ({ children }: { children: ReactNode }) => {
         try {
 
             const { data, error } = await fetchfilterOptions({ variables: { searchValue, colId } });
-            console.log(data, "data")
             await new Promise((resolve) => setTimeout(resolve, 500))
 
             if (!data) return []

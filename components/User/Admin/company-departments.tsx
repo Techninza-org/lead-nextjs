@@ -52,7 +52,6 @@ const CompanyDepartments = ({ id }: { id: string }) => {
   //     companyId: id
   //   },
   //   onSuccess: ({ data }) => {
-  //     console.log(data, 'data');
 
   //     if (data.getCompanySubscription.Subscriptions.length === 0) return;
   //     const subsLenght = data.getCompanySubscription.Subscriptions.length;
@@ -89,7 +88,6 @@ const CompanyDepartments = ({ id }: { id: string }) => {
   //       title: "Company Subscription Updated Successfully!",
   //     });
   //   } catch (err) {
-  //     console.log(err);
   //   }
 
   // }

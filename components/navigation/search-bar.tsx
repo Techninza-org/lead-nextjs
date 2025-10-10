@@ -76,7 +76,6 @@ export function SearchBar({ data }: SearchBarProps) {
           return
         }
 
-        console.log("API Response:", response)
         if (response?.globalSearchResolver) {
           setSearchResults(response.globalSearchResolver)
         }

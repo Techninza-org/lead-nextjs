@@ -56,7 +56,6 @@ export function CreateMemberForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // TODO: Implement member creation
-    console.log(values)
   }
 
   return (
