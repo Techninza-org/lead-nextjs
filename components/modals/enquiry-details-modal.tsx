@@ -251,7 +251,6 @@ export const EnquiryDetailsModal = () => {
 
                             {
                                 Object.entries(lead?.children || {}).map(([key, value]: any[]) => {
-                                    console.log(key, value, "key, value")
                                     return (
                                         <Fragment key={key}>
                                             <h3 className="font-medium text-xl pl-2 pt-2 capitalize">{key}</h3>

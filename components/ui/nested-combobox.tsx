@@ -48,7 +48,6 @@ interface NestedComboboxProps {
 }
 
 export function NestedCombobox({ data, onSelect, className }: NestedComboboxProps) {
-  console.log(data, className, 'onSelect', 'NestedCombobox rendered');
   
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState('');

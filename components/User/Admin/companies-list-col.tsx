@@ -166,7 +166,6 @@ export const CompanyFunctionCols: ColumnDef<z.infer<any>>[] = [
         accessorKey: "functionName",
         header: 'Function Name',
         cell: ({ row }) => {
-            console.log(row.getValue("functionName"), " name row original");
             
             return (
                 <Link href={`/admin/companies/function/edit/${row.original.id}`} className="text-blue-800 hover:underline">

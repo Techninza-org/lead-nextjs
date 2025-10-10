@@ -90,7 +90,6 @@ export const LeadForm = ({ fields, onClose }: {
     fields: any,
     onClose: any,
 }) => {
-    console.log("Fields in LeadForm:", fields);
     
     const { toast } = useToast()
     const [files, setFiles] = useState<File[] | null>([]);

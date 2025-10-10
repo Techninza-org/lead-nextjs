@@ -22,11 +22,7 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
     const [isNavCollapsed, setIsNavCollapsed] = useState<boolean>(false)
     const [searchTerm, setSearchTerm] = useState<string>("")
 
-    console.log('🔍 NavigationBar - Data received:', {
-        companyForm,
-        companyDeptFields,
-        allowedPermission
-    });
+   
     
     const handleNavToggle = () => {
         setIsNavCollapsed(!isNavCollapsed);
@@ -41,7 +37,6 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
     const [user] = useAtom(userAtom)
 
     const role = user?.role?.name?.toLowerCase().replaceAll(" ", "") || "";
-    console.log('User role:', role, 'User:', user?.role?.name);
 
     const pathname = usePathname();
     const isAdmin = pathname.startsWith("/admin");
@@ -56,7 +51,6 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
         };
     });
     
-    console.log('🔍 NavigationBar - formattedCompanyDeptFields:', formattedCompanyDeptFields);
     
     // Create a hierarchy that includes ALL forms from companyForm, not just companyDeptFields
     const allFormsForHierarchy = companyForm?.map((form: any) => ({
@@ -71,12 +65,10 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
         updatedAt: { $date: new Date().toISOString() }
     })) || [];
     
-    console.log('🔍 NavigationBar - allFormsForHierarchy:', allFormsForHierarchy);
     
     // Build hierarchy with ALL forms
     const hierarchy = newbuildHierarchy(allFormsForHierarchy);
     
-    console.log('🔍 NavigationBar - hierarchy built:', hierarchy);
     
     // Standardize routing - use consistent path structure for all roles
     const rootLinks = companyForm?.map((form: any) => ({
@@ -86,11 +78,9 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
         category: form.category?.name // Include category in links
     })); // Remove the filter to show ALL forms including Lead and Prospect
 
-    console.log('🔍 NavigationBar - rootLinks created:', rootLinks);
 
     const extendRootLinks = [...ROOT_NAV_LINKS, ...rootLinks];
     
-    console.log('🔍 NavigationBar - extendRootLinks:', extendRootLinks);
 
     const extendedEmployeeRoutes = employeeRoutes.map((route: any) => {
         const routeNameParts = route.name.split(":");
@@ -151,12 +141,11 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
                         }
                     )}
                 >
-                    {/* {['Admin'].includes(role) ? (
-                        
-                    ) : ( */}
-                    {/* <Nav isCollapsed={isNavCollapsed} links={navLinks} /> */}
+                    {isAdmin ? (
+                        <Nav isCollapsed={isNavCollapsed} links={navLinks} />
+                    ) : (
                         <NestedSidebar data={hierarchy} searchTerm={searchTerm} />
-                    {/* )} */}
+                    )}
                 </div>
                 <div
                     className={cn(

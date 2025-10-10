@@ -59,7 +59,7 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const [fetchPaginationRoot] = useManualQuery(userQueries.GET_COMPANIES);
 
     const { skip, variables } = {
-        skip: ['ROOT', 'MANAGER'].includes(userInfo?.role?.name || "") && !!userInfo?.companyId && !!authToken,
+        skip: !userInfo?.token || !userInfo?.companyId,
         variables: {
             deptId: userInfo?.deptId,
             companyId: userInfo?.companyId,
@@ -82,7 +82,6 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
         // variables,
         // refetchAfterMutations: [leadAssignTo, UPDATE_USER_COMPANY],
         onSuccess: ({ data }) => {
-            console.log(data.getDistinctCategories, "distinct categories data in company provider");
             
             if (data?.getDistinctCategories) setCompanyCategories(data.getDistinctCategories)
         }
@@ -184,7 +183,6 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const { } = useQuery(userQueries.COMPANY_RESOURCES, {
         skip,
         onSuccess: ({ data }) => {
-            console.log(data, 'data in company provider');
             
             if (data.permissioResources)
                 setPermissionsResources(data.permissioResources)

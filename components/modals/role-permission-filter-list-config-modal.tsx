@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { useModal } from "@/hooks/use-modal-store"
-import { useMutation } from "graphql-hooks"
+import { useMutation, useQuery } from "graphql-hooks"
 import { useAtomValue } from "jotai"
 import { userAtom } from "@/lib/atom/userAtom"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -18,6 +18,7 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Search, GripVertical } from "lucide-react"
 import { useCompany } from "../providers/CompanyProvider"
+import { adminQueries } from "@/lib/graphql/admin/queries"
 
 interface Column {
   name: string
@@ -67,13 +68,16 @@ export const RolePerimssionFilterListConfig = () => {
   const userInfo = useAtomValue(userAtom)
   const { isOpen, onClose, type, data: modalData } = useModal()
   const { role, table, relationships } = modalData
-  console.log(modalData, 'modalData in role-permission-filter-list-config-modal.tsx')
   
   const isModalOpen = isOpen && type === "role:permission_config"
 
   const getCurrentRole = useCallback(() => {
-    if (!role || !table) return null
-    return role.find((r: Role) => r.resource === table.name)
+    if (!role || !table) {
+      return null;
+    }
+    
+    const foundRole = role.find((r: Role) => r.resource === table.name);
+    return foundRole;
   }, [role, table])
 
   const [listColumns, setListColumns] = useState<Column[]>([])
@@ -88,10 +92,19 @@ export const RolePerimssionFilterListConfig = () => {
   // Update the state in the main component to track action button visibility
   const [actionButtonsVisible, setActionButtonsVisible] = useState(true)
   // Add a state to store function buttons in the main component
-  const [functionButtons, setFunctionButtons] = useState([])
+  const [functionButtons, setFunctionButtons] = useState<any[]>([])
 
   useEffect(() => {
-    if (table?.fields) {
+    // Create fallback fields if none exist
+    const tableFields = table?.fields && table.fields.length > 0 
+      ? table.fields 
+      : [
+          { name: 'id', type: 'String', isRequired: true, isId: true },
+          { name: 'createdAt', type: 'DateTime', isRequired: true },
+          { name: 'updatedAt', type: 'DateTime', isRequired: true }
+        ];
+    
+    if (tableFields) {
       const currentRole = getCurrentRole()
 
       // Helper function to get order based on array position
@@ -101,7 +114,7 @@ export const RolePerimssionFilterListConfig = () => {
       }
 
       // Sort and map fields for list view
-      const listViewFields = table.fields.map((field: any) => ({
+      const listViewFields = tableFields.map((field: any) => ({
         name: field.name,
         visible: field.name === "id" ? true : (currentRole?.listView?.includes(field.name) ?? false),
         optOut: false,
@@ -139,7 +152,7 @@ export const RolePerimssionFilterListConfig = () => {
       setListColumns(finalListColumns)
 
       // Similar process for change view
-      const changeViewFields = table.fields.map((field: any) => ({
+      const changeViewFields = tableFields.map((field: any) => ({
         name: field.name,
         visible: field.name === "id" ? true : (currentRole?.changeView?.includes(field.name) ?? false),
         readonly: field.name === "id" ? true : (currentRole?.readonlyFields?.includes(field.name) ?? false),
@@ -447,6 +460,7 @@ export const RolePerimssionFilterListConfig = () => {
               onDragOver={handleColumnDragOver}
               onDragLeave={handleColumnDragLeave}
               onDrop={handleColumnDrop}
+              setFunctionButtons={setFunctionButtons}
             />
           </TabsContent>
 
@@ -459,6 +473,7 @@ export const RolePerimssionFilterListConfig = () => {
               onDragOver={handleColumnDragOver}
               onDragLeave={handleColumnDragLeave}
               onDrop={handleColumnDrop}
+              setFunctionButtons={setFunctionButtons}
             />
           </TabsContent>
 
@@ -650,21 +665,28 @@ const TableWithSearchActionButtons = ({
   setFunctionButtons,
 }: TableWithSearchProps) => {
   const [searchTerm, setSearchTerm] = useState("")
-  const { companyFunctions } = useCompany()
-  const [localFunctionButtons, setLocalFunctionButtons] = useState([])
+  const { } = useCompany()
+  const [localFunctionButtons, setLocalFunctionButtons] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [tableNameFilter, setTableNameFilter] = useState("")
   const [showVisibilityToggle, setShowVisibilityToggle] = useState(true)
   const { table } = useModal().data
   // Handle drag state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  
+  // Fetch company functions
+  const { data: companyFunctionsData } = useQuery(adminQueries.getCompnayFunctions, {
+    variables: { orgId: 'ORG_GEAR' }, // You might want to make this dynamic
+    skip: false
+  })
 
   // Handle companyFunctions loading with useEffect
   useEffect(() => {
     setIsLoading(true)
 
+    const companyFunctions = companyFunctionsData?.getCompnayFunctionsAdmin || []
     if (companyFunctions && companyFunctions.length > 0) {
-      const transformedFunctions = companyFunctions.map((func, index) => ({
+      const transformedFunctions = companyFunctions.map((func: any, index: number) => ({
         id: func.id || `func-${index}`,
         name: func.functionName,
         description: func.desc || "No description provided",
@@ -684,7 +706,7 @@ const TableWithSearchActionButtons = ({
     }
 
     setIsLoading(false)
-  }, [companyFunctions, setFunctionButtons, table])
+  }, [companyFunctionsData, setFunctionButtons, table])
 
   // Function to handle button reordering
   const handleButtonDragStart = (e: React.DragEvent, index: number) => {
@@ -699,7 +721,7 @@ const TableWithSearchActionButtons = ({
     const sourceIndex = Number.parseInt(e.dataTransfer.getData("text/plain"))
     if (isNaN(sourceIndex) || sourceIndex === targetIndex) return
 
-    const updateButtons = (prev) => {
+    const updateButtons = (prev: any[]) => {
       const newButtons = [...prev]
       const [movedItem] = newButtons.splice(sourceIndex, 1)
       newButtons.splice(targetIndex, 0, movedItem)
@@ -718,8 +740,8 @@ const TableWithSearchActionButtons = ({
 
   // Toggle individual button visibility
   const toggleButtonVisibility = (index: number) => {
-    const updateButtons = (prev) =>
-      prev.map((button, idx) => (idx === index ? { ...button, visible: !button.visible } : button))
+    const updateButtons = (prev: any[]) =>
+      prev.map((button: any, idx: number) => (idx === index ? { ...button, visible: !button.visible } : button))
 
     setLocalFunctionButtons(updateButtons)
     setFunctionButtons(updateButtons(localFunctionButtons))
@@ -744,7 +766,7 @@ const TableWithSearchActionButtons = ({
   }, [allButtons, searchTerm, table])
 
   const toggleAllVisibility = () => {
-    const updateButtons = (prev) => prev.map((button) => ({ ...button, visible: !showVisibilityToggle }))
+    const updateButtons = (prev: any[]) => prev.map((button: any) => ({ ...button, visible: !showVisibilityToggle }))
 
     setLocalFunctionButtons(updateButtons)
     setFunctionButtons(updateButtons(localFunctionButtons))

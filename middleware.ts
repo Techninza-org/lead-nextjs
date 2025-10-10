@@ -40,7 +40,6 @@ async function fetchUserPermissions(token: string) {
       role,
     };
   } catch (error) {
-    console.log(error, "error")
     return { resource: '', role: null };
   }
 }

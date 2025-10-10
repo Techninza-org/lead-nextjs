@@ -45,10 +45,10 @@ export default function Page({ params }: { params: { formName: string } }) {
 
   const [executeDynamicFunction] = useMutation(companyMutation.FUNCTION_EXCUTE)
 
+  
+
   // Only log once when component mounts
   useEffect(() => {
-    console.log('🔍 Component mounted with formName:', formName);
-    console.log('🔍 GraphQL URL:', process.env.NEXT_PUBLIC_BACKEND_GRAPHQL_API || 'http://localhost:8080');
   }, []);
   
   const { data, loading, error, refetch } = useQuery(
@@ -64,7 +64,6 @@ export default function Page({ params }: { params: { formName: string } }) {
       notifyOnNetworkStatusChange: true,
     }
   )
-  console.log(data, "data");
 
   // Sync sort param from URL (and reset to page 1)
   useEffect(() => {
@@ -116,7 +115,6 @@ export default function Page({ params }: { params: { formName: string } }) {
   // our payload now comes back as
   // { data, pagination, listView, changeView }
   const formData = data?.getFormValuesByFormName || {}
-  console.log(formData, "formData");
   
 
   const formateFields = useMemo(() =>

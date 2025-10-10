@@ -198,7 +198,6 @@ export default function FilterBuilder({ fields, onFilterChange, filters: initial
     )
   }
 
-  console.log(JSON.stringify(filterGroups[0]), "group.conditions")
 
   return (
     <div className="relative">

@@ -597,7 +597,6 @@ export default function DynamicFunctionParametersModal({
 
 
     const handleSelect = (value: string) => {
-        console.log('Selected value:', value);
     };
     return (
         <Dialog  open={isOpen} onOpenChange={onCancel}>

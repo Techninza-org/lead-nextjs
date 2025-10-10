@@ -183,7 +183,6 @@ export const FunctionParametersModal = () => {
 
   const isModalOpen = isOpen && type === "functionParameters";
   const { id, selectedFnName, selectedFormNameIds, formName, selectedData, unselectedFormNameIds } = modalData || {};
-  console.log(unselectedFormNameIds, 'unsellllllllllllll');
 
 
   const {

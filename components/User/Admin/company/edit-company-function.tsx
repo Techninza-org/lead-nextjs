@@ -118,7 +118,6 @@ export default function EditCompanyFunction({ id }: { id: string }) {
   const [updateFunction] = useMutation(companyMutation.EDIT_COMPANY_FUNCTION)
 
   const onSubmit = async (values: any) => {
-    console.log('Submitting with values:', {
       functionId: id,
       input: {
         desc: values.desc,

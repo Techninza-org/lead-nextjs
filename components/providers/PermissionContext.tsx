@@ -69,6 +69,7 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
 
     useEffect(() => {
         if (data?.getRolePermissions) {
+            
             setPermissions(data.getRolePermissions.map((x: any) => ({ name: `${x.permission.actions.toUpperCase()}:${x.permission.resource.toUpperCase()}` })));
             setCompanyPermissions(data.getRolePermissions.map((x: any) => ({ name: `${x.permission.actions}:${x.permission.resource}` })));
         }

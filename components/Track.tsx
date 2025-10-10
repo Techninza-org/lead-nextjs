@@ -33,7 +33,6 @@ const Track = () => {
     })
 
     const members = membersData?.getCompanyDeptMembers || []
-    console.log('members:', members)
 
     function handleTrack() {
         setShow(true)

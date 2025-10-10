@@ -18,8 +18,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 export function PermissionConfig() {
   const [roles, setRoles] = useState<any[]>([])
   const { roles: apiRole, permissions: resources, permissionsResources } = useCompany()
-  console.log(resources, 'resources in permission-config.tsx');
-  console.log(permissionsResources, 'permissionsResources in permission-config.tsx');
   
   const [selectedRole, setSelectedRole] = useState<string>("")
   const [openResource, setOpenResource] = useState<string | null>(null)
@@ -31,7 +29,6 @@ export function PermissionConfig() {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log("apiRole", apiRole);
       
       if (!apiRole) return
       setRoles(apiRole)
@@ -40,7 +37,6 @@ export function PermissionConfig() {
   }, [apiRole])
 
   useEffect(() => {
-    console.log("resources", resources);
     
     const filtered = resources.filter((resource: any) =>
       resource.name.toLowerCase().includes(filterValue.toLowerCase())
@@ -163,22 +159,60 @@ export function PermissionConfig() {
             {(filteredResources.length > 0 ? filteredResources : resources).map((resource: any) => {
               
               
-              const rolePermissions = roles.find((r) => r.id === selectedRole)?.permissions || []
+              const selectedRoleObject = roles.find((r) => r.id === selectedRole)
+              const rolePermissions = selectedRoleObject?.permissions || []
               
+              // Find the permission for this specific resource
+              const resourcePermission = rolePermissions.find((p: any) => p.resource === resource.name)
 
-              const currResource = permissionsResources?.models?.find((r: any) => r.name == resource.name)
-              console.log(currResource, 'currResource in permission-config.tsx');
+              // If permissionsResources.models is empty, use the resource object directly
+              let currResource = permissionsResources?.models?.length > 0 
+                ? permissionsResources?.models?.find((r: any) => r.name == resource.name)
+                : resource; // Use resource directly if models array is empty
+              
+              // If currResource doesn't have fields, try to get it from permissionsResources
+              if (!currResource?.fields && permissionsResources?.models?.length > 0) {
+                currResource = permissionsResources.models.find((r: any) => r.name == resource.name);
+              }
+              
+              // If still no fields, create a basic structure
+              if (!currResource?.fields) {
+                currResource = {
+                  ...currResource,
+                  name: resource.name,
+                  fields: [] // We'll need to get fields from somewhere else
+                };
+              }
               
               const currResourceRelation = permissionsResources?.relationships?.filter((r: any) => r.name === resource.name && r.name === r.fromModel)
+              
+              // Create a role object that matches what the modal expects
+              const modalRole = resourcePermission ? {
+                id: resourcePermission.id,
+                name: selectedRoleObject?.name || '',
+                resource: resource.name,
+                actions: resourcePermission.actions || '',
+                listView: resourcePermission.listView || [],
+                changeView: resourcePermission.changeView || [],
+                readonlyFields: resourcePermission.readonlyFields || [],
+                filters: resourcePermission.filters || [],
+                relationConfig: resourcePermission.relationConfig || {}
+              } : null;
+              
               return (
                 <TableRow key={resource.name}>
                   <TableCell
                     className="text-blue-900 cursor-pointer"
-                    onClick={() => selectedRole && onOpen("role:permission_config", {
-                      role: rolePermissions,
-                      table: currResource,
-                      relationships: currResourceRelation
-                    })}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent event bubbling
+                      if (selectedRole && modalRole) {
+                        onOpen("role:permission_config", {
+                          role: [modalRole], // Pass as array with the formatted role object
+                          table: currResource,
+                          relationships: currResourceRelation
+                        });
+                      }
+                    }}
                   >
                     {resource.name}
                   </TableCell>

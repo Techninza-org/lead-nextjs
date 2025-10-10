@@ -159,7 +159,6 @@ export function RootTable<TData, TValue>({
         [table.getSelectedRowModel().rows]
     )
     const singleSelectedRowData = selectedRowsData.filter((row) => row.rootId === singleSelected)[0] || null;
-    console.log(singleSelectedRowData, "singleSelected row data");
     
 
     const rootInfoForAssign = singleSelected
@@ -182,7 +181,6 @@ export function RootTable<TData, TValue>({
         const fetchData = async () => {
             // if (!debouncedQuery) return
 
-            console.log('Fetching API for:', debouncedQuery)
 
             await getRootPagination(1, { ...appliedFilters, query: debouncedQuery })
 
@@ -242,7 +240,6 @@ export function RootTable<TData, TValue>({
                 </div>
                 <Button
                     onClick={() => {
-                        console.log(selectedRootIds, "selectedRootIds");
                         if (selectedRootIds.length === 0) {
                             return;
                         }

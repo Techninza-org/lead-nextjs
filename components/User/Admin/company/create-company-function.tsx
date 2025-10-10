@@ -79,7 +79,6 @@ export default function CreateCompanyFunction({ id }: { id: string }) {
       companyId: id
     },
     onSuccess: ({ data }: { data: any }) => {
-      console.log(data, "data")
       setCompanyForms(data?.getCompanyForms)
     },
   })
@@ -106,8 +105,6 @@ export default function CreateCompanyFunction({ id }: { id: string }) {
   const watchIntervention = form.watch("isUserIntervation")
 
   const onSubmit = async (values: any) => {
-    console.log("Form submitted with values:", values);
-    console.log("Modal fields:", modalFields);
     
 
     try {
@@ -142,7 +139,6 @@ export default function CreateCompanyFunction({ id }: { id: string }) {
           }))
         },
       });
-      console.log("Response data:", data);
 
       if (error) {
         const message = error?.graphQLErrors?.map((e: any) => e.message).join(", ");

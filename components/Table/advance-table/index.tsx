@@ -70,7 +70,6 @@ export default function AdvanceDataTable({
   const pathname = usePathname()
   const { getLeadPagination, getTableFilterOptions } = useLead()
   const leadInfo = useAtomValue(leads)
-  console.log("Lead Info:", leadInfo);
   
 
   // State management

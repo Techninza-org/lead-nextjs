@@ -57,7 +57,6 @@ export default function LogsPage() {
     }
   `, {
     onSuccess: ({ data }) => {
-      console.log('Frontend: Test analytics query result:', data);
     },
     onError: (error: any) => {
       console.error('Frontend: Test analytics query error:', error);
@@ -65,18 +64,12 @@ export default function LogsPage() {
   });
 
   // Query for logs statistics
-  console.log('Frontend: About to call useQuery with variables:', {
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-  });
-  
   const { data: logsStats, loading: statsLoading, error: statsError } = useQuery(adminQueries.GET_LOGS_STATS, {
     variables: {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
     },
     onSuccess: ({ data }) => {
-      console.log('Frontend: Logs stats loaded:', data);
     },
     onError: (error: any) => {
       console.error('Frontend: GraphQL error:', error);

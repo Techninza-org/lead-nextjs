@@ -22,7 +22,6 @@ export default function CompanyPage({ params }: { params: { id: string } }) {
          orgId: params.id
       },
       onSuccess: ({ data }) => {
-         console.log(data, "data")
          setCompanyFunctions(data?.getCompnayFunctionsAdmin)
       },
    })

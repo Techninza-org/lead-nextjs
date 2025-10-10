@@ -98,16 +98,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
         skip: !userInfo?.token || !deptId,
     })
     
-    console.log('Form Builder - deptId:', deptId, 'deptName:', deptName);
-    console.log('Form Builder - data:', data);
-    console.log('Form Builder - loading:', queryLoading, 'error:', error);
 
     const filteredDeptFields = useMemo(() => {
         const allFields = data?.getCompanyDeptFields || [];
         const filtered = allFields.filter(field => String(field.name) === String(decodeURIComponent(deptName)));
-        console.log('Form Builder - allFields:', allFields.length, allFields.map(f => ({ id: f.id, name: f.name })));
-        console.log('Form Builder - looking for name:', decodeURIComponent(deptName));
-        console.log('Form Builder - filtered:', filtered.length, filtered.map(f => ({ id: f.id, name: f.name })));
         return filtered;
     }, [data, deptName])
 
@@ -121,7 +115,6 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
     }, [filteredDeptFields, form])
 
     useEffect(() => {
-        console.log(uniqueFields, "uniqueFields in effect");
         
     }, [uniqueFields])
 
@@ -137,7 +130,6 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
 
 
         try {
-            console.log(uniqueFields, "uniqueFields");
             
             const { data, error } = await updateDepartmentFields({
                 variables: {
@@ -671,7 +663,6 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
 
 
     const handleSelect = (value: string) => {
-        console.log('Selected value:', value);
     };
     return (
         <Form {...form}>
@@ -918,7 +909,6 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                     ? prev.filter((v) => v !== f.name)
                     : [...prev, f.name];
               
-                  console.log('uniqueFields now:', updated);
                   return updated;
                 });
               }}

@@ -94,7 +94,6 @@ export function DataTable<TData, TValue>({
       return createdAtTimestamp >= fromUTC && createdAtTimestamp <= toUTC;
     });
     setFilteredData(filteredByDate);
-    console.log(data, 'intable');
     
   }, [data, date]);
   

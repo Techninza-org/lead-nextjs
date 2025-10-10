@@ -58,7 +58,6 @@ export const UploadFormModal = () => {
 
   const { formName = "Items", fields, existingTags } = modalData || {}
   // const dynamicFields = fields?.fields || []
-  console.log(fields, "fields in upload modal");
   
 
   // Replace your current dynamicFields logic with this:
@@ -190,22 +189,18 @@ const updateCsvKeys = (
     tags: string[] = []
   ) => {
     const childName = allFields?.childName;
-    console.log("allFields in wrapFieldsInDynamicFieldValueArray:", allFields);
-    console.log(childName, "childName in wrapFieldsInDynamicFieldValueArray");
     
     
     const childFields = Array.isArray(allFields?.fields?.[childName])
       ? allFields.fields[childName]
       : [];
 
-    console.log("childFields in wrapFieldsInDynamicFieldValueArray:", childFields);
     
   
     // Create keys like "RelationTest.name"
     const childFieldKeys = new Set(
       childFields.map((f: any) => `${childName}-${f.name}`)
     );
-    console.log("childFieldKeys in wrapFieldsInDynamicFieldValueArray:", childFieldKeys);
     
   
     const cleanedData = inputData.filter((row) =>
@@ -213,7 +208,6 @@ const updateCsvKeys = (
         (val) => val != null && String(val).trim() !== ""
       )
     );  
-    console.log("cleanedData in wrapFieldsInDynamicFieldValueArray:", cleanedData);
     
   
     return cleanedData.map((row) => {

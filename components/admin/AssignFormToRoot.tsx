@@ -52,7 +52,6 @@ export function AssignFormToRoot({ selectedCompany }: AssignFormToRootProps) {
 
  // Set sourceValue: if selectedCompany provided (single), force it; otherwise initialize from first root
  React.useEffect(() => {
-   console.log("Selected Company:", selectedCompany);
    
    if (selectedCompany && selectedCompany.length === 1) {
      setSourceValue(selectedCompany[0].id);
@@ -88,7 +87,6 @@ export function AssignFormToRoot({ selectedCompany }: AssignFormToRootProps) {
             });
 
          } catch (error) {
-            console.log(error);
          }
       }
    }

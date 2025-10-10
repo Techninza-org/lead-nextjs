@@ -68,6 +68,7 @@ export const ChildDetailsModal = () => {
    const { isOpen, onClose, onOpen, type, data: modalData } = useModal();
    const { companyDeptFields } = useCompany()
    const { toast } = useToast();
+   
    const [popoverOpen, setPopoverOpen] = useState(false)
    const [tableData, setTableData] = useState<Record<string, any[]>>({});
    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
@@ -197,13 +198,8 @@ export const ChildDetailsModal = () => {
          && Array.isArray(def)
          && def.length > 0
       ) as [string, any[]][];
-   console.log(childTables, "Child Tables Data")
-
    const parentId = modalData?.table?.data?._id;
-   console.log(parentId, "Parent ID");
-
    const childTableNames = childTables.map(([name]) => name);
-   console.log(childTableNames, "Child Table Names");
 
    const { } = useQuery(companyQueries.GET_CHILD_DATA, {
       skip: !parentId || childTableNames.length === 0,
@@ -226,7 +222,6 @@ export const ChildDetailsModal = () => {
          setCompanyFunctions(filteredFunctions);
          const individualButtonFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === true);
          setIndividualButtonFunctions(individualButtonFunctions);
-         console.log(1111111111111);
 
       }
    };
@@ -240,7 +235,6 @@ export const ChildDetailsModal = () => {
          setCompanyFunctions(filteredFunctions);
          const individualButtonFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === true);
          setIndividualButtonFunctions(individualButtonFunctions);
-         console.log(2222222222222222);
 
       }
    })
@@ -293,7 +287,6 @@ export const ChildDetailsModal = () => {
    };
    const handleAddRow = async (tableName: string) => {
       const formData = form.getValues()[tableName];
-      console.log(formData, "Form Data to Add Row");
       const obj = {
          parentId: modalData.table?.data?._id,
          parentTable: modalData.table?.label,
@@ -305,7 +298,6 @@ export const ChildDetailsModal = () => {
             ...formData
          }
       }
-      console.log(dataToAdd, "Data to be added to child table");
       const { error } = await addChildToParent({
          variables: {
             input: {
@@ -378,7 +370,9 @@ export const ChildDetailsModal = () => {
       });
    }
 
-   if (!modalData?.table) return null;
+   if (!modalData?.table) {
+      return null;
+   }
 
    const isModalOpen = isOpen && type === "childDetails:table";
 

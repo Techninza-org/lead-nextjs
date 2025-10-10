@@ -56,10 +56,6 @@ export const EditHistoryModal = () => {
    });
 
    useEffect(() => {
-      console.log('EditHistory Modal - Data received:', data);
-      console.log('EditHistory Modal - Error:', error);
-      console.log('EditHistory Modal - Loading:', loading);
-      console.log('EditHistory Modal - Modal Data:', modalData);
       
       if (data?.getEditHistory) {
          // Handle the response structure from the backend
@@ -68,7 +64,6 @@ export const EditHistoryModal = () => {
             setHistoryData(data.getEditHistory);
          } else {
             // Handle any other response structure
-            console.log('Unexpected response structure:', data.getEditHistory);
             setHistoryData([]);
          }
       }
