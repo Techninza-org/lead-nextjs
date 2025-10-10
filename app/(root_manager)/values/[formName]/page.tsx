@@ -41,9 +41,31 @@ export default function Page({ params }: { params: { formName: string } }) {
   const [sortParam, setSortParam] = useState<string>("")
   // pagination
   const [page, setPage] = useState<number>(1)
-  const limit = 5
+  const limit = 10
+  // filters
+  const [filters, setFilters] = useState<Record<string, any>>({})
+  
+  // Debug all page changes
+  useEffect(() => {
+    console.log('Page state changed to:', page);
+  }, [page]);
 
   const [executeDynamicFunction] = useMutation(companyMutation.FUNCTION_EXCUTE)
+
+  // Memoize variables to prevent infinite refetch
+  const queryVariables = useMemo(() => {
+    console.log('queryVariables updated:', { formName, filters, page, limit, sortParam });
+    return {
+      formName,
+      filters,
+      page,
+      limit,
+      sort: sortParam,
+    };
+  }, [formName, filters, page, limit, sortParam])
+
+  // Create a unique key for the query to force refetch when page changes
+  const queryKey = `${formName}-${page}-${JSON.stringify(filters)}-${sortParam}`
 
   
 
@@ -54,30 +76,38 @@ export default function Page({ params }: { params: { formName: string } }) {
   const { data, loading, error, refetch } = useQuery(
     companyQueries.GET_SUBMITTED_FORM_VALUE,
     {
-      variables: {
-        formName,
-        filters: {},   // no extra filters on this page
-        page,
-        limit,
-        sort: sortParam,
-      },
-      notifyOnNetworkStatusChange: true,
+      variables: queryVariables,
+      skip: !formName,
     }
   )
 
-  // Sync sort param from URL (and reset to page 1)
+
+  // Handle page changes from child component
+  const handlePageChange = (newPage: number) => {
+    console.log('handlePageChange called:', { from: page, to: newPage });
+    console.log('Calling setPage with:', newPage);
+    setPage(newPage)
+    // The query will automatically refetch when the page state changes
+    // because page is in the variables object
+  }
+
+  // Handle filter changes from child component
+  const handleFiltersChange = (newFilters: Record<string, any>) => {
+    console.log('handleFiltersChange called:', { newFilters, currentPage: page });
+    setFilters(newFilters)
+    console.log('Resetting page to 1 due to filter change');
+    setPage(1) // Reset to page 1 when filters change
+    // The query will automatically refetch when filters change
+  }
+
+  // Initialize sort param from URL on mount
   useEffect(() => {
     const urlSort = searchParams.get("sort") || ""
-    setSortParam(urlSort)
-    setPage(1)
-    refetch({
-      formName,
-      filters: {},
-      page: 1,
-      limit,
-      sort: urlSort,
-    })
-  }, [searchParams, formName, refetch])
+    console.log('Initializing sort from URL:', { urlSort, currentSortParam: sortParam });
+    if (urlSort !== sortParam) {
+      setSortParam(urlSort)
+    }
+  }, []) // Only run on mount
 
   // Multi-column URL-based sorting handler
   const updateSortInUrl = useCallback((
@@ -109,12 +139,23 @@ export default function Page({ params }: { params: { formName: string } }) {
     if (sortArray.length) newSearchParams.set("sort", sortArray.join(","))
     else newSearchParams.delete("sort")
 
+    // Reset to page 1 when sorting changes
+    console.log('Resetting page to 1 due to sort change');
+    setPage(1)
     router.replace(`${pathname}?${newSearchParams.toString()}`, { scroll: false })
   }, [pathname, router, searchParams])
 
   // our payload now comes back as
   // { data, pagination, listView, changeView }
   const formData = data?.getFormValuesByFormName || {}
+  
+  // Debug the data being passed to the table
+  console.log('FormData received:', {
+    dataLength: formData.data?.length || 0,
+    pagination: formData.pagination,
+    currentPage: page,
+    listView: formData.listView
+  });
   
 
   const formateFields = useMemo(() =>
@@ -175,7 +216,7 @@ export default function Page({ params }: { params: { formName: string } }) {
 
     const { data: defaultFn } = useQuery(adminQueries.getCompanyFunctionsDefault, {
       skip: !formName,
-      variables: { orgId: 'ORG_GEAR' },
+      variables: { orgId: 'ORG_GEAR' }, // TODO: Make this dynamic
     })
     useEffect(() => {
       if (defaultFn?.getCompanyFunctionsDefault && formName) {
@@ -187,16 +228,20 @@ export default function Page({ params }: { params: { formName: string } }) {
       }
     }, [defaultFn, formName])
 
-    const funcs = useQuery(adminQueries.getCompnayFunctions, { variables: { orgId: 'ORG_GEAR' }, skip: true })
+    const { data: companyFunctionsData } = useQuery(adminQueries.getCompnayFunctions, { 
+      variables: { orgId: 'ORG_GEAR' }, // TODO: Make this dynamic
+      skip: !formName 
+    })
+    
     useEffect(() => {
-      funcs.refetch().then(({ data }) => {
+      if (companyFunctionsData?.getCompnayFunctionsAdmin && formName) {
         setCompanyFunctions(
-          data?.getCompnayFunctionsAdmin?.filter((fn: any) =>
+          companyFunctionsData.getCompnayFunctionsAdmin.filter((fn: any) =>
             fn.viewName === formName && !fn.individualButton
           ) || []
         )
-      })
-    }, [])
+      }
+    }, [companyFunctionsData, formName])
 
     const handleSubmitClick = () => {
       if (!selectedFn) return
@@ -331,6 +376,9 @@ export default function Page({ params }: { params: { formName: string } }) {
           updateSortInUrl={updateSortInUrl}
           searchParams={searchParams}
           pathname={pathname}
+          currentPage={page}
+          onPageChange={handlePageChange}
+          onFiltersChange={handleFiltersChange}
         />
       </CardContent>
     </Card>

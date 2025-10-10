@@ -106,7 +106,10 @@ export default function AdvancedDataTableForms({
   sortParam,
   updateSortInUrl,
   searchParams,
-  pathname
+  pathname,
+  currentPage,
+  onPageChange,
+  onFiltersChange
 }: {
   data: any[]
   columnNames: string[]
@@ -119,12 +122,14 @@ export default function AdvancedDataTableForms({
   onUnselectedRowsChange?: (ids: string[]) => void
   pagination?: { total: number; page: number; limit: number; totalPages: number }
   sortParam: string
-updateSortInUrl: (index: number, isDesc: boolean | null, e: React.MouseEvent) => void
-searchParams: URLSearchParams
-pathname: string
+  updateSortInUrl: (index: number, isDesc: boolean | null, e: React.MouseEvent) => void
+  searchParams: URLSearchParams
+  pathname: string
+  currentPage?: number
+  onPageChange?: (page: number) => void
+  onFiltersChange?: (filters: Record<string, any>) => void
 }) {
   // ----------------- Local state -----------------
-  const [currentPage, setCurrentPage] = React.useState(pagination.page)
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -141,12 +146,29 @@ pathname: string
   const { checkPermission } = usePermissions()
   const { onOpen } = useModal()
 
-  // ----------------- Pagination slice -----------------
+  // Use server-side pagination - no client-side slicing needed
   const rowsPerPage = pagination.limit
-  const paginatedData = React.useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage
-    return data.slice(start, start + rowsPerPage)
-  }, [data, currentPage, rowsPerPage])
+  const serverCurrentPage = currentPage || pagination.page
+  
+
+  // Notify parent when filters change
+  React.useEffect(() => {
+    console.log('activeFilters changed:', activeFilters);
+    if (onFiltersChange) {
+      onFiltersChange(activeFilters);
+    }
+  }, [activeFilters]); // Remove onFiltersChange from deps to prevent infinite loop
+
+  // Debug the data being received
+  React.useEffect(() => {
+    console.log('AdvancedDataTableForms - Data received:', {
+      dataLength: data.length,
+      pagination,
+      serverCurrentPage,
+      firstItemId: data[0]?._id,
+      lastItemId: data[data.length - 1]?._id
+    });
+  }, [data, pagination, serverCurrentPage]);
 
   // ----------------- Parent notify helper -----------------
   const lastSentRef = React.useRef<string>("")
@@ -177,7 +199,7 @@ pathname: string
 
   // ----------------- React Table -----------------
   const table = useReactTable({
-    data: paginatedData,
+    data: data, // Use server-side paginated data directly
     columns,
     getRowId: (originalRow) => String(originalRow._id),
     state: {
@@ -191,7 +213,6 @@ pathname: string
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
@@ -215,6 +236,9 @@ pathname: string
       multiSelect: multiSelectFilter,
     },
     getRowCanExpand: () => true,
+    // Disable client-side pagination since we're using server-side
+    manualPagination: true,
+    pageCount: pagination.totalPages,
   })
 
   // keep column order once
@@ -665,17 +689,23 @@ pathname: string
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage <= 1}
+              onClick={() => {
+                console.log('Previous clicked:', { current: serverCurrentPage, new: serverCurrentPage - 1 });
+                onPageChange?.(serverCurrentPage - 1);
+              }}
+              disabled={serverCurrentPage <= 1}
             >
               Previous
             </Button>
-            <span className="text-sm">Page {currentPage} of {totalPages}</span>
+            <span className="text-sm">Page {serverCurrentPage} of {pagination.totalPages}</span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage >= totalPages}
+              onClick={() => {
+                console.log('Next clicked:', { current: serverCurrentPage, new: serverCurrentPage + 1, totalPages: pagination.totalPages });
+                onPageChange?.(serverCurrentPage + 1);
+              }}
+              disabled={serverCurrentPage >= pagination.totalPages}
             >
               Next
             </Button>
@@ -736,7 +766,14 @@ export const generateColumns = ({
       id: "expander",
       header: () => null,
       cell: ({ row }: any) => (
-        <Button variant="ghost" onClick={() => row.toggleExpanded()} className="p-0 h-auto">
+        <Button 
+          variant="ghost" 
+          onClick={(e) => {
+            e.stopPropagation() // Prevent row selection when clicking expander
+            row.toggleExpanded()
+          }} 
+          className="p-0 h-auto"
+        >
           {row.getIsExpanded() ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </Button>
       ),
@@ -771,7 +808,8 @@ export const generateColumns = ({
             return hasCreatePermission ? (
               <span
                 className="text-blue-900 cursor-pointer hover:underline"
-                onClick={() =>
+                onClick={(e) => {
+                  e.stopPropagation() // Prevent row selection when clicking ID
                   onOpen("childDetails:table", {
                     table: {
                       label: tableName,
@@ -779,7 +817,7 @@ export const generateColumns = ({
                       changeView: changeView.filter((x) => !(x.includes("_id") || x.includes("id"))),
                     },
                   })
-                }
+                }}
               >
                 {value}
               </span>
@@ -813,7 +851,12 @@ export const generateColumns = ({
         return (
           <div className="capitalize">
             {isValidUrl(value) ? (
-              <Link href={value} target="_blank" className="my-1">
+              <Link 
+                href={value} 
+                target="_blank" 
+                className="my-1"
+                onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking image link
+              >
                 <Image
                   src={value || "/placeholder.svg"}
                   alt={value}
