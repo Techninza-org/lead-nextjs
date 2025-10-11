@@ -44,6 +44,9 @@ export default function Page({ params }: { params: { formName: string } }) {
   const limit = 10
   // filters
   const [filters, setFilters] = useState<Record<string, any>>({})
+  // search results for hybrid filtering
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearchMode, setIsSearchMode] = useState(false)
   
   // Debug all page changes
   useEffect(() => {
@@ -81,6 +84,34 @@ export default function Page({ params }: { params: { formName: string } }) {
     }
   )
 
+  // Fetch first 50 rows for filtering (independent of pagination)
+  const { data: filterData, loading: filterDataLoading, error: filterDataError } = useQuery(
+    companyQueries.GET_SUBMITTED_FORM_VALUE,
+    {
+      variables: {
+        formName,
+        filters: {},
+        page: 1,
+        limit: 50, // Always fetch 50 rows for filtering
+        sort: "",
+      },
+      skip: !formName,
+    }
+  )
+
+  // Debug filter data loading
+  console.log('Filter Data Status:', {
+    loading: filterDataLoading,
+    error: filterDataError,
+    hasData: !!filterData,
+    dataLength: filterData?.getFormValuesByFormName?.data?.length || 0
+  });
+
+  // Search query for database-wide search
+  const { refetch: searchFormValueRefetch } = useQuery(companyQueries.SEARCH_FORM_VALUE, {
+    skip: true // Skip by default, we'll trigger it manually
+  })
+
 
   // Handle page changes from child component
   const handlePageChange = (newPage: number) => {
@@ -91,13 +122,25 @@ export default function Page({ params }: { params: { formName: string } }) {
     // because page is in the variables object
   }
 
-  // Handle filter changes from child component
-  const handleFiltersChange = (newFilters: Record<string, any>) => {
+  // Handle filter changes from child component with hybrid filtering
+  const handleFiltersChange = async (newFilters: Record<string, any>) => {
     console.log('handleFiltersChange called:', { newFilters, currentPage: page });
-    setFilters(newFilters)
-    console.log('Resetting page to 1 due to filter change');
-    setPage(1) // Reset to page 1 when filters change
-    // The query will automatically refetch when filters change
+    
+    // Get the 50 rows data for filtering
+    const filterDataRows = filterData?.getFormValuesByFormName?.data || [];
+    console.log('Filter data rows:', { 
+      filterDataExists: !!filterData, 
+      filterDataRowsLength: filterDataRows.length,
+      filterDataRows: filterDataRows.slice(0, 3) // Show first 3 rows for debugging
+    });
+    
+    // For now, let's just implement the basic filtering without the complex hybrid logic
+    // We'll set the filters and let the normal flow handle it
+    setFilters(newFilters);
+    setPage(1);
+    
+    // TODO: Implement the hybrid filtering logic step by step
+    console.log('Basic filter change applied, hybrid logic to be implemented');
   }
 
   // Initialize sort param from URL on mount
@@ -149,10 +192,14 @@ export default function Page({ params }: { params: { formName: string } }) {
   // { data, pagination, listView, changeView }
   const formData = data?.getFormValuesByFormName || {}
   
+  // For now, just use normal data (we'll implement search mode later)
+  const displayData = formData.data || [];
+  const displayPagination = formData.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 };
+  
   // Debug the data being passed to the table
   console.log('FormData received:', {
-    dataLength: formData.data?.length || 0,
-    pagination: formData.pagination,
+    dataLength: displayData.length,
+    pagination: displayPagination,
     currentPage: page,
     listView: formData.listView
   });
@@ -367,8 +414,8 @@ export default function Page({ params }: { params: { formName: string } }) {
           dependentCols={[]}
           columnNames={formData.listView || []}
           changeView={formData.changeView || []}
-          data={formData.data  || []}
-          pagination={formData.pagination || { total:0, page:1, limit, totalPages:0 }}
+          data={displayData}
+          pagination={displayPagination}
           MoreInfo={MoreInfoLead}
           tableName={formName}
           onUnselectedRowsChange={setUnselectedRows}
@@ -379,6 +426,7 @@ export default function Page({ params }: { params: { formName: string } }) {
           currentPage={page}
           onPageChange={handlePageChange}
           onFiltersChange={handleFiltersChange}
+          filterData={filterData?.getFormValuesByFormName?.data || []}
         />
       </CardContent>
     </Card>

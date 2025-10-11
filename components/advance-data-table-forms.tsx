@@ -109,7 +109,8 @@ export default function AdvancedDataTableForms({
   pathname,
   currentPage,
   onPageChange,
-  onFiltersChange
+  onFiltersChange,
+  filterData = []
 }: {
   data: any[]
   columnNames: string[]
@@ -128,6 +129,7 @@ export default function AdvancedDataTableForms({
   currentPage?: number
   onPageChange?: (page: number) => void
   onFiltersChange?: (filters: Record<string, any>) => void
+  filterData?: any[]
 }) {
   // ----------------- Local state -----------------
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -529,9 +531,8 @@ export default function AdvancedDataTableForms({
                                     <div className="max-h-[200px] overflow-auto">
                                       {Array.from(
                                         new Set(
-                                          table
-                                            .getFilteredRowModel()
-                                            .rows.map((row) => String(row.original[column.id as any]))
+                                          filterData
+                                            .map((row) => String(row[column.id as any]))
                                             .filter((value) =>
                                               value.toLowerCase().includes((searchFilters[column.id] ?? "").toLowerCase())
                                             )

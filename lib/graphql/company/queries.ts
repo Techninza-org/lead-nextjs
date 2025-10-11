@@ -206,6 +206,30 @@ const GET_CHILD_DATA = `
     }
 `
 
+const SEARCH_FORM_VALUE = `
+  query searchFormValue(
+    $formName: String!
+    $columnName: String!
+    $searchValue: String!
+  ) {
+    searchFormValue(
+      formName: $formName
+      columnName: $columnName
+      searchValue: $searchValue
+    ) {
+      data
+      listView
+      changeView
+      pagination {
+        total
+        page
+        limit
+        totalPages
+      }
+    }
+  }
+`
+
 export const companyQueries = {
   XCHANGE_CUSTOMER_LIST,
   GET_TABLE_CHILD_DATA,
@@ -222,5 +246,6 @@ export const companyQueries = {
   GET_LEADS_PHOTOS,
   GET_SUBMITTED_FORM_VALUE,
   GET_TABLE_FILTER_OPTIONS,
-  GET_CHILD_DATA
+  GET_CHILD_DATA,
+  SEARCH_FORM_VALUE
 }
