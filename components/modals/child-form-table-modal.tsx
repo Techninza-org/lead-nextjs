@@ -82,6 +82,7 @@ export const ChildDetailsModal = () => {
    const [mainData, setMainData] = useState<any>(null);
    const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
    const [editingTableName, setEditingTableName] = useState<string | null>(null);
+   const [selectedFn, setSelectedFn] = useState<any>(null);
 
    const [addChildToParent] = useMutation(DeptMutation.ADD_CHILD_TO_PARENT)
    const [executeDynamicFunction] = useMutation(companyMutation.FUNCTION_EXCUTE);
@@ -119,8 +120,19 @@ export const ChildDetailsModal = () => {
    }, [modalData?.table?.data]);
 
    useEffect(() => {
-      fetchCompanyFunctions();
-   }, [isOpen])
+      if (isOpen && modalData?.table?.label) {
+         console.log('Modal opened, fetching functions for:', modalData.table.label);
+         fetchCompanyFunctions();
+      }
+   }, [isOpen, modalData?.table?.label])
+
+   useEffect(() => {
+      console.log('companyFunctions updated:', companyFunctions);
+   }, [companyFunctions])
+
+   useEffect(() => {
+      console.log('selectedFn updated:', selectedFn);
+   }, [selectedFn])
 
    const handleEditClick = (key: string, value: string, documentId?: string, tableName?: string) => {
       setEditingKey(key);
@@ -214,18 +226,6 @@ export const ChildDetailsModal = () => {
       },
    });
 
-   const fetchCompanyFunctions = async () => {
-      // Use your GraphQL client directly or useQuery with manual trigger
-      const { data } = await funcs.refetch(); // You'll need to move useQuery into this scope
-      if (data?.getCompnayFunctionsAdmin) {
-         const filteredFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === false) || [];
-         setCompanyFunctions(filteredFunctions);
-         const individualButtonFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === true);
-         setIndividualButtonFunctions(individualButtonFunctions);
-
-      }
-   };
-
    // useQuery here but SKIP by default
    const funcs = useQuery(adminQueries.getCompnayFunctions, {
       variables: {
@@ -235,9 +235,22 @@ export const ChildDetailsModal = () => {
          setCompanyFunctions(filteredFunctions);
          const individualButtonFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === true);
          setIndividualButtonFunctions(individualButtonFunctions);
-
       }
    })
+
+   const fetchCompanyFunctions = async () => {
+      // Use your GraphQL client directly or useQuery with manual trigger
+      const { data } = await funcs.refetch();
+      console.log('Fetched functions data:', data);
+      if (data?.getCompnayFunctionsAdmin) {
+         const filteredFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === false) || [];
+         console.log('Filtered dropdown functions:', filteredFunctions);
+         setCompanyFunctions(filteredFunctions);
+         const individualButtonFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === true);
+         console.log('Individual button functions:', individualButtonFunctions);
+         setIndividualButtonFunctions(individualButtonFunctions);
+      }
+   };
 
    const defaultValues = useMemo(() => {
       const fields = formateFields?.fields;
@@ -277,6 +290,7 @@ export const ChildDetailsModal = () => {
       setEditOptions({});
       setEditingDocumentId(null);
       setEditingTableName(null);
+      setSelectedFn(null);
    };
 
    const toggleSection = (sectionName: string) => {
@@ -345,6 +359,24 @@ export const ChildDetailsModal = () => {
       toast({ variant: 'default', title: 'Function executed successfully!' });
    };
 
+   const handleSubmitClick = () => {
+      if (!selectedFn) return;
+      if (selectedFn.isUserIntervation) {
+         onOpen("functionParameters", {
+            id: selectedFn.id,
+            selectedFnName: selectedFn.functionName,
+            selectedData: [modalData?.table?.data],
+            selectedFormNameIds: [modalData?.table?.data?._id],
+            formName: modalData?.table?.label,
+            formNameIds: [modalData?.table?.data?._id],
+            unselectedFormNameIds: [],
+         });
+      } else {
+         handleFunctionCall(selectedFn, { ids: [modalData?.table?.data?._id] });
+         setPopoverOpen(false);
+      }
+   };
+
    // const handleUpdateRow = (tableName: string, rowIndex: number, newData: any) => {
    //    setTableData((prev: any) => ({
    //       ...prev,
@@ -354,12 +386,13 @@ export const ChildDetailsModal = () => {
    //    }));
    // };
    const handlePopoverChange = (open: boolean) => {
+      console.log('Popover state changing to:', open);
+      console.log('Current popoverOpen state:', popoverOpen);
       setPopoverOpen(open)
-      // // if (open) fetchCompanyFunctions()
-      // else {
-      //   setCompanyFunctions([])
-      //   setSelectedFn(null)
-      // }
+      if (open && companyFunctions.length === 0) {
+         console.log('Popover opened but no functions, fetching...');
+         fetchCompanyFunctions();
+      }
    }
 
    const handleShowHistory = (documentId: string, tableName: string, formName: string) => {
@@ -409,15 +442,13 @@ export const ChildDetailsModal = () => {
                         <Popover open={popoverOpen} onOpenChange={handlePopoverChange}>
                            <PopoverTrigger asChild>
                               <Button variant="outline" className="w-[200px] justify-between">
-                                 {/* {selectedFn ? selectedFn.functionName : 'Select function...'} */}
-                                 Select Function...
+                                 {selectedFn ? selectedFn.functionName : 'Select function...'}
                                  <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                               </Button>
                            </PopoverTrigger>
                            <PopoverContent className="w-[220px] p-0">
                               <div className="p-2 border-b flex justify-end">
-                                 {/* onClick={()=>handleFunctionCall(selectedFn, { ids:[parentId], unselectedIds: [] })} */}
-                                 <Button size="sm">
+                                 <Button size="sm" onClick={handleSubmitClick} disabled={!selectedFn}>
                                     Submit
                                  </Button>
                               </div>
@@ -425,23 +456,33 @@ export const ChildDetailsModal = () => {
                                  <CommandInput placeholder="Search function…" />
                                  <CommandList>
                                     <CommandEmpty>No function found.</CommandEmpty>
+                                    {companyFunctions.length === 0 && (
+                                       <div className="p-2 text-sm text-gray-500">
+                                          No functions available for this form
+                                       </div>
+                                    )}
                                     <CommandGroup>
                                        {companyFunctions.map((item: any) => (
                                           <CommandItem
                                              key={item.functionName}
                                              value={item.functionName}
-                                             //  onSelect={onSelectFunction}
-                                             className="cursor-pointer flex items-center gap-2"
+                                             onSelect={() => {
+                                                console.log('Function selected via onSelect:', item);
+                                                setSelectedFn(item);
+                                             }}
+                                             className="flex items-center gap-2"
                                           >
                                              <div
                                                 className={cn(
-                                                   "h-4 w-4 border rounded-sm flex items-center justify-center transition",
-                                                   //   selectedFn?.functionName === item.functionName ? "bg-primary text-white" : "bg-transparent"
+                                                   "h-4 w-4 border rounded-sm flex items-center justify-center",
+                                                   selectedFn?.functionName === item.functionName
+                                                     ? "bg-primary text-white"
+                                                     : "bg-transparent"
                                                 )}
                                              >
-                                                {/* {selectedFn?.functionName === item.functionName && (
-                          <CheckIcon className="w-3 h-3" />
-                        )} */}
+                                                {selectedFn?.functionName === item.functionName && (
+                                                   <CheckIcon className="w-3 h-3" />
+                                                )}
                                              </div>
                                              <span>{item.functionName}</span>
                                           </CommandItem>
@@ -458,10 +499,10 @@ export const ChildDetailsModal = () => {
                                  variant="default"
                                  size="sm"
                                  className="items-center gap-1"
-                              // onClick={() => handleFunctionCall(fn, {
-                              //   ids: selectedLeads.map(lead => lead._id),
-                              //   unselectedIds: unselectedRows
-                              // })}
+                                 onClick={() => handleFunctionCall(fn, {
+                                    ids: [modalData?.table?.data?._id],
+                                    unselectedIds: []
+                                 })}
                               >
                                  <span>{fn.functionName}</span>
                               </Button>
