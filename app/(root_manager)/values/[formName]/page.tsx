@@ -48,16 +48,11 @@ export default function Page({ params }: { params: { formName: string } }) {
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [isSearchMode, setIsSearchMode] = useState(false)
   
-  // Debug all page changes
-  useEffect(() => {
-    console.log('Page state changed to:', page);
-  }, [page]);
 
   const [executeDynamicFunction] = useMutation(companyMutation.FUNCTION_EXCUTE)
 
   // Memoize variables to prevent infinite refetch
   const queryVariables = useMemo(() => {
-    console.log('queryVariables updated:', { formName, filters, page, limit, sortParam });
     return {
       formName,
       filters,
@@ -99,13 +94,6 @@ export default function Page({ params }: { params: { formName: string } }) {
     }
   )
 
-  // Debug filter data loading
-  console.log('Filter Data Status:', {
-    loading: filterDataLoading,
-    error: filterDataError,
-    hasData: !!filterData,
-    dataLength: filterData?.getFormValuesByFormName?.data?.length || 0
-  });
 
   // Search query for database-wide search
   const { refetch: searchFormValueRefetch } = useQuery(companyQueries.SEARCH_FORM_VALUE, {
@@ -115,8 +103,6 @@ export default function Page({ params }: { params: { formName: string } }) {
 
   // Handle page changes from child component
   const handlePageChange = (newPage: number) => {
-    console.log('handlePageChange called:', { from: page, to: newPage });
-    console.log('Calling setPage with:', newPage);
     setPage(newPage)
     // The query will automatically refetch when the page state changes
     // because page is in the variables object
@@ -124,15 +110,8 @@ export default function Page({ params }: { params: { formName: string } }) {
 
   // Handle filter changes from child component with hybrid filtering
   const handleFiltersChange = async (newFilters: Record<string, any>) => {
-    console.log('handleFiltersChange called:', { newFilters, currentPage: page });
-    
     // Get the 50 rows data for filtering
     const filterDataRows = filterData?.getFormValuesByFormName?.data || [];
-    console.log('Filter data rows:', { 
-      filterDataExists: !!filterData, 
-      filterDataRowsLength: filterDataRows.length,
-      filterDataRows: filterDataRows.slice(0, 3) // Show first 3 rows for debugging
-    });
     
     // For now, let's just implement the basic filtering without the complex hybrid logic
     // We'll set the filters and let the normal flow handle it
@@ -140,13 +119,11 @@ export default function Page({ params }: { params: { formName: string } }) {
     setPage(1);
     
     // TODO: Implement the hybrid filtering logic step by step
-    console.log('Basic filter change applied, hybrid logic to be implemented');
   }
 
   // Initialize sort param from URL on mount
   useEffect(() => {
     const urlSort = searchParams.get("sort") || ""
-    console.log('Initializing sort from URL:', { urlSort, currentSortParam: sortParam });
     if (urlSort !== sortParam) {
       setSortParam(urlSort)
     }
@@ -183,7 +160,6 @@ export default function Page({ params }: { params: { formName: string } }) {
     else newSearchParams.delete("sort")
 
     // Reset to page 1 when sorting changes
-    console.log('Resetting page to 1 due to sort change');
     setPage(1)
     router.replace(`${pathname}?${newSearchParams.toString()}`, { scroll: false })
   }, [pathname, router, searchParams])
@@ -196,13 +172,6 @@ export default function Page({ params }: { params: { formName: string } }) {
   const displayData = formData.data || [];
   const displayPagination = formData.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 };
   
-  // Debug the data being passed to the table
-  console.log('FormData received:', {
-    dataLength: displayData.length,
-    pagination: displayPagination,
-    currentPage: page,
-    listView: formData.listView
-  });
   
 
   const formateFields = useMemo(() =>

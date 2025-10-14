@@ -121,18 +121,9 @@ export const ChildDetailsModal = () => {
 
    useEffect(() => {
       if (isOpen && modalData?.table?.label) {
-         console.log('Modal opened, fetching functions for:', modalData.table.label);
          fetchCompanyFunctions();
       }
    }, [isOpen, modalData?.table?.label])
-
-   useEffect(() => {
-      console.log('companyFunctions updated:', companyFunctions);
-   }, [companyFunctions])
-
-   useEffect(() => {
-      console.log('selectedFn updated:', selectedFn);
-   }, [selectedFn])
 
    const handleEditClick = (key: string, value: string, documentId?: string, tableName?: string) => {
       setEditingKey(key);
@@ -241,13 +232,10 @@ export const ChildDetailsModal = () => {
    const fetchCompanyFunctions = async () => {
       // Use your GraphQL client directly or useQuery with manual trigger
       const { data } = await funcs.refetch();
-      console.log('Fetched functions data:', data);
       if (data?.getCompnayFunctionsAdmin) {
          const filteredFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === false) || [];
-         console.log('Filtered dropdown functions:', filteredFunctions);
          setCompanyFunctions(filteredFunctions);
          const individualButtonFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === true);
-         console.log('Individual button functions:', individualButtonFunctions);
          setIndividualButtonFunctions(individualButtonFunctions);
       }
    };
@@ -386,11 +374,8 @@ export const ChildDetailsModal = () => {
    //    }));
    // };
    const handlePopoverChange = (open: boolean) => {
-      console.log('Popover state changing to:', open);
-      console.log('Current popoverOpen state:', popoverOpen);
       setPopoverOpen(open)
       if (open && companyFunctions.length === 0) {
-         console.log('Popover opened but no functions, fetching...');
          fetchCompanyFunctions();
       }
    }
@@ -466,10 +451,7 @@ export const ChildDetailsModal = () => {
                                           <CommandItem
                                              key={item.functionName}
                                              value={item.functionName}
-                                             onSelect={() => {
-                                                console.log('Function selected via onSelect:', item);
-                                                setSelectedFn(item);
-                                             }}
+                                             onSelect={() => setSelectedFn(item)}
                                              className="flex items-center gap-2"
                                           >
                                              <div

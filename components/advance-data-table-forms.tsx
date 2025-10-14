@@ -155,22 +155,11 @@ export default function AdvancedDataTableForms({
 
   // Notify parent when filters change
   React.useEffect(() => {
-    console.log('activeFilters changed:', activeFilters);
     if (onFiltersChange) {
       onFiltersChange(activeFilters);
     }
   }, [activeFilters]); // Remove onFiltersChange from deps to prevent infinite loop
 
-  // Debug the data being received
-  React.useEffect(() => {
-    console.log('AdvancedDataTableForms - Data received:', {
-      dataLength: data.length,
-      pagination,
-      serverCurrentPage,
-      firstItemId: data[0]?._id,
-      lastItemId: data[data.length - 1]?._id
-    });
-  }, [data, pagination, serverCurrentPage]);
 
   // ----------------- Parent notify helper -----------------
   const lastSentRef = React.useRef<string>("")
@@ -690,10 +679,7 @@ export default function AdvancedDataTableForms({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                console.log('Previous clicked:', { current: serverCurrentPage, new: serverCurrentPage - 1 });
-                onPageChange?.(serverCurrentPage - 1);
-              }}
+              onClick={() => onPageChange?.(serverCurrentPage - 1)}
               disabled={serverCurrentPage <= 1}
             >
               Previous
@@ -702,10 +688,7 @@ export default function AdvancedDataTableForms({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                console.log('Next clicked:', { current: serverCurrentPage, new: serverCurrentPage + 1, totalPages: pagination.totalPages });
-                onPageChange?.(serverCurrentPage + 1);
-              }}
+              onClick={() => onPageChange?.(serverCurrentPage + 1)}
               disabled={serverCurrentPage >= pagination.totalPages}
             >
               Next
