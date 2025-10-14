@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useMutation } from "graphql-hooks"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,16 +9,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
 import { companyMutation } from "@/lib/graphql/company/mutation"
 
-export interface TableConfigPageRef {
-  handleSubmit: () => Promise<void>
-}
-
 interface TableConfigPageProps {
   isApiHit: boolean
   tableName: string
 }
 
-const TableConfigPage = forwardRef<TableConfigPageRef, TableConfigPageProps>(({ isApiHit, tableName }, ref) => {
+const TableConfigPage = ({ isApiHit, tableName }: TableConfigPageProps) => {
   const [TableConfig] = useMutation(companyMutation.UPDATE_COMPANY_TABLE_CONFIG)
   const { toast } = useToast()
 
@@ -93,10 +89,6 @@ const TableConfigPage = forwardRef<TableConfigPageRef, TableConfigPageProps>(({ 
     }
   }, [TableConfig, tableName, enabledFields, formData, toast])
 
-  // Expose the handleSubmit method to parent components
-  useImperativeHandle(ref, () => ({
-    handleSubmit,
-  }))
 
   // Only call handleSubmit when isApiHit changes to true
   useEffect(() => {
@@ -214,8 +206,6 @@ const TableConfigPage = forwardRef<TableConfigPageRef, TableConfigPageProps>(({ 
       </div>
     </div>
   )
-})
-
-TableConfigPage.displayName = "TableConfigPage"
+}
 
 export default TableConfigPage

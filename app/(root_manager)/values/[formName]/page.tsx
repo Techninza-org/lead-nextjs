@@ -208,7 +208,7 @@ export default function Page({ params }: { params: { formName: string } }) {
   const formateFields = useMemo(() =>
     updateDependentFields(companyDeptFields || []).find(
       (x: any) => x.name?.toLowerCase() === formName.toLowerCase()
-    ) || [],
+    ) || { name: formName, childName: "", fields: [] },
     [companyDeptFields, formName]
   )
 

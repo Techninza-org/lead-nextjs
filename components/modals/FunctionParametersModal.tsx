@@ -288,8 +288,8 @@ export const FunctionParametersModal = () => {
               const mainKey = Object.keys(filteredLead)[0];
 
               return (
-                <div className="mt-3">
-                  <div key={lead._id} className="text-sm grid-cols-2 grid font-normal">
+                <div key={lead._id} className="mt-3">
+                  <div className="text-sm grid-cols-2 grid font-normal">
                     <span>{lead._id}</span>
                     <span>{filteredLead[mainKey]}</span>
                   </div>

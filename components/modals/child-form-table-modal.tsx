@@ -189,7 +189,7 @@ export const ChildDetailsModal = () => {
 
 
    const formateForms = updateDependentFields(companyDeptFields || [])
-   const formateFields: any = useMemo(() => formateForms?.find((x: any) => x.name === modalData?.table?.label) || [], [formateForms, modalData?.table?.label])
+   const formateFields: any = useMemo(() => formateForms?.find((x: any) => x.name === modalData?.table?.label) || { name: modalData?.table?.label || "", childName: "", fields: [] }, [formateForms, modalData?.table?.label])
 
    const childTables = Object
       .entries(formateFields.fields || {})

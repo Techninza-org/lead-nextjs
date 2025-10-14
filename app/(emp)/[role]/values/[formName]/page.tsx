@@ -88,7 +88,7 @@ export default function Page({ params }: { params: { formName: string } }) {
   // data‐entry modal button
   const forms = updateDependentFields(useCompany().companyDeptFields || [])
   const formateFields = useMemo(
-    () => forms.find(x => x.name === formName) || [],
+    () => forms.find(x => x.name === formName) || { name: formName, childName: "", fields: [] },
     [forms, formName]
   )
   const { onOpen } = useModal()

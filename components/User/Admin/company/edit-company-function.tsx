@@ -113,25 +113,20 @@ export default function EditCompanyFunction({ id }: { id: string }) {
     if (error) {
       toast({ title: 'Error fetching data', variant: 'destructive' })
     }
-  }, [data, error, id])
+  }, [data, error, id, form, toast])
 
   const [updateFunction] = useMutation(companyMutation.EDIT_COMPANY_FUNCTION)
 
   const onSubmit = async (values: any) => {
-      functionId: id,
-      input: {
-        desc: values.desc,
-        isValid: values.isValid,
-        tags: values.tags
-      }
-    })
     try {
       const { error: gqlError } = await updateFunction({
         variables: {
           functionId: id,
-          desc: values.desc,
-          isValid: values.isValid,
-          tags: values.tags
+          input: {
+            desc: values.desc,
+            isValid: values.isValid,
+            tags: values.tags
+          }
         }
       })
       if (gqlError) throw gqlError

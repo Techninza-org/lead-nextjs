@@ -32,6 +32,11 @@ export const SubmitLeadModal = () => {
 
   const rawFields = modalData?.fields;
   const fields = rawFields ?? { name: "", childName: "", fields: [] };
+  
+  // Ensure fields has a name property
+  if (!fields.name && rawFields) {
+    fields.name = rawFields.name || "";
+  }
   const lead = modalData?.lead;
 
   const isFlat = Array.isArray(fields.fields);
