@@ -138,9 +138,25 @@ export const MultiSelect = React.forwardRef<
     ref
   ) => {
     const [selectedValues, setSelectedValues] =
-      React.useState<string[]>(defaultValue);
+      React.useState<string[]>(Array.isArray(defaultValue) ? defaultValue : []);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isAnimating, setIsAnimating] = React.useState(false);
+
+    // Sync internal state with defaultValue prop changes
+    React.useEffect(() => {
+      if (defaultValue !== undefined) {
+        const newValue = Array.isArray(defaultValue) ? defaultValue : [];
+        setSelectedValues((prev) => {
+          // Only update if the values actually changed to avoid unnecessary re-renders
+          const prevSorted = [...prev].sort();
+          const newSorted = [...newValue].sort();
+          if (JSON.stringify(prevSorted) !== JSON.stringify(newSorted)) {
+            return newValue;
+          }
+          return prev;
+        });
+      }
+    }, [defaultValue]);
 
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>
@@ -156,9 +172,11 @@ export const MultiSelect = React.forwardRef<
     };
 
     const toggleOption = (option: string) => {
-      const newSelectedValues = selectedValues.includes(option)
-        ? selectedValues.filter((value) => value !== option)
-        : [...selectedValues, option];
+      const optionStr = String(option);
+      const newSelectedValues = selectedValues.includes(optionStr)
+        ? selectedValues.filter((value) => value !== optionStr)
+        : [...selectedValues, optionStr];
+      
       setSelectedValues(newSelectedValues);
       onValueChange(newSelectedValues);
     };
@@ -192,7 +210,7 @@ export const MultiSelect = React.forwardRef<
       <Popover
         open={isPopoverOpen}
         onOpenChange={setIsPopoverOpen}
-        modal={modalPopover}
+        modal={false}
       >
         <PopoverTrigger asChild>
           <Button
@@ -279,18 +297,32 @@ export const MultiSelect = React.forwardRef<
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-auto p-0"
+          className="w-auto p-0 !z-[10000] pointer-events-auto"
           align="start"
           onEscapeKeyDown={() => setIsPopoverOpen(false)}
+          side="bottom"
+          sideOffset={4}
+          onPointerDownOutside={(e) => {
+            // Don't prevent - allow normal outside click behavior
+          }}
+          onInteractOutside={(e) => {
+            // Allow interactions - don't block them
+            const target = e.target as HTMLElement;
+            // Only prevent if clicking on a modal backdrop
+            if (target.hasAttribute('data-radix-dialog-overlay')) {
+              e.preventDefault();
+            }
+          }}
         >
-          <Command>
+          <Command className="pointer-events-auto" style={{ pointerEvents: 'auto' }}>
             <CommandInput
               placeholder="Search..."
               onKeyDown={handleInputKeyDown}
+              style={{ pointerEvents: 'auto' }}
             />
-            <CommandList>
+            <CommandList style={{ pointerEvents: 'auto' }}>
               <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup>
+              <CommandGroup style={{ pointerEvents: 'auto' }}>
                 <CommandItem
                   key="all"
                   onSelect={toggleAll}
@@ -309,12 +341,27 @@ export const MultiSelect = React.forwardRef<
                   <span>(Select All)</span>
                 </CommandItem>
                 {options?.map((option) => {
-                  const isSelected = selectedValues.includes(option.value);
+                  const isSelected = selectedValues.includes(String(option.value));
+                  const optionValue = String(option.value);
+                  
                   return (
                     <CommandItem
-                      key={option.value}
-                      onSelect={() => toggleOption(option.value)}
-                      className="cursor-pointer"
+                      key={optionValue}
+                      value={optionValue}
+                      onSelect={() => {
+                        // Directly toggle the option using the value from closure
+                        toggleOption(optionValue);
+                      }}
+                      onMouseDown={(e) => {
+                        // Stop propagation to prevent clicks from going through
+                        e.stopPropagation();
+                      }}
+                      onClick={(e) => {
+                        // Stop propagation but don't prevent default (onSelect needs to fire)
+                        e.stopPropagation();
+                      }}
+                      className="cursor-pointer pointer-events-auto"
+                      style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10001 }}
                     >
                       <div
                         className={cn(

@@ -479,41 +479,62 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                     <CommandEmpty>No language found.</CommandEmpty>
                                                     <CommandGroup>
                                                         {(() => {
+                                                            const ddOptionId = form.watch(`deptFields.${currIdx}.ddOptionId`);
                                                             const selectedParent = filteredDeptFields[0]?.fields.find(
-                                                                (subField) => subField.name === form.watch(`deptFields.${currIdx}.ddOptionId`)
+                                                                (subField) => subField.name === ddOptionId
                                                             )
-                                                            if (["SELECT", "TAG"].includes(selectedParent?.fieldType)) {
-                                                                return selectedParent.options.map((option, optIndex) => (
-                                                                    option.label && <CommandItem
-                                                                        key={`${option.label}-${optIndex}`}
-                                                                        value={option.label}
-                                                                        onSelect={(value) => {
-                                                                            field.onChange(value)
-                                                                            const options = form.getValues(`deptFields.${currIdx}.options.value`) || []
-                                                                            if (!options.find(x => x.label === value)) {
-                                                                                options.push({ label: value, value: [] })
-                                                                                form.setValue(`deptFields.${currIdx}.options.value`, options)
-                                                                            }
-                                                                        }}
-                                                                    >
-                                                                        <Check
-                                                                            className={cn(
-                                                                                "mr-2 h-4 w-4",
-                                                                                option.value === field.value
-                                                                                    ? "opacity-100"
-                                                                                    : "opacity-0"
-                                                                            )}
-                                                                        />
-                                                                        {option.label}
-                                                                    </CommandItem>
-                                                                ))
+                                                            
+                                                            if (!ddOptionId) {
+                                                                return <CommandEmpty>Please select a dependent field first</CommandEmpty>
                                                             }
-                                                            if (selectedParent?.fieldType === 'DD') {
-                                                                return selectedParent.options.filter((x => x.label === form.watch(`deptFields.${currIdx}.grandParentId`))).flatMap((pOption) =>
-                                                                    pOption.value.map((option, optIndex) => (
-                                                                        option.label && <CommandItem
-                                                                            key={`${option.label}-${optIndex}`}
-                                                                            value={option.label}
+                                                            
+                                                            if (!selectedParent) {
+                                                                return <CommandEmpty>Parent field "{ddOptionId}" not found</CommandEmpty>
+                                                            }
+                                                            
+                                                            // Handle different options structures
+                                                            // Options can be:
+                                                            // 1. Array: [{ label, value }] or [{ label, value: [] }]
+                                                            // 2. Object with value: { value: [...] }
+                                                            // 3. null/undefined
+                                                            let parentOptions: any[] = [];
+                                                            
+                                                            if (selectedParent.options) {
+                                                                if (Array.isArray(selectedParent.options)) {
+                                                                    parentOptions = selectedParent.options;
+                                                                } else if (selectedParent.options.value !== undefined) {
+                                                                    // Handle Prisma JSON format: { value: [...] }
+                                                                    const value = selectedParent.options.value;
+                                                                    if (Array.isArray(value)) {
+                                                                        parentOptions = value;
+                                                                    } else if (typeof value === 'string') {
+                                                                        // Try parsing JSON string
+                                                                        try {
+                                                                            const parsed = JSON.parse(value);
+                                                                            parentOptions = Array.isArray(parsed) ? parsed : [];
+                                                                        } catch {
+                                                                            parentOptions = [];
+                                                                        }
+                                                                    }
+                                                                } else if (typeof selectedParent.options === 'object') {
+                                                                    // Fallback: try to extract any array-like structure
+                                                                    parentOptions = [];
+                                                                }
+                                                            }
+                                                            
+                                                            if (["SELECT", "TAG"].includes(selectedParent?.fieldType)) {
+                                                                if (parentOptions.length === 0) {
+                                                                    return <CommandEmpty>No options available for this field</CommandEmpty>
+                                                                }
+                                                                
+                                                                return parentOptions.map((option, optIndex) => {
+                                                                    const optionLabel = option.label || option.value || String(option);
+                                                                    const optionValue = option.value || option.label || String(option);
+                                                                    
+                                                                    return optionLabel && (
+                                                                        <CommandItem
+                                                                            key={`${optionLabel}-${optIndex}`}
+                                                                            value={optionLabel}
                                                                             onSelect={(value) => {
                                                                                 field.onChange(value)
                                                                                 const options = form.getValues(`deptFields.${currIdx}.options.value`) || []
@@ -521,23 +542,74 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                                                     options.push({ label: value, value: [] })
                                                                                     form.setValue(`deptFields.${currIdx}.options.value`, options)
                                                                                 }
-                                                                                setCurrentOptionsIndx(form.getValues(`deptFields.${currIdx}.options.value`).findIndex((x) => x.label === value))
                                                                             }}
                                                                         >
                                                                             <Check
                                                                                 className={cn(
                                                                                     "mr-2 h-4 w-4",
-                                                                                    option.value === field.value
+                                                                                    optionValue === field.value
                                                                                         ? "opacity-100"
                                                                                         : "opacity-0"
                                                                                 )}
                                                                             />
-                                                                            {option.label}
+                                                                            {optionLabel}
                                                                         </CommandItem>
-                                                                    ))
-                                                                )
+                                                                    )
+                                                                })
                                                             }
-                                                            return null
+                                                            
+                                                            if (selectedParent?.fieldType === 'DD') {
+                                                                const grandParentId = form.watch(`deptFields.${currIdx}.grandParentId`);
+                                                                
+                                                                if (!grandParentId) {
+                                                                    return <CommandEmpty>Please select Grand Parent first</CommandEmpty>
+                                                                }
+                                                                
+                                                                // Filter options by grandParentId and flatten nested values
+                                                                const filteredOptions = parentOptions
+                                                                    .filter((x) => x.label === grandParentId)
+                                                                    .flatMap((pOption) => {
+                                                                        const childOptions = Array.isArray(pOption.value) ? pOption.value : [];
+                                                                        return childOptions.map((option: any, optIndex: number) => {
+                                                                            const optionLabel = option.label || option.value || String(option);
+                                                                            const optionValue = option.value || option.label || String(option);
+                                                                            
+                                                                            return optionLabel && (
+                                                                                <CommandItem
+                                                                                    key={`${optionLabel}-${optIndex}`}
+                                                                                    value={optionLabel}
+                                                                                    onSelect={(value) => {
+                                                                                        field.onChange(value)
+                                                                                        const options = form.getValues(`deptFields.${currIdx}.options.value`) || []
+                                                                                        if (!options.find(x => x.label === value)) {
+                                                                                            options.push({ label: value, value: [] })
+                                                                                            form.setValue(`deptFields.${currIdx}.options.value`, options)
+                                                                                        }
+                                                                                        setCurrentOptionsIndx(form.getValues(`deptFields.${currIdx}.options.value`).findIndex((x) => x.label === value))
+                                                                                    }}
+                                                                                >
+                                                                                    <Check
+                                                                                        className={cn(
+                                                                                            "mr-2 h-4 w-4",
+                                                                                            optionValue === field.value
+                                                                                                ? "opacity-100"
+                                                                                                : "opacity-0"
+                                                                                        )}
+                                                                                    />
+                                                                                    {optionLabel}
+                                                                                </CommandItem>
+                                                                            )
+                                                                        })
+                                                                    })
+                                                                
+                                                                if (filteredOptions.length === 0) {
+                                                                    return <CommandEmpty>No options available for selected grand parent</CommandEmpty>
+                                                                }
+                                                                
+                                                                return filteredOptions;
+                                                            }
+                                                            
+                                                            return <CommandEmpty>Field type not supported</CommandEmpty>
                                                         })()}
 
                                                     </CommandGroup>

@@ -123,6 +123,24 @@ export const IFormField: React.FC<FormFieldProps> = ({ field, fieldName, validat
                 />
             )
         case 'SELECT':
+            // Handle different option structures:
+            // 1. Direct array: [{ label, value }]
+            // 2. Nested value: { value: [{ label, value }] }
+            // 3. Prisma format: { value: JSON } where value is an array
+            let selectOptions: any[] = [];
+            
+            if (Array.isArray(field.options)) {
+                // Direct array format
+                selectOptions = field.options;
+            } else if (field.options?.value) {
+                // Nested value format or Prisma JSON format
+                const value = field.options.value;
+                selectOptions = Array.isArray(value) ? value : [];
+            } else if (field.options && typeof field.options === 'object') {
+                // Fallback: try to extract from any object structure
+                selectOptions = [];
+            }
+            
             return (
                 <FormFieldUI
                     control={form.control}
@@ -138,11 +156,19 @@ export const IFormField: React.FC<FormFieldProps> = ({ field, fieldName, validat
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {field.options.value.map((option: any) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
+                                    {selectOptions.length > 0 ? (
+                                        selectOptions.map((option: any, idx: number) => {
+                                            const value = option.value || option.label || String(option);
+                                            const label = option.label || option.value || String(option);
+                                            return (
+                                                <SelectItem key={value || idx} value={value}>
+                                                    {label}
+                                                </SelectItem>
+                                            );
+                                        })
+                                    ) : (
+                                        <SelectItem value="no-options" disabled>No options available</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
@@ -151,36 +177,125 @@ export const IFormField: React.FC<FormFieldProps> = ({ field, fieldName, validat
                 />
             )
         case 'DD':
-            const options = field.options.flatMap((pOption: any) => {
-                if (form.watch(fieldName)?.includes(pOption.label)) {
-                    return pOption.value.map((option: any) => ({
-                        label: option.label,
-                        value: option.value || option.label
-                    }))
+            // DD fields depend on a parent field (ddOptionId)
+            // Watch the parent field, not the DD field itself
+            const parentFieldName = field.ddOptionId;
+            const parentValue = parentFieldName ? form.watch(parentFieldName) : null;
+            
+            // Transform options: DD options are structured as [{ label: "Parent", value: [{ label: "Child", value: "child" }] }]
+            // Backend returns options as: { value: [{ label: "Parent", value: [...] }] } or directly as array
+            let ddOptionsArray: any[] = [];
+            
+            if (field.options) {
+                if (Array.isArray(field.options)) {
+                    // Already in array format: [{ label, value: [...] }]
+                    ddOptionsArray = field.options;
+                } else if (field.options.value !== undefined) {
+                    // Prisma format: { value: [...] }
+                    const value = field.options.value;
+                    if (Array.isArray(value)) {
+                        ddOptionsArray = value;
+                    } else if (typeof value === 'string') {
+                        // Try parsing JSON string
+                        try {
+                            const parsed = JSON.parse(value);
+                            ddOptionsArray = Array.isArray(parsed) ? parsed : [];
+                        } catch {
+                            ddOptionsArray = [];
+                        }
+                    }
                 }
-                return []
-            })
+            }
+            
+            // Filter and flatten options based on parent selection
+            const ddOptions = ddOptionsArray.flatMap((pOption: any) => {
+                // Extract parent option label and child options
+                const parentOptionLabel = pOption.label || pOption.name || String(pOption);
+                const childOptionsValue = pOption.value;
+                
+                // Check if parent field value matches this parent option's label
+                // Parent value can be a string or array (for multi-select parent fields)
+                let parentMatches = false;
+                
+                if (parentValue && parentOptionLabel) {
+                    if (Array.isArray(parentValue)) {
+                        // Parent is multi-select - check if any selected value matches
+                        parentMatches = parentValue.some((pv: any) => 
+                            String(pv) === String(parentOptionLabel) || 
+                            String(pv).includes(String(parentOptionLabel)) ||
+                            String(parentOptionLabel).includes(String(pv))
+                        );
+                    } else {
+                        // Parent is single select - exact match or contains
+                        const parentStr = String(parentValue);
+                        const labelStr = String(parentOptionLabel);
+                        parentMatches = parentStr === labelStr || 
+                                       parentStr.includes(labelStr) || 
+                                       labelStr.includes(parentStr);
+                    }
+                }
+                
+                // If parent matches, extract child options
+                if (parentMatches && childOptionsValue) {
+                    let childOptions: any[] = [];
+                    
+                    if (Array.isArray(childOptionsValue)) {
+                        childOptions = childOptionsValue;
+                    } else if (typeof childOptionsValue === 'string') {
+                        // Try parsing JSON string
+                        try {
+                            const parsed = JSON.parse(childOptionsValue);
+                            childOptions = Array.isArray(parsed) ? parsed : [];
+                        } catch {
+                            childOptions = [];
+                        }
+                    } else if (typeof childOptionsValue === 'object' && childOptionsValue !== null) {
+                        // Might be a single object, wrap in array
+                        childOptions = [childOptionsValue];
+                    }
+                    
+                    // Transform child options to { label, value } format
+                    return childOptions.map((option: any) => {
+                        const label = option.label || option.value || String(option);
+                        const value = option.value || option.label || String(option);
+                        return { label, value };
+                    });
+                }
+                
+                return [];
+            });
 
             return (
                 <FormFieldUI
                     control={form.control}
                     name={fieldName}
                     rules={validationRules}
-                    render={({ field: formField }) => (
-                        <FormItem>
-                            <FormLabel className="text-primary">{field.name}</FormLabel>
-                            <MultiSelect
-                                disabled={!form.watch(fieldName)}
-                                options={options}
-                                onValueChange={formField.onChange}
-                                defaultValue={formField.value}
-                                placeholder={field.name}
-                                variant="secondary"
-                                maxCount={3}
-                            />
-                            <FormMessage />
-                        </FormItem>
-                    )}
+                    render={({ field: formField }) => {
+                        // Ensure value is an array for MultiSelect
+                        const fieldValue = formField.value;
+                        const defaultValue = Array.isArray(fieldValue) 
+                            ? fieldValue 
+                            : (fieldValue ? [String(fieldValue)] : []);
+                        
+                        return (
+                            <FormItem>
+                                <FormLabel className="text-primary">{field.name}</FormLabel>
+                                <MultiSelect
+                                    disabled={!parentValue || !parentFieldName}
+                                    options={ddOptions}
+                                    onValueChange={(values) => {
+                                        // Ensure we're passing an array
+                                        formField.onChange(Array.isArray(values) ? values : []);
+                                    }}
+                                    defaultValue={defaultValue}
+                                    placeholder={parentValue ? field.name : `Select ${parentFieldName} first`}
+                                    variant="secondary"
+                                    maxCount={3}
+                                />
+                                <FormMessage />
+                            </FormItem>
+                        );
+                    }}
                 />
             )
         case 'RADIO':

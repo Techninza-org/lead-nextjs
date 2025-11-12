@@ -368,13 +368,6 @@ export default function Page({ params }: { params: { formName: string } }) {
       <CardHeader className="px-2 md:px-6">
         <CardTitle className="text-base md:text-lg font-bold text-gray-700 break-words">{formName}</CardTitle>
       </CardHeader>
-      <div
-        id="html-render"
-        className="fixed top-2 right-2 md:top-[30px] md:right-[30px] max-w-[calc(100vw-16px)] md:max-w-[500px] max-h-[150px] text-white p-2 md:p-[10px] rounded-[5px] z-[1000] overflow-auto"
-        style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.8)'
-        }}
-      ></div>
       <CardContent className="px-2 md:px-6 overflow-x-auto">
         <AdvancedDataTableForms
           dependentCols={[]}
