@@ -79,12 +79,12 @@ export const AssignMemberModal = () => {
         });
 
         if (error) {
-            // const message = error?.graphQLErrors?.map((e: any) => e.message).join(", ")
-            // toast({
-            //     title: 'Error',
-            //     // description: message || "Something went wrong",
-            //     variant: "destructive"
-            // })
+            const message = error?.graphQLErrors?.map((e: any) => e.message).join(", ")
+            toast({
+                title: 'Error',
+                description: message || "Something went wrong",
+                variant: "destructive"
+            })
             return;
         }
 
@@ -93,11 +93,11 @@ export const AssignMemberModal = () => {
             title: "Member Added Successfully!",
         })
 
-        toast({
-            variant: "default",
-            title: "Note",
-            description: `Password: ${data.name}@123 is set to default, please ask the user to change it`,
-        })
+        // toast({
+        //     variant: "default",
+        //     title: "Note",
+        //     description: `Password: ${data.name}@123 is set to default, please ask the user to change it`,
+        // })
         if (!error) {
             handleClose();
         }

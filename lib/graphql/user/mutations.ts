@@ -140,24 +140,7 @@ export const ADD_COMPANY_MEMBER = `
       roleId: $roleId,
       deptId: $deptId,
       companyId: $companyId
-    ) {
-      id
-      name
-      email
-      phone
-      role {
-        id
-        name
-      }
-      dept {
-        id
-        name
-      }
-      Company {
-        id
-        name
-      }
-    }
+    )
   }
 `;
 

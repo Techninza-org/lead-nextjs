@@ -36,6 +36,13 @@ export function PermissionConfig() {
     fetchData()
   }, [apiRole])
 
+  // Set the first role as default when roles are loaded
+  useEffect(() => {
+    if (roles.length > 0 && !selectedRole) {
+      setSelectedRole(roles[0].id)
+    }
+  }, [roles, selectedRole])
+
   useEffect(() => {
     
     const filtered = resources.filter((resource: any) =>

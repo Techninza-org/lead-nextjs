@@ -51,15 +51,13 @@ const creatDeptFormSchema = z.object({
     deptId: z.string(),
     isDependentOn: z.boolean(),
     dependentFormName: z.string().optional(),
-    categoryName: z.string().optional(),
+    categoryName: z.string().min(1, "Category name is required"),
 });
 
 
 export const CreateDeptFormModal = () => {
 
-    const [categoryValue, setCategoryValue] = useState<string>()
     const userInfo = useAtomValue(userAtom)
-    const [open, setOpen] = useState(false)
 
     const { isOpen, onClose, type, data: modalData } = useModal();
 
@@ -70,7 +68,10 @@ export const CreateDeptFormModal = () => {
         skip: !userInfo?.token || !userInfo?.companyId,
         refetchAfterMutations: [
             {
-                mutation: LOGIN_USER
+                mutation: LOGIN_USER,
+            },
+            {
+                mutation: CreateNUpdateCompanyDeptForm,
             },
         ],
     });
@@ -122,7 +123,7 @@ export const CreateDeptFormModal = () => {
 
         toast({
             variant: "default",
-            title: "Member Added Successfully!",
+            title: "Form Created Successfully!",
         })
         handleClose();
     }
@@ -247,7 +248,7 @@ export const CreateDeptFormModal = () => {
     )
 }
 
-export default function FilterableList({ form, selectedDept, value }: { value?: any, form: any, selectedDept: any }) {
+export default function FilterableList({ form, selectedDept }: { form: any, selectedDept: any }) {
 
     const categories = selectedDept?.companyForms?.map((form: any) => form.category?.name) ?? [];
     const uniqueCategories = Array.from(new Set(categories));
@@ -257,14 +258,17 @@ export default function FilterableList({ form, selectedDept, value }: { value?: 
         <FormField
             control={form.control}
             name="categoryName"
-            render={({ field }) => (
+            render={({ field }) => {
+                const fieldValue = field.value ? [{ label: field.value, value: field.value }] : [];
+                return (
                 <FormItem>
                     <FormLabel className="capitalize text-xs font-bold text-zinc-500 dark:text-secondary/70">Category Name</FormLabel>
                     <FormControl>
                         <MultipleSelector
-                            value={value}
-                            onChange={(value: any) => {
-                                form.setValue("categoryName", value?.[0]?.value)
+                            value={fieldValue}
+                            onChange={(selectedValue: any) => {
+                                const newValue = selectedValue?.[0]?.value || "";
+                                field.onChange(newValue);
                             }}
                             badgeClassName="bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-white"
                             // defaultOptions={mappedCategories}
@@ -284,7 +288,8 @@ export default function FilterableList({ form, selectedDept, value }: { value?: 
                     </FormControl>
                     <FormMessage />
                 </FormItem>
-            )}
+                );
+            }}
         />
     )
 }

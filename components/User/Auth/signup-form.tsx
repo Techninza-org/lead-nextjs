@@ -71,17 +71,17 @@ export const SignupForm = () => {
         }
 
         toast({
-            title: 'User Created Successfully!',
+            title: 'User Created Successfully! ORG_ID sent to user email!',
             variant: "default"
         })
-        // form.reset()
-        // router.push("/login")
+        form.reset()
+        router.push(`/login`)
     }
 
     return (
         <>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <FormField
