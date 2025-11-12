@@ -53,6 +53,75 @@ export const IFormField: React.FC<FormFieldProps> = ({ field, fieldName, validat
                     )}
                 />
             )
+        case 'EMAIL':
+            return (
+                <FormFieldUI
+                    control={form.control}
+                    name={fieldName}
+                    rules={validationRules}
+                    render={({ field: formField }) => (
+                        <FormItem>
+                            <FormLabel className="font-semibold text-primary dark:text-secondary/70">{field.name}</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="email"
+                                    className="bg-zinc-100/50 placeholder:capitalize border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0"
+                                    placeholder={field.name}
+                                    disabled={isDisabled}
+                                    {...formField}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )
+        case 'NUMBER':
+            return (
+                <FormFieldUI
+                    control={form.control}
+                    name={fieldName}
+                    rules={validationRules}
+                    render={({ field: formField }) => (
+                        <FormItem>
+                            <FormLabel className="font-semibold text-primary dark:text-secondary/70">{field.name}</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="number"
+                                    className="bg-zinc-100/50 placeholder:capitalize border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0"
+                                    placeholder={field.name}
+                                    disabled={isDisabled}
+                                    {...formField}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )
+        case 'WEBSITE':
+            return (
+                <FormFieldUI
+                    control={form.control}
+                    name={fieldName}
+                    rules={validationRules}
+                    render={({ field: formField }) => (
+                        <FormItem>
+                            <FormLabel className="font-semibold text-primary dark:text-secondary/70">{field.name}</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="url"
+                                    className="bg-zinc-100/50 placeholder:capitalize border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0"
+                                    placeholder={field.name}
+                                    disabled={isDisabled}
+                                    {...formField}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )
         case 'SELECT':
             return (
                 <FormFieldUI

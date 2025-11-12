@@ -47,6 +47,9 @@ export const fieldTypes = [
     { value: "INPUT", label: "Input" },
     { value: "CURRENCY", label: "Currency" },
     { value: "PHONE", label: "Phone" },
+    { value: "EMAIL", label: "Email" },
+    { value: "NUMBER", label: "Number" },
+    { value: "WEBSITE", label: "Website" },
     { value: "TAG", label: "TAG" },
     { value: "SELECT", label: "Select" },
     { value: "RADIO", label: "Radio" },
@@ -897,7 +900,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
       <CommandList>
         <CommandEmpty>No fields found.</CommandEmpty>
         <CommandGroup>
-          {filteredDeptFields[currIdx]?.fields.map((f, index) => (
+          {(filteredDeptFields[0]?.fields || []).map((f, index) => (
             <CommandItem
               key={`unique-${f.name}-${index}`}
               value={f.name}

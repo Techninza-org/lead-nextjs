@@ -55,6 +55,10 @@ const DepartmentSchema = z.object({
 
 const fieldTypes = [
     { value: "INPUT", label: "Input" },
+    { value: "PHONE", label: "Phone" },
+    { value: "EMAIL", label: "Email" },
+    { value: "NUMBER", label: "Number" },
+    { value: "WEBSITE", label: "Website" },
     { value: "SELECT", label: "Select" },
     { value: "RADIO", label: "Radio" },
     { value: "DD_IMG", label: "Dependent Dropdown (Image)" },

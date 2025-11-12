@@ -278,15 +278,15 @@ export default function Page({ params }: { params: { formName: string } }) {
     }
 
     return (
-      <div className="flex gap-2 ml-auto">
+      <div className="flex flex-wrap gap-2 justify-end">
         <Popover open={popoverOpen} onOpenChange={o => setPopoverOpen(o)}>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="w-[200px] justify-between">
-              {selectedFn?.functionName || 'Select function...'}
-              <ChevronsUpDownIcon className="ml-2 h-4 w-4 opacity-50" />
+            <Button variant="outline" className="w-full md:w-[200px] justify-between min-w-[150px]">
+              <span className="truncate">{selectedFn?.functionName || 'Select function...'}</span>
+              <ChevronsUpDownIcon className="ml-2 h-4 w-4 opacity-50 flex-shrink-0" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[220px] p-0">
+          <PopoverContent className="w-[90vw] md:w-[220px] p-0">
             <div className="p-2 border-b flex justify-end">
               <Button size="sm" onClick={handleSubmitClick} disabled={!selectedFn}>
                 Submit
@@ -326,59 +326,56 @@ export default function Page({ params }: { params: { formName: string } }) {
             key={fn.id}
             variant="default"
             size="sm"
-            className="items-center gap-1"
+            className="items-center gap-1 whitespace-nowrap"
             onClick={() => handleFunctionCall(fn, { ids: selectedIds, unselectedIds: [] })}
           >
-            {fn.functionName}
+            <span className="hidden md:inline">{fn.functionName}</span>
+            <span className="md:hidden">{fn.functionName.length > 10 ? fn.functionName.substring(0, 10) + '...' : fn.functionName}</span>
           </Button>
         ))}
 
         <Button
           variant="default"
           size="sm"
-          className="items-center gap-1"
+          className="items-center gap-1 whitespace-nowrap"
           onClick={() => onOpen("uploadFormModal", {
             formName,
             fields: formateFields,
             existingTags: prevTags
           })}
         >
-          <UploadIcon size={15} />
-          <span>Upload {formName}</span>
+          <UploadIcon size={15} className="flex-shrink-0" />
+          <span className="hidden md:inline">Upload {formName}</span>
+          <span className="md:hidden">Upload</span>
         </Button>
 
         <Button
           variant="default"
           size="sm"
-          className="items-center gap-1"
+          className="items-center gap-1 whitespace-nowrap"
           onClick={() => onOpen("submitLead", { fields: formateFields })}
         >
-          <PlusCircleIcon size={15} /> <span>Add New {formName}</span>
+          <PlusCircleIcon size={15} className="flex-shrink-0" /> 
+          <span className="hidden md:inline">Add New {formName}</span>
+          <span className="md:hidden">Add New</span>
         </Button>
       </div>
     )
   }
 
   return (
-    <Card className="w-full max-w-7xl mx-auto my-4">
-      <CardHeader>
-        <CardTitle className="text-lg font-bold text-gray-700">{formName}</CardTitle>
+    <Card className="w-full max-w-7xl mx-auto my-4 px-2 md:px-6">
+      <CardHeader className="px-2 md:px-6">
+        <CardTitle className="text-base md:text-lg font-bold text-gray-700 break-words">{formName}</CardTitle>
       </CardHeader>
       <div
         id="html-render"
+        className="fixed top-2 right-2 md:top-[30px] md:right-[30px] max-w-[calc(100vw-16px)] md:max-w-[500px] max-h-[150px] text-white p-2 md:p-[10px] rounded-[5px] z-[1000] overflow-auto"
         style={{
-          position: 'fixed',
-          top: '30px',
-          right: '30px',
-          maxWidth: '500px',
-          maxHeight: '150px',
-          color: 'white',
-          padding: '10px',
-          borderRadius: '5px',
-          zIndex: 1000
+          backgroundColor: 'rgba(0, 0, 0, 0.8)'
         }}
       ></div>
-      <CardContent>
+      <CardContent className="px-2 md:px-6 overflow-x-auto">
         <AdvancedDataTableForms
           dependentCols={[]}
           columnNames={formData.listView || []}

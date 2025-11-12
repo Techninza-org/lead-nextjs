@@ -128,8 +128,8 @@ const GET_LOGS_FOR_ORG = `
 `;
 
 const GET_DETAILED_LOGS = `
-  query GetDetailedLogs($startDate: String!, $endDate: String!, $orgId: String, $userId: String, $page: Int, $limit: Int) {
-    getDetailedLogs(startDate: $startDate, endDate: $endDate, orgId: $orgId, userId: $userId, page: $page, limit: $limit) {
+  query GetDetailedLogs($startDate: String!, $endDate: String!, $orgId: String, $userId: String, $page: Int, $limit: Int, $search: String, $errorsOnly: Boolean) {
+    getDetailedLogs(startDate: $startDate, endDate: $endDate, orgId: $orgId, userId: $userId, page: $page, limit: $limit, search: $search, errorsOnly: $errorsOnly) {
       logs {
         timestamp
         method

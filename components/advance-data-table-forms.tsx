@@ -398,23 +398,26 @@ export default function AdvancedDataTableForms({
   // ----------------- Render -----------------
   return (
     <div className="space-y-4">
-      {/* Tools */}
+      {/* Top Section: Search, Filter, and Action Buttons */}
       {showTools && (
-        <div className="flex items-center space-x-2">
-          <Input
-            placeholder="Search all columns..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(String(event.target.value))}
-            className="max-w-sm"
-          />
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                <Search className="mr-2 h-4 w-4" />
-                Filter Columns
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[400px]">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4">
+            <div className="flex flex-1 flex-col md:flex-row items-stretch md:items-center gap-2 md:space-x-2">
+              <Input
+                placeholder="Search all columns..."
+                value={globalFilter ?? ""}
+                onChange={(event) => setGlobalFilter(String(event.target.value))}
+                className="w-full md:max-w-sm"
+              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full md:w-auto">
+                    <Search className="mr-2 h-4 w-4" />
+                    <span className="hidden md:inline">Filter Columns</span>
+                    <span className="md:hidden">Filters</span>
+                  </Button>
+                </PopoverTrigger>
+            <PopoverContent className="w-[90vw] md:w-[400px]">
               <div className="grid gap-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -471,7 +474,7 @@ export default function AdvancedDataTableForms({
                                 </div>
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[200px] p-0" align="start">
+                            <PopoverContent className="w-[90vw] md:w-[200px] p-0" align="start">
                               <div className="p-2">
                                 {column.id === "createdAt" ? (
                                   <div className="space-y-4">
@@ -554,27 +557,33 @@ export default function AdvancedDataTableForms({
               </div>
             </PopoverContent>
           </Popover>
+            </div>
+            {MoreInfo && (
+              <div className="flex-shrink-0">
+                <MoreInfo selectedLeads={selectedRows} />
+              </div>
+            )}
+          </div>
+
+          {/* Info Bar: Rows/page, Total Rows, Select All */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm">Rows/page: {rowsPerPage}</Button>
+              <Button variant="secondary" size="sm">Total Rows: {pagination.total}</Button>
+            </div>
+            {pagination.total > rowsPerPage && (
+              <Button
+                size="sm"
+                variant={allSelected ? "destructive" : "outline"}
+                onClick={toggleSelectAllRows}
+                className="w-full md:w-auto"
+              >
+                {allSelected ? "Clear All" : `Select All (${allIdsRef.current.length})`}
+              </Button>
+            )}
+          </div>
         </div>
       )}
-
-      {/* Top bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <Button variant="secondary">Rows/page: {rowsPerPage}</Button>
-          <Button variant="secondary">Total Rows: {pagination.total}</Button>
-        </div>
-        {pagination.total > rowsPerPage && (
-          <Button
-            className="ml-4"
-            size="sm"
-            variant={allSelected ? "destructive" : "outline"}
-            onClick={toggleSelectAllRows}
-          >
-            {allSelected ? "Clear All" : `Select All (${allIdsRef.current.length})`}
-          </Button>
-        )}
-        {MoreInfo && <MoreInfo selectedLeads={selectedRows} />}
-      </div>
 
       {/* Active Filters Badges */}
       {Object.entries(activeFilters).map(([columnId, filters]) => {
@@ -671,11 +680,11 @@ export default function AdvancedDataTableForms({
 
       {/* Footer / Pagination */}
       {showTools && (
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 md:space-x-2 py-4">
+          <div className="text-sm text-muted-foreground text-center md:text-left">
             {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
           </div>
-          <div className="flex items-center justify-end space-x-2 py-4">
+          <div className="flex items-center justify-center md:justify-end space-x-2">
             <Button
               variant="outline"
               size="sm"
@@ -833,25 +842,10 @@ export const generateColumns = ({
           return format(parseISO(value), "yyyy-MM-dd HH:mm:ss")
         }
         return (
-          <div className="capitalize">
-            {isValidUrl(value) ? (
-              <Link 
-                href={value} 
-                target="_blank" 
-                className="my-1"
-                onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking image link
-              >
-                <Image
-                  src={value || "/placeholder.svg"}
-                  alt={value}
-                  height={250}
-                  width={250}
-                  className="rounded-sm h-24 w-24 object-cover"
-                />
-              </Link>
-            ) : (
+          <div className="">
+            
               <span>{value}</span>
-            )}
+           
           </div>
         )
       },
