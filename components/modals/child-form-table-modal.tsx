@@ -63,11 +63,13 @@ import {
 } from "@/components/ui/command"
 import { Select } from '../ui/select';
 import { deptQueries } from '@/lib/graphql/dept/queries';
+import { usePermissions } from '../providers/PermissionContext';
 
 export const ChildDetailsModal = () => {
    const { isOpen, onClose, onOpen, type, data: modalData } = useModal();
    const { companyDeptFields } = useCompany()
    const { toast } = useToast();
+   const { checkPermission } = usePermissions();
    
    const [popoverOpen, setPopoverOpen] = useState(false)
    const [tableData, setTableData] = useState<Record<string, any[]>>({});
@@ -134,6 +136,17 @@ export const ChildDetailsModal = () => {
    // Functions are now automatically fetched via useQuery when modal opens
 
    const handleEditClick = (key: string, value: string, documentId?: string, tableName?: string) => {
+      // Check UPDATE permission before allowing edit
+      const formName = tableName || modalData?.table?.label || '';
+      if (!checkPermission(`UPDATE:${formName.toUpperCase()}`)) {
+         toast({
+            title: "Permission Denied",
+            description: "You do not have permission to update this form",
+            variant: "destructive",
+         });
+         return;
+      }
+      
       setEditingKey(key);
       setEditedValue(value);
       setEditingDocumentId(documentId || null);
@@ -311,6 +324,15 @@ export const ChildDetailsModal = () => {
       }));
    };
    const handleAddRow = async (tableName: string) => {
+      // Check CREATE permission before allowing add row
+      if (!checkPermission(`CREATE:${tableName.toUpperCase()}`)) {
+         toast({
+            title: "Permission Denied",
+            description: "You do not have permission to add rows to this form",
+            variant: "destructive",
+         });
+         return;
+      }
       const formData = form.getValues()[tableName];
       const obj = {
          parentId: modalData.table?.data?._id,
@@ -589,11 +611,13 @@ export const ChildDetailsModal = () => {
                                        ) : (
                                           <>
                                              <span className="text-sm sm:text-base truncate flex-1 sm:flex-initial">{value as string}</span>
-                                             <Pen
-                                                size={18}
-                                                className="cursor-pointer shrink-0"
-                                                onClick={() => handleEditClick(key, value as string, modalData?.table?.data?._id, modalData?.table?.label)}
-                                             />
+                                             {checkPermission(`UPDATE:${(modalData?.table?.label || '').toUpperCase()}`) && (
+                                                <Pen
+                                                   size={18}
+                                                   className="cursor-pointer shrink-0"
+                                                   onClick={() => handleEditClick(key, value as string, modalData?.table?.data?._id, modalData?.table?.label)}
+                                                />
+                                             )}
                                           </>
                                        )}
                                     </div>
@@ -639,19 +663,21 @@ export const ChildDetailsModal = () => {
                                     <span className="hidden sm:inline">Table History</span>
                                     <span className="sm:hidden">History</span>
                                  </Button>
-                                 <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={(e) => {
-                                       e.stopPropagation();
-                                       setActiveForm(activeForm === formName ? null : formName);
-                                    }}
-                                    className="w-full sm:w-auto"
-                                 >
-                                    <Plus className="h-4 w-4 sm:mr-2" />
-                                    <span className="hidden sm:inline">Add Row</span>
-                                    <span className="sm:hidden">Add</span>
-                                 </Button>
+                                 {checkPermission(`CREATE:${formName.toUpperCase()}`) && (
+                                    <Button
+                                       variant="outline"
+                                       size="sm"
+                                       onClick={(e) => {
+                                          e.stopPropagation();
+                                          setActiveForm(activeForm === formName ? null : formName);
+                                       }}
+                                       className="w-full sm:w-auto"
+                                    >
+                                       <Plus className="h-4 w-4 sm:mr-2" />
+                                       <span className="hidden sm:inline">Add Row</span>
+                                       <span className="sm:hidden">Add</span>
+                                    </Button>
+                                 )}
                               </div>
                            </div>
 
@@ -718,11 +744,13 @@ export const ChildDetailsModal = () => {
                                                             ) : (
                                                                <>
                                                                   <span className="text-sm sm:text-base truncate flex-1">{f.name ? row[f.name as string] : ''}</span>
-                                                                  <Pen
-                                                                  size={18}
-                                                                     className="cursor-pointer shrink-0"
-                                                                     onClick={() => f.name && handleEditClick(f.name as string, f.name ? row[f.name as string] : '', row._id?.$oid || row._id, formName)}
-                                                                  />
+                                                                  {checkPermission(`UPDATE:${(formName || '').toUpperCase()}`) && (
+                                                                     <Pen
+                                                                        size={18}
+                                                                        className="cursor-pointer shrink-0"
+                                                                        onClick={() => f.name && handleEditClick(f.name as string, f.name ? row[f.name as string] : '', row._id?.$oid || row._id, formName)}
+                                                                     />
+                                                                  )}
                                                                </>
                                                             )}
                                                          </div>

@@ -26,6 +26,7 @@ import {
   CommandList
 } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { usePermissions } from "@/components/providers/PermissionContext"
 
 export default function Page({ params }: { params: { formName: string } }) {
   const [unselectedRows, setUnselectedRows] = useState<string[]>([])
@@ -33,6 +34,7 @@ export default function Page({ params }: { params: { formName: string } }) {
   const { onOpen } = useModal()
   const { companyDeptFields } = useCompany()
   const { toast } = useToast()
+  const { checkPermission } = usePermissions()
 
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -352,6 +354,7 @@ export default function Page({ params }: { params: { formName: string } }) {
     const [popoverOpen, setPopoverOpen] = useState(false)
     const [selectedFn, setSelectedFn] = useState<any>(null)
     const selectedIds = useMemo(() => selectedLeads.map(l => l._id), [selectedLeads])
+    const hasCreatePermission = checkPermission(`CREATE:${formName.toUpperCase()}`)
 
     const handleSubmitClick = () => {
       if (!selectedFn) return
@@ -443,32 +446,36 @@ export default function Page({ params }: { params: { formName: string } }) {
           </Button>
         ))}
 
-        <Button
-          variant="default"
-          size="sm"
-          className="items-center gap-1 whitespace-nowrap"
-          onClick={() => onOpen("uploadFormModal", {
-            formName,
-            fields: formateFields,
-            existingTags: prevTags,
-            refetch
-          })}
-        >
-          <UploadIcon size={15} className="flex-shrink-0" />
-          <span className="hidden md:inline">Upload {formName}</span>
-          <span className="md:hidden">Upload</span>
-        </Button>
+        {hasCreatePermission && (
+          <>
+            <Button
+              variant="default"
+              size="sm"
+              className="items-center gap-1 whitespace-nowrap"
+              onClick={() => onOpen("uploadFormModal", {
+                formName,
+                fields: formateFields,
+                existingTags: prevTags,
+                refetch
+              })}
+            >
+              <UploadIcon size={15} className="flex-shrink-0" />
+              <span className="hidden md:inline">Upload {formName}</span>
+              <span className="md:hidden">Upload</span>
+            </Button>
 
-        <Button
-          variant="default"
-          size="sm"
-          className="items-center gap-1 whitespace-nowrap"
-          onClick={() => onOpen("submitLead", { fields: formateFields, refetch })}
-        >
-          <PlusCircleIcon size={15} className="flex-shrink-0" /> 
-          <span className="hidden md:inline">Add New {formName}</span>
-          <span className="md:hidden">Add New</span>
-        </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="items-center gap-1 whitespace-nowrap"
+              onClick={() => onOpen("submitLead", { fields: formateFields, refetch })}
+            >
+              <PlusCircleIcon size={15} className="flex-shrink-0" /> 
+              <span className="hidden md:inline">Add New {formName}</span>
+              <span className="md:hidden">Add New</span>
+            </Button>
+          </>
+        )}
       </div>
     )
   })

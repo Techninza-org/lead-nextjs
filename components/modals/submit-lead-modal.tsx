@@ -21,6 +21,7 @@ import { IFormField } from "../formFieldsComponents/FormField";
 import { FileUploaderField } from "../formFieldsComponents/FileUploaderField";
 import { DatePickerField } from "../formFieldsComponents/DatePickerField";
 import { formatFormData } from "@/lib/utils";
+import { usePermissions } from "../providers/PermissionContext";
 
 export const SubmitLeadModal = () => {
 
@@ -29,6 +30,7 @@ export const SubmitLeadModal = () => {
   const [fileStates, setFileStates] = useState<{ [k: string]: File[] | null }>({});
   const { isOpen, onClose, type, data: modalData } = useModal();
   const [submitFeedback] = useMutation(leadMutation.SUBMIT_LEAD);
+  const { checkPermission } = usePermissions();
 
   const rawFields = modalData?.fields;
   const fields = rawFields ?? { name: "", childName: "", fields: [] };
@@ -93,6 +95,17 @@ export const SubmitLeadModal = () => {
   };
 
   const onSubmit = async (data: any) => {
+    // Check CREATE permission before allowing submission
+    const formName = fields.name || "";
+    if (!checkPermission(`CREATE:${formName.toUpperCase()}`)) {
+      toast({
+        title: "Permission Denied",
+        description: "You do not have permission to create new entries in this form",
+        variant: "destructive",
+      });
+      return;
+    }
+
     let parentformattedData: any;
     let childformattedData: any[] = [];
 

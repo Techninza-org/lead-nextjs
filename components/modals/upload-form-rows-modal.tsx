@@ -40,6 +40,8 @@ import { UploadIcon } from "lucide-react"
 import Image from "next/image"
 import type { DropzoneOptions } from "react-dropzone"
 import MultipleSelector from "../multi-select-shadcn-expension"
+import { usePermissions } from "../providers/PermissionContext"
+import { useToast } from "@/components/ui/use-toast"
 
 const dropzone = {
   accept: { "text/csv": [".csv"] },
@@ -55,6 +57,8 @@ export const UploadFormModal = () => {
   const [mappedHeaders, setMappedHeaders] = useState<string[]>([]);
   const { isOpen, onClose, type, data: modalData } = useModal()
   const isModalOpen = isOpen && type === "uploadFormModal"
+  const { checkPermission } = usePermissions()
+  const { toast } = useToast()
 
   const { formName = "Items", fields, existingTags } = modalData || {}
   // const dynamicFields = fields?.fields || []
@@ -303,6 +307,16 @@ const updateCsvKeys = (
 
   // Submit handler
   const onSubmit = async (mapping: Record<string, string>) => {
+    // Check CREATE permission before allowing upload
+    if (!checkPermission(`CREATE:${formName.toUpperCase()}`)) {
+      toast({
+        title: "Permission Denied",
+        description: "You do not have permission to upload entries to this form",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!uploadCSVData) return
     // Map CSV → form keys, then wrap dynamic fields
     const tags = form.getValues("tags") || []
