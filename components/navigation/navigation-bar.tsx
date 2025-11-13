@@ -132,19 +132,21 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
                 </div>
                 <div
                     className={cn(
-                        "fixed z-10 h-full flex flex-col transition-all duration-300 ease-in-out bg-[#1e2035] items-center text-white",
+                        "fixed z-10 h-full flex flex-col transition-all duration-300 ease-in-out bg-[#1e2035] text-white",
                         {
                             'w-64': !isNavCollapsed,
                             'w-0': isNavCollapsed,
                             'opacity-100': !isNavCollapsed,
                             'opacity-0': isNavCollapsed,
+                            'overflow-hidden': isNavCollapsed,
+                            'overflow-visible': !isNavCollapsed,
                         }
                     )}
                 >
                     {isAdmin ? (
                         <Nav isCollapsed={isNavCollapsed} links={navLinks} />
                     ) : (
-                        <NestedSidebar data={hierarchy} searchTerm={searchTerm} />
+                        <NestedSidebar data={hierarchy} searchTerm={searchTerm} isCollapsed={isNavCollapsed} />
                     )}
                 </div>
                 <div

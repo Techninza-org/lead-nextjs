@@ -30,19 +30,11 @@ import {
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarRail,
-} from "@/components/ui/sidebar"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 import { Input } from "@/components/ui/input"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import ActionTooltip from "@/components/action-tooltip"
 
 // Define the navigation item type with icon and category support
 interface NavigationItem {
@@ -62,6 +54,7 @@ interface CategoryGroup {
 interface NestedSidebarProps {
   data: NavigationItem[];
   searchTerm?: string;
+  isCollapsed?: boolean;
 }
 
 // Map of icon names to Lucide icon components
@@ -160,7 +153,7 @@ function groupItemsByCategory(items: NavigationItem[]): CategoryGroup[] {
   }));
 }
 
-export function NestedSidebar({ data, searchTerm = "" }: NestedSidebarProps) {
+export function NestedSidebar({ data, searchTerm = "", isCollapsed = false }: NestedSidebarProps) {
   const [expandedItems, setExpandedItems] = React.useState<Set<string>>(new Set())
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set())
   const [searchResults, setSearchResults] = React.useState<NavigationItem[]>([])
@@ -216,64 +209,100 @@ export function NestedSidebar({ data, searchTerm = "" }: NestedSidebarProps) {
   };
 
   return (
-    <SidebarProvider>
-      <Sidebar className="dark bg-[#1e2030] border-r pb-10 border-gray-800 flex flex-col h-full">
-        <SidebarHeader className="border-b border-gray-800">
-          <div className="flex h-14 items-center px-4">
-            <h2 className="text-lg font-semibold text-white">Lead Management</h2>
+    <div 
+      data-collapsed={isCollapsed}
+      className="group flex flex-col h-[calc(100vh-4rem)] justify-end pb-4 data-[collapsed=true]:py-2 w-full"
+    >
+        {!isCollapsed && (
+          <div className="border-b border-gray-800 flex-shrink-0 flex flex-col gap-2 p-2 mb-auto">
+            <div className="flex h-14 items-center px-4">
+              <h2 className="text-lg font-semibold text-white">Lead Management</h2>
+            </div>
           </div>
-        </SidebarHeader>
-        
-        {/* Spacer to push content to bottom */}
-        <div className="flex-1"></div>
+        )}
         
         {/* Navigation menu */}
-        <div className="w-full">
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
+        <div className="w-full px-2">
+          <div className="relative flex w-full min-w-0 flex-col p-2">
+            <div className="w-full text-sm">
+              <ul className={cn("flex w-full min-w-0 flex-col gap-1", isCollapsed && "justify-center items-center", "group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2")}>
                   {/* Static Members Navigation */}
-                  <SidebarMenuItem>
-                    <Link
-                      href="/members"
-                      className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
-                        usePathname() === "/members" ? "text-white bg-[#2a2d46] rounded-md" : ""
-                      }`}
-                    >
-                      <Users className="mr-2 h-4 w-4" />
-                      <span>Members</span>
-                    </Link>
-                  </SidebarMenuItem>
+                  <li className="group/menu-item relative">
+                    {isCollapsed ? (
+                      <ActionTooltip side="right" align="center" label="Members">
+                        <Link
+                          href="/members"
+                          className={cn(
+                            buttonVariants({ 
+                              variant: usePathname() === "/members" ? "default" : "ghost", 
+                              size: "icon" 
+                            }),
+                            "h-9 w-9"
+                          )}
+                        >
+                          <Users className="h-4 w-4" />
+                          <span className="sr-only">Members</span>
+                        </Link>
+                      </ActionTooltip>
+                    ) : (
+                      <Link
+                        href="/members"
+                        className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
+                          usePathname() === "/members" ? "text-white bg-[#2a2d46] rounded-md" : ""
+                        }`}
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Members</span>
+                      </Link>
+                    )}
+                  </li>
                   
                   {/* Static Track Navigation */}
-                  <SidebarMenuItem>
-                    <Link
-                      href="/track"
-                      className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
-                        usePathname() === "/track" ? "text-white bg-[#2a2d46] rounded-md" : ""
-                      }`}
-                    >
-                      <MapPin className="mr-2 h-4 w-4" />
-                      <span>Track</span>
-                    </Link>
-                  </SidebarMenuItem>
+                  <li className="group/menu-item relative">
+                    {isCollapsed ? (
+                      <ActionTooltip side="right" align="center" label="Track">
+                        <Link
+                          href="/track"
+                          className={cn(
+                            buttonVariants({ 
+                              variant: usePathname() === "/track" ? "default" : "ghost", 
+                              size: "icon" 
+                            }),
+                            "h-9 w-9"
+                          )}
+                        >
+                          <MapPin className="h-4 w-4" />
+                          <span className="sr-only">Track</span>
+                        </Link>
+                      </ActionTooltip>
+                    ) : (
+                      <Link
+                        href="/track"
+                        className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
+                          usePathname() === "/track" ? "text-white bg-[#2a2d46] rounded-md" : ""
+                        }`}
+                      >
+                        <MapPin className="mr-2 h-4 w-4" />
+                        <span>Track</span>
+                      </Link>
+                    )}
+                  </li>
                   
-                  {searchTerm.trim() !== "" && searchResults.length > 0 ? (
+                  {!isCollapsed && searchTerm.trim() !== "" && searchResults.length > 0 && (
                     <div className="px-2 py-2 text-sm text-gray-400">
                       Search results ({searchResults.length})
                     </div>
-                  ) : null}
+                  )}
                   
-                  {searchTerm.trim() !== "" && searchResults.length === 0 ? (
+                  {!isCollapsed && searchTerm.trim() !== "" && searchResults.length === 0 && (
                     <div className="px-2 py-2 text-sm text-gray-400">
                       No results found
                     </div>
-                  ) : null}
+                  )}
                   
                   {searchTerm.trim() !== "" ? (
                     searchResults.map((item) => (
-                      <SearchResultItem key={item.name} item={item} />
+                      <SearchResultItem key={item.name} item={item} isCollapsed={isCollapsed} />
                     ))
                   ) : (
                     categoryGroups.map((category) => (
@@ -284,18 +313,16 @@ export function NestedSidebar({ data, searchTerm = "" }: NestedSidebarProps) {
                         setExpandedItems={setExpandedItems}
                         isExpanded={expandedCategories.has(category.name)}
                         toggleExpanded={() => toggleCategory(category.name)}
+                        isCollapsed={isCollapsed}
                       />
                     ))
                   )}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
+              </ul>
+            </div>
+          </div>
         </div>
         
-        <SidebarRail />
-      </Sidebar>
-    </SidebarProvider>
+      </div>
   )
 }
 
@@ -305,6 +332,7 @@ interface CategoryGroupItemProps {
   setExpandedItems: React.Dispatch<React.SetStateAction<Set<string>>>;
   isExpanded: boolean;
   toggleExpanded: () => void;
+  isCollapsed?: boolean;
 }
 
 function CategoryGroupItem({ 
@@ -312,8 +340,39 @@ function CategoryGroupItem({
   expandedItems, 
   setExpandedItems,
   isExpanded,
-  toggleExpanded
+  toggleExpanded,
+  isCollapsed = false
 }: CategoryGroupItemProps) {
+  if (isCollapsed) {
+    // When collapsed, show only the first item's icon as a representative
+    const firstItem = category.items[0]
+    let ItemIcon = Folder
+    if (firstItem) {
+      if (typeof firstItem.icon === 'string' && iconMap[firstItem.icon]) {
+        ItemIcon = iconMap[firstItem.icon]
+      } else if (typeof firstItem.icon !== 'string' && firstItem.icon) {
+        ItemIcon = firstItem.icon
+      }
+    }
+    
+    return (
+      <div className="mb-2">
+        <ActionTooltip side="right" align="center" label={category.name}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={toggleExpanded}
+          >
+            <ItemIcon className="h-4 w-4" />
+            <span className="sr-only">{category.name}</span>
+          </Button>
+        </ActionTooltip>
+      </div>
+    )
+  }
+  
   return (
     <div className="mb-2">
       <Collapsible open={isExpanded} onOpenChange={toggleExpanded} className="w-full">
@@ -336,6 +395,7 @@ function CategoryGroupItem({
                 level={0}
                 expandedItems={expandedItems}
                 setExpandedItems={setExpandedItems}
+                isCollapsed={isCollapsed}
               />
             ))}
           </div>
@@ -350,9 +410,10 @@ interface NavigationItemProps {
   level: number
   expandedItems: Set<string>
   setExpandedItems: React.Dispatch<React.SetStateAction<Set<string>>>
+  isCollapsed?: boolean
 }
 
-function NavigationItem({ item, level, expandedItems, setExpandedItems }: NavigationItemProps) {
+function NavigationItem({ item, level, expandedItems, setExpandedItems, isCollapsed = false }: NavigationItemProps) {
   const pathname = usePathname()
   const hasChildren = item.children && item.children.length > 0
   
@@ -382,9 +443,31 @@ function NavigationItem({ item, level, expandedItems, setExpandedItems }: Naviga
   const itemPath = item.path || `/values/${createSlug(item.name)}`
   const isActive = pathname === itemPath
 
+  if (isCollapsed) {
+    return (
+      <li className="group/menu-item relative">
+        <ActionTooltip side="right" align="center" label={item.name}>
+          <Link
+            href={itemPath}
+            className={cn(
+              buttonVariants({ 
+                variant: isActive ? "default" : "ghost", 
+                size: "icon" 
+              }),
+              "h-9 w-9"
+            )}
+          >
+            <ItemIcon className="h-4 w-4" />
+            <span className="sr-only">{item.name}</span>
+          </Link>
+        </ActionTooltip>
+      </li>
+    )
+  }
+
   return (
     <Collapsible open={isOpen} onOpenChange={toggleExpanded} className="w-full">
-      <SidebarMenuItem>
+      <li className="group/menu-item relative">
         <div className="flex w-full items-center">
           <Link
             href={itemPath}
@@ -417,21 +500,23 @@ function NavigationItem({ item, level, expandedItems, setExpandedItems }: Naviga
                   level={level + 1}
                   expandedItems={expandedItems}
                   setExpandedItems={setExpandedItems}
+                  isCollapsed={isCollapsed}
                 />
               ))}
             </div>
           </CollapsibleContent>
         )}
-      </SidebarMenuItem>
+      </li>
     </Collapsible>
   )
 }
 
 interface SearchResultItemProps {
   item: NavigationItem
+  isCollapsed?: boolean
 }
 
-function SearchResultItem({ item }: SearchResultItemProps) {
+function SearchResultItem({ item, isCollapsed = false }: SearchResultItemProps) {
   const pathname = usePathname()
   
   // Get the icon for this item
@@ -446,8 +531,30 @@ function SearchResultItem({ item }: SearchResultItemProps) {
   const itemPath = item.path || `/values/${createSlug(item.name)}`
   const isActive = pathname === itemPath
 
+  if (isCollapsed) {
+    return (
+      <li className="group/menu-item relative">
+        <ActionTooltip side="right" align="center" label={item.name}>
+          <Link
+            href={itemPath}
+            className={cn(
+              buttonVariants({ 
+                variant: isActive ? "default" : "ghost", 
+                size: "icon" 
+              }),
+              "h-9 w-9"
+            )}
+          >
+            <ItemIcon className="h-4 w-4" />
+            <span className="sr-only">{item.name}</span>
+          </Link>
+        </ActionTooltip>
+      </li>
+    )
+  }
+
   return (
-    <SidebarMenuItem>
+    <li className="group/menu-item relative">
       <Link
         href={itemPath}
         className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
@@ -462,6 +569,6 @@ function SearchResultItem({ item }: SearchResultItemProps) {
           </span>
         )}
       </Link>
-    </SidebarMenuItem>
+    </li>
   )
 }
