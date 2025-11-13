@@ -15,10 +15,23 @@ import Link from "next/link";
 import { useAuth } from "./providers/AuthProvider";
 import { useAtom } from "jotai";
 import { userAtom } from "@/lib/atom/userAtom";
+import { ROOT, MANAGER, ADMIN } from "@/lib/role-constant";
+import { usePathname } from "next/navigation";
 
 export function UserAvatar() {
     const { logout } = useAuth()
     const [userInfo] = useAtom(userAtom)
+    const pathname = usePathname()
+    
+    // Check if user is root_manager - users accessing root_manager routes (not /admin routes)
+    // This includes ROOT, MANAGER, and Admin roles with companyId (company admins)
+    const role = userInfo?.role?.name?.toLowerCase().replaceAll(" ", "") || "";
+    const isSystemAdmin = pathname.startsWith("/admin");
+    const isRootManager = !isSystemAdmin && (
+        role === ROOT.toLowerCase() || 
+        role === MANAGER.toLowerCase() || 
+        (role === ADMIN.toLowerCase() && !!userInfo?.companyId) // Admin with companyId is root_manager
+    );
     
     return (
         <DropdownMenu>
@@ -43,16 +56,20 @@ export function UserAvatar() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                    <Link href="/settings">
-                        <DropdownMenuItem>
-                            Settings
-                        </DropdownMenuItem>
-                    </Link>
-                    <Link href="/departments">
-                        <DropdownMenuItem>
-                            Form Builder
-                        </DropdownMenuItem>
-                    </Link>
+                    {isRootManager && (
+                        <>
+                            <Link href="/settings">
+                                <DropdownMenuItem>
+                                    Settings
+                                </DropdownMenuItem>
+                            </Link>
+                            <Link href="/departments">
+                                <DropdownMenuItem>
+                                    Form Builder
+                                </DropdownMenuItem>
+                            </Link>
+                        </>
+                    )}
                     <DropdownMenuItem onClick={logout} className="text-red-500">
                         Log out
                     </DropdownMenuItem>

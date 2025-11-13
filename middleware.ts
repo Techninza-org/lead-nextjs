@@ -12,7 +12,10 @@ function redirectToDashboard(userRole: string | undefined, request: NextRequest)
     case 'manager':
       return NextResponse.redirect(new URL('/dashboard', request.url));
     default:
-      return NextResponse.redirect(new URL(`/${userRole}/leads`, request.url));
+      // Redirect emp users to values page instead of leads
+      // We'll need to get the first available form name, but for now redirect to a generic path
+      // The navigation will handle showing available forms
+      return NextResponse.redirect(new URL(`/${userRole}/values`, request.url));
   }
 }
 
@@ -98,10 +101,8 @@ export async function middleware(request: NextRequest) {
 
   try {
     const { resource } = await fetchUserPermissions(parsedToken);
-    const resourcePath = resource.toLowerCase();
-    if ((resourcePath === 'lead' || resourcePath === 'prospect') && path.includes('/leads') || path.includes('/prospects')) {
-      return NextResponse.next();
-    } if (path.includes(`/${userRole}/values`)) {
+    // Only allow access to values pages for emp users (leads/prospects removed)
+    if (path.includes(`/${userRole}/values`)) {
       return NextResponse.next();
     } else {
       return NextResponse.redirect(new URL('/unauthorized', request.url));

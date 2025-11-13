@@ -35,6 +35,9 @@ import { Input } from "@/components/ui/input"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import ActionTooltip from "@/components/action-tooltip"
+import { useAtom } from "jotai"
+import { userAtom } from "@/lib/atom/userAtom"
+import { ROOT, MANAGER, ADMIN } from "@/lib/role-constant"
 
 // Define the navigation item type with icon and category support
 interface NavigationItem {
@@ -157,6 +160,18 @@ export function NestedSidebar({ data, searchTerm = "", isCollapsed = false }: Ne
   const [expandedItems, setExpandedItems] = React.useState<Set<string>>(new Set())
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set())
   const [searchResults, setSearchResults] = React.useState<NavigationItem[]>([])
+  const [userInfo] = useAtom(userAtom)
+  const pathname = usePathname()
+  
+  // Check if user is root_manager - users accessing root_manager routes (not /admin routes)
+  // This includes ROOT, MANAGER, and Admin roles with companyId (company admins)
+  const role = userInfo?.role?.name?.toLowerCase().replaceAll(" ", "") || "";
+  const isSystemAdmin = pathname.startsWith("/admin");
+  const isRootManager = !isSystemAdmin && (
+    role === ROOT.toLowerCase() || 
+    role === MANAGER.toLowerCase() || 
+    (role === ADMIN.toLowerCase() && !!userInfo?.companyId) // Admin with companyId is root_manager
+  );
   
   // Group items by category
   const categoryGroups = React.useMemo(() => groupItemsByCategory(data), [data]);
@@ -226,67 +241,71 @@ export function NestedSidebar({ data, searchTerm = "", isCollapsed = false }: Ne
           <div className="relative flex w-full min-w-0 flex-col p-2">
             <div className="w-full text-sm">
               <ul className={cn("flex w-full min-w-0 flex-col gap-1", isCollapsed && "justify-center items-center", "group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2")}>
-                  {/* Static Members Navigation */}
-                  <li className="group/menu-item relative">
-                    {isCollapsed ? (
-                      <ActionTooltip side="right" align="center" label="Members">
+                  {/* Static Members Navigation - Only show for root_manager */}
+                  {isRootManager && (
+                    <li className="group/menu-item relative">
+                      {isCollapsed ? (
+                        <ActionTooltip side="right" align="center" label="Members">
+                          <Link
+                            href="/members"
+                            className={cn(
+                              buttonVariants({ 
+                                variant: usePathname() === "/members" ? "default" : "ghost", 
+                                size: "icon" 
+                              }),
+                              "h-9 w-9"
+                            )}
+                          >
+                            <Users className="h-4 w-4" />
+                            <span className="sr-only">Members</span>
+                          </Link>
+                        </ActionTooltip>
+                      ) : (
                         <Link
                           href="/members"
-                          className={cn(
-                            buttonVariants({ 
-                              variant: usePathname() === "/members" ? "default" : "ghost", 
-                              size: "icon" 
-                            }),
-                            "h-9 w-9"
-                          )}
+                          className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
+                            usePathname() === "/members" ? "text-white bg-[#2a2d46] rounded-md" : ""
+                          }`}
                         >
-                          <Users className="h-4 w-4" />
-                          <span className="sr-only">Members</span>
+                          <Users className="mr-2 h-4 w-4" />
+                          <span>Members</span>
                         </Link>
-                      </ActionTooltip>
-                    ) : (
-                      <Link
-                        href="/members"
-                        className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
-                          usePathname() === "/members" ? "text-white bg-[#2a2d46] rounded-md" : ""
-                        }`}
-                      >
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>Members</span>
-                      </Link>
-                    )}
-                  </li>
+                      )}
+                    </li>
+                  )}
                   
-                  {/* Static Track Navigation */}
-                  <li className="group/menu-item relative">
-                    {isCollapsed ? (
-                      <ActionTooltip side="right" align="center" label="Track">
+                  {/* Static Track Navigation - Only show for root_manager */}
+                  {isRootManager && (
+                    <li className="group/menu-item relative">
+                      {isCollapsed ? (
+                        <ActionTooltip side="right" align="center" label="Track">
+                          <Link
+                            href="/track"
+                            className={cn(
+                              buttonVariants({ 
+                                variant: usePathname() === "/track" ? "default" : "ghost", 
+                                size: "icon" 
+                              }),
+                              "h-9 w-9"
+                            )}
+                          >
+                            <MapPin className="h-4 w-4" />
+                            <span className="sr-only">Track</span>
+                          </Link>
+                        </ActionTooltip>
+                      ) : (
                         <Link
                           href="/track"
-                          className={cn(
-                            buttonVariants({ 
-                              variant: usePathname() === "/track" ? "default" : "ghost", 
-                              size: "icon" 
-                            }),
-                            "h-9 w-9"
-                          )}
+                          className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
+                            usePathname() === "/track" ? "text-white bg-[#2a2d46] rounded-md" : ""
+                          }`}
                         >
-                          <MapPin className="h-4 w-4" />
-                          <span className="sr-only">Track</span>
+                          <MapPin className="mr-2 h-4 w-4" />
+                          <span>Track</span>
                         </Link>
-                      </ActionTooltip>
-                    ) : (
-                      <Link
-                        href="/track"
-                        className={`flex items-center px-2 py-1 text-sm text-gray-300 hover:text-white ${
-                          usePathname() === "/track" ? "text-white bg-[#2a2d46] rounded-md" : ""
-                        }`}
-                      >
-                        <MapPin className="mr-2 h-4 w-4" />
-                        <span>Track</span>
-                      </Link>
-                    )}
-                  </li>
+                      )}
+                    </li>
+                  )}
                   
                   {!isCollapsed && searchTerm.trim() !== "" && searchResults.length > 0 && (
                     <div className="px-2 py-2 text-sm text-gray-400">

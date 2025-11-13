@@ -111,7 +111,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else if (['root', 'manager'].includes(role)) {
         router.push('/dashboard');
       } else {
-        router.push('/leads');
+        // Redirect emp users to values page instead of leads
+        // The navigation will show available forms based on permissions
+        router.push(`/${role}/values`);
       }
     } catch (error) {
       console.error('Login error:', error);

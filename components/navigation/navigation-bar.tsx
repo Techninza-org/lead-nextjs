@@ -89,21 +89,12 @@ export function NavigationBar({ children }: { children: React.ReactNode }) {
         return {
             title: routePart,
             icon: FileTextIcon,
-            href: `/values/${routePart}`, // Use same path structure as root managers
+            href: `/${role}/values/${routePart}`, // Use role-based path for emp users
         };
     });
 
+    // Remove Lead and Prospect links - only show forms from permissions
     const EMP_NAV_LINKS = [
-        {
-            title: "Lead",
-            icon: Truck,
-            href: `/${role}/leads`,
-        },
-        {
-            title: "Prospect",
-            icon: Truck,
-            href: `/${role}/prospects`,
-        },
         ...extendedEmployeeRoutes,
     ];
 
