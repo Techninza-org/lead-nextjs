@@ -239,10 +239,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                         {form.watch(`deptFields.${currIdx}.options.value`)
                             ?.filter(option => option.label.toLowerCase().includes(searchTerm.toLowerCase())) // Search filter
                             .map((option, optIndex) => (
-                                <div key={optIndex} className="flex items-center mb-2 mt-2">
+                                <div key={optIndex} className="flex items-center mb-2 mt-2 gap-2">
                                     <Input
                                         placeholder="Value"
-                                        className="mr-2"
+                                        className="flex-1"
                                         value={option.label || option.value}
                                         disabled={editingIndex !== optIndex}
                                         onChange={(e) => {
@@ -254,7 +254,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                     />
                                     <Input
                                         type="color"
-                                        className="w-10 h-10 p-1 rounded-md mr-2"
+                                        className="w-10 h-10 p-1 rounded-md shrink-0"
                                         value={option.colorCode || "#000000"}
                                         onChange={(e) => {
                                             const colorCode = e.target.value;
@@ -267,6 +267,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         <Button
                                             type="button"
                                             variant="ghost"
+                                            size="sm"
                                             onClick={() => setEditingIndex(null)}
                                         >
                                             <Check size={20} color="green" />
@@ -275,6 +276,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         <Button
                                             type="button"
                                             variant="ghost"
+                                            size="sm"
                                             onClick={() => setEditingIndex(optIndex)}
                                         >
                                             <PencilIcon size={20} color="blue" />
@@ -283,6 +285,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                     <Button
                                         type="button"
                                         variant="ghost"
+                                        size="sm"
                                         onClick={() => {
                                             const options = form.getValues(`deptFields.${currIdx}.options.value`);
                                             options.splice(optIndex, 1);
@@ -330,10 +333,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                         {form.watch(`deptFields.${currIdx}.options.value`)
                             ?.filter(option => option.label.toLowerCase().includes(searchTerm.toLowerCase())) // Search filter
                             .map((option, optIndex) => (
-                                <div key={optIndex} className="flex items-center mb-2 mt-2">
+                                <div key={optIndex} className="flex items-center mb-2 mt-2 gap-2">
                                     <Input
                                         placeholder="Value"
-                                        className="mr-2"
+                                        className="flex-1"
                                         value={option.label || option.value}
                                         disabled={editingIndex !== optIndex}
                                         onChange={(e) => {
@@ -347,6 +350,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         <Button
                                             type="button"
                                             variant="ghost"
+                                            size="sm"
                                             onClick={() => setEditingIndex(null)}
                                         >
                                             <Check size={20} color="green" />
@@ -355,6 +359,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         <Button
                                             type="button"
                                             variant="ghost"
+                                            size="sm"
                                             onClick={() => setEditingIndex(optIndex)}
                                         >
                                             <PencilIcon size={20} color="blue" />
@@ -363,6 +368,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                     <Button
                                         type="button"
                                         variant="ghost"
+                                        size="sm"
                                         onClick={() => {
                                             const options = form.getValues(`deptFields.${currIdx}.options.value`);
                                             options.splice(optIndex, 1);
@@ -396,8 +402,8 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
             return (
                 <div className="mt-4">
 
-                    <div className='flex'>
-                        <div>
+                    <div className='flex flex-col sm:flex-row gap-4'>
+                        <div className="flex-1">
                             {form.watch(`deptFields.${currIdx}.ddOptionId`) && grandParentElem && (
                                 <div>
                                     <div className="font-medium text-sm mr-2">Field Label Name ({grandParentElem.name})</div>
@@ -406,7 +412,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         onValueChange={(value) => form.setValue(`deptFields.${currIdx}.grandParentId`, value)}
                                         value={form.watch(`deptFields.${currIdx}.grandParentId`) || undefined}
                                     >
-                                        <SelectTrigger className="w-[300px]">
+                                        <SelectTrigger className="w-full sm:w-[300px]">
                                             <SelectValue placeholder="Select grand parent" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -428,14 +434,14 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                             )}
                         </div>
 
-                        <div>
+                        <div className="flex-1">
                             <div className="font-medium text-sm mr-2">Field Label Name ({form.watch(`deptFields.${currIdx}.ddOptionId`)})</div>
                             <FormLabel className="mr-2">Dependent On ({form.watch(`deptFields.${currIdx}.ddOptionId`)})</FormLabel>
                             <Select
                                 onValueChange={(value) => form.setValue(`deptFields.${currIdx}.ddOptionId`, value)}
                                 value={form.watch(`deptFields.${currIdx}.ddOptionId`) || undefined}
                             >
-                                <SelectTrigger className="w-[300px]">
+                                <SelectTrigger className="w-full sm:w-[300px]">
                                     <SelectValue placeholder="Select dependency" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -463,16 +469,16 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                     variant="outline"
                                                     role="combobox"
                                                     className={cn(
-                                                        "w-[250px] justify-between",
+                                                        "w-full sm:w-[250px] justify-between",
                                                         !field.value && "text-muted-foreground"
                                                     )}
                                                 >
-                                                    {field.value || "Select values"}
+                                                    <span className="truncate">{field.value || "Select values"}</span>
                                                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                 </Button>
                                             </FormControl>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[250px] p-0">
+                                        <PopoverContent className="w-[90vw] sm:w-[250px] p-0">
                                             <Command>
                                                 <CommandInput placeholder="Search language..." />
                                                 <CommandList>
@@ -647,7 +653,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                     </div>
 
 
-                    <div className='pl-5'>
+                    <div className='pl-0 sm:pl-5'>
                         <FormLabel className="mr-2 mt-4 block">Options</FormLabel>
                         <div className="relative my-2">
                             <Input
@@ -656,7 +662,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                 placeholder="Search options..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
+                                className="pl-10 w-full"
                             />
                             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         </div>
@@ -666,10 +672,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                 ?.value
                                 .filter(option => option?.label?.toLowerCase().includes(searchTerm.toLowerCase()))
                                 .map((nestedOption, nestedIndex) => (
-                                    <div key={nestedIndex} className="flex items-center mb-2">
+                                    <div key={nestedIndex} className="flex items-center mb-2 gap-2">
                                         <Input
                                             placeholder="Nested Value"
-                                            className="mr-2 outline-none focus:outline-none focus:ring-0 focus:border-transparent" // Ensures no outline, ring, or border on focus
+                                            className="flex-1 outline-none focus:outline-none focus:ring-0 focus:border-transparent" // Ensures no outline, ring, or border on focus
                                             value={nestedOption.label}
                                             disabled={editingIndex !== nestedIndex}
                                             onChange={(e) => {
@@ -684,6 +690,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                             <Button
                                                 type="button"
                                                 variant="ghost"
+                                                size="sm"
                                                 onClick={() => setEditingIndex(null)}
                                             >
                                                 <Check size={20} color="green" />
@@ -692,6 +699,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                             <Button
                                                 type="button"
                                                 variant="ghost"
+                                                size="sm"
                                                 onClick={() => setEditingIndex(nestedIndex)}
                                             >
                                                 <PencilIcon size={20} color="blue" />
@@ -700,6 +708,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                         <Button
                                             type="button"
                                             variant="ghost"
+                                            size="sm"
                                             onClick={() => {
                                                 const options = form.getValues(`deptFields.${currIdx}.options.value`)
                                                 const optionIndex = options.findIndex(x => x.label === form.getValues(`deptFields.${currIdx}.linkedFieldValues`))
@@ -741,10 +750,10 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
     };
     return (
         <Form {...form}>
-            <Card className="grid grid-cols-7 gap-2">
-                <Card className="col-span-4">
+            <Card className="grid grid-cols-1 lg:grid-cols-7 gap-2">
+                <Card className="lg:col-span-4">
                     <CardHeader>
-                        <CardTitle className="text-2xl text-center font-bold">Form Builder {filteredDeptFields[0]?.name || ''}</CardTitle>
+                        <CardTitle className="text-xl sm:text-2xl text-center font-bold">Form Builder {filteredDeptFields[0]?.name || ''}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -759,13 +768,13 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                 return (
                                     <div
                                         key={field.id}
-                                        className={`mb-4 border p-4 rounded-md ${currIdx === index ? 'bg-blue-50' : ''
+                                        className={`mb-4 border p-3 sm:p-4 rounded-md ${currIdx === index ? 'bg-blue-50' : ''
                                             } ${isDisabled || isHardCoded ? 'opacity-50 pointer-events-none' : ''}`}
                                         onClick={() => !isDisabled && !isHardCoded && setCurrIdx(index)}
                                         aria-disabled={isDisabled || isHardCoded || isXIdField}
                                     >
-                                        <div className="grid grid-cols-8 gap-2">
-                                            <div className="col-span-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-8 gap-2">
+                                            <div className="sm:col-span-3">
                                                 <FormField
                                                     control={form.control}
                                                     disabled={isDisabled || isXIdField}
@@ -774,7 +783,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                         <FormItem>
                                                             <FormControl>
                                                                 <Input
-                                                                    className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0"
+                                                                    className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0 w-full"
                                                                     placeholder="Field Name"
                                                                     disabled={isDisabled}
                                                                     {...nameField}
@@ -785,7 +794,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                     )}
                                                 />
                                             </div>
-                                            <div className="col-span-3">
+                                            <div className="sm:col-span-3">
                                                 <FormField
                                                     control={form.control}
                                                     name={`deptFields.${index}.fieldType`}
@@ -804,7 +813,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                                 disabled={isDisabled}
                                                             >
                                                                 <FormControl>
-                                                                    <SelectTrigger className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0">
+                                                                    <SelectTrigger className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0 w-full">
                                                                         <SelectValue placeholder="Select Field Type" />
                                                                     </SelectTrigger>
                                                                 </FormControl>
@@ -819,10 +828,11 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                     )}
                                                 />
                                             </div>
-                                            <div className="flex gap-2 col-span-2">
+                                            <div className="flex gap-2 sm:col-span-2">
                                                 <Button
                                                     type="button"
                                                     variant="default"
+                                                    size="sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         if (!isDisabled) moveField(index, -1);
@@ -834,6 +844,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                 <Button
                                                     type="button"
                                                     variant="default"
+                                                    size="sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         if (!isDisabled) moveField(index, 1);
@@ -845,6 +856,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
+                                                    size="sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         if (!isDisabled) remove(index);
@@ -855,7 +867,7 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                                 </Button>
                                             </div>
                                         </div>
-                                        <div className="flex gap-6 mt-2">
+                                        <div className="flex flex-wrap gap-3 sm:gap-6 mt-2">
                                             <FormField
                                                 control={form.control}
                                                 name={`deptFields.${index}.isRequired`}
@@ -940,12 +952,12 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
                                 )
                             })}
                             
-                            <div className='flex justify-between'>
+                            <div className='flex flex-col sm:flex-row justify-between gap-3 sm:gap-0'>
 
                             <Button
                                 type="button"
                                 onClick={() => append({ name: '', fieldType: '', order: fields.length + 1, isRequired: true, isDisabled: false, ddOptionId: null, isHardCoded: false, isUnique: false })}
-                                className="mt-4 bg-blue-500 text-white"
+                                className="mt-4 bg-blue-500 text-white w-full sm:w-auto"
                                 >
                                 Add Field
                             </Button>
@@ -957,16 +969,16 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
         variant="outline"
         role="combobox"
         className={cn(
-          "w-[270px] justify-between",
+          "w-full sm:w-[270px] justify-between mt-4 sm:mt-4",
           uniqueFields.length === 0 && "text-muted-foreground"
         )}
       >
-        {uniqueFields.length > 0 ? uniqueFields.join(", ") : "Select unique fields combination"}
+        <span className="truncate">{uniqueFields.length > 0 ? uniqueFields.join(", ") : "Select unique fields combination"}</span>
         <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
     </FormControl>
   </PopoverTrigger>
-  <PopoverContent className="w-[250px] p-0">
+  <PopoverContent className="w-[90vw] sm:w-[250px] p-0">
     <Command>
       <CommandInput placeholder="Search fields..." />
       <CommandList>
@@ -1006,18 +1018,18 @@ const UpdateDepartmentFieldsModal = ({ categoryName, deptName, deptId }) => {
 </Popover>
 
                                 </div>
-                            <div className="mt-6 flex justify-end">
-                                <Button type="button" className="mr-2 bg-gray-500 text-white">Cancel</Button>
-                                <Button type="submit" variant="default" className="text-white">Submit</Button>
+                            <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
+                                <Button type="button" className="w-full sm:w-auto bg-gray-500 text-white">Cancel</Button>
+                                <Button type="submit" variant="default" className="w-full sm:w-auto text-white">Submit</Button>
                             </div>
                         </form>
 
                     </CardContent>
                 </Card>
 
-                <Card className="col-span-3">
+                <Card className="lg:col-span-3 mb-4">
                     <CardHeader>
-                        <CardTitle className="text-2xl text-center font-bold">Field Options</CardTitle>
+                        <CardTitle className="text-xl sm:text-2xl text-center font-bold">Field Options</CardTitle>
                     </CardHeader>
                     <CardContent className='p-3'>
                         {!form.watch(`deptFields.${currIdx}.isRelation`) && renderFieldOptions()}

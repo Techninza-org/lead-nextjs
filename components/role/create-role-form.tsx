@@ -58,8 +58,8 @@ export function CreateRoleTableView() {
   const { onOpen } = useModal()
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2">
+      <div className="flex justify-between items-center ">
+        <div className="flex gap-2 flex-wrap">
           <Input
             placeholder="Filter by name..."
             value={filters.name}

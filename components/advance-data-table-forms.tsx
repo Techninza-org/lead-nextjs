@@ -558,12 +558,13 @@ export default function AdvancedDataTableForms({
             </PopoverContent>
           </Popover>
             </div>
-            {MoreInfo && (
+            
+          </div>
+          {MoreInfo && (
               <div className="flex-shrink-0">
                 <MoreInfo selectedLeads={selectedRows} />
               </div>
             )}
-          </div>
 
           {/* Info Bar: Rows/page, Total Rows, Select All */}
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2">
