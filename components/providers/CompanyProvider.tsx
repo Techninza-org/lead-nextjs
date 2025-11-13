@@ -7,7 +7,7 @@ import { companyDeptFieldsAtom, companyDeptMembersAtom, rootMembersAtom, userAto
 import { z } from 'zod';
 import { createCompanyMemberSchema } from '@/types/auth';
 import { leadMutation } from '@/lib/graphql/lead/mutation';
-import { LOGIN_USER, UPDATE_USER_COMPANY } from '@/lib/graphql/user/mutations';
+import { LOGIN_USER, UPDATE_USER_COMPANY, ADD_COMPANY_MEMBER } from '@/lib/graphql/user/mutations';
 import { deptQueries } from '@/lib/graphql/dept/queries';
 import { leadQueries } from '@/lib/graphql/lead/queries';
 import { companyQueries } from '@/lib/graphql/company/queries';
@@ -29,6 +29,7 @@ type CompanyContextType = {
     permissionsResources: any;
     companyCategories: any;
     getRootPagination: any;
+    refetchMembers: () => void;
     // companyFunctions: any;
 };
 
@@ -87,10 +88,10 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
         }
     });
 
-    const { } = useQuery(userQueries.GET_COMPANY_DEPT_MEMBERS, {
+    const { refetch: refetchMembers } = useQuery(userQueries.GET_COMPANY_DEPT_MEMBERS, {
         skip: skip && !!userInfo?.deptId,
         variables,
-        refetchAfterMutations: [leadAssignTo, UPDATE_USER_COMPANY],
+        refetchAfterMutations: [leadAssignTo, UPDATE_USER_COMPANY, ADD_COMPANY_MEMBER],
         onSuccess: ({ data }) => {
             if (data?.getCompanyDeptMembers) setCompanyDeptMembers(data.getCompanyDeptMembers)
         }
@@ -216,9 +217,15 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     };
 
 
+    const handleRefetchMembers = async () => {
+        if (!skip && userInfo?.deptId) {
+            await refetchMembers();
+        }
+    };
+
     return (
         <CompanyContext.Provider value={{
-            roles, permissions, getRootPagination, permissionsResources, companyMemberRoles, companyCategories, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms
+            roles, permissions, getRootPagination, permissionsResources, companyMemberRoles, companyCategories, companyForm, departments, leadRangeData, companyDeptMembers, rootInfo, members, companyDeptFields, optForms, refetchMembers: handleRefetchMembers
         }}>
             {children}
         </CompanyContext.Provider>

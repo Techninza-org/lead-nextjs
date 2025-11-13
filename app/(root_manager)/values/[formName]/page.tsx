@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
 
 import AdvancedDataTableForms from "@/components/advance-data-table-forms"
@@ -11,6 +11,7 @@ import { useModal } from "@/hooks/use-modal-store"
 import { adminQueries } from "@/lib/graphql/admin/queries"
 import { companyQueries } from "@/lib/graphql/company/queries"
 import { companyMutation } from "@/lib/graphql/company/mutation"
+import { leadMutation } from "@/lib/graphql/lead/mutation"
 import { deptQueries } from "@/lib/graphql/dept/queries"
 import { useMutation, useQuery } from "graphql-hooks"
 import { useToast } from "@/components/ui/use-toast"
@@ -37,8 +38,10 @@ export default function Page({ params }: { params: { formName: string } }) {
   const pathname = usePathname()
   const router = useRouter()
 
-  // multi-column sort string
-  const [sortParam, setSortParam] = useState<string>("")
+  // Initialize sortParam from URL on mount (before query runs)
+  const initialSortFromUrl = searchParams.get("sort") || ""
+  const [sortParam, setSortParam] = useState<string>(initialSortFromUrl)
+  const defaultSortSetRef = useRef(false) // Track if default sort has been set
   // pagination
   const [page, setPage] = useState<number>(1)
   const limit = 10
@@ -58,7 +61,9 @@ export default function Page({ params }: { params: { formName: string } }) {
       filters,
       page,
       limit,
-      sort: sortParam,
+      // If sortParam is empty, pass empty string - backend will default to _id: -1 (newest first)
+      // If sortParam has a value, use it (it should be the correct index for createdAt or _id)
+      sort: sortParam || "",
     };
   }, [formName, filters, page, limit, sortParam])
 
@@ -76,6 +81,7 @@ export default function Page({ params }: { params: { formName: string } }) {
     {
       variables: queryVariables,
       skip: !formName,
+      refetchAfterMutations: [companyMutation.FUNCTION_EXCUTE, leadMutation.SUBMIT_LEAD],
     }
   )
 
@@ -121,13 +127,91 @@ export default function Page({ params }: { params: { formName: string } }) {
     // TODO: Implement the hybrid filtering logic step by step
   }
 
-  // Initialize sort param from URL on mount
+  // our payload now comes back as
+  // { data, pagination, listView, changeView }
+  const formData = data?.getFormValuesByFormName || {}
+  
+  // For now, just use normal data (we'll implement search mode later)
+  const displayData = formData.data || [];
+  const displayPagination = formData.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 };
+  
+  // Initialize sort param from URL on mount, or set default to createdAt descending
   useEffect(() => {
-    const urlSort = searchParams.get("sort") || ""
-    if (urlSort !== sortParam) {
+    const urlSort = searchParams.get("sort")
+    
+    // If URL has sort and it's different from current, update it
+    if (urlSort && urlSort !== sortParam) {
       setSortParam(urlSort)
+      defaultSortSetRef.current = true // Mark that sort is set from URL
+      return
     }
-  }, []) // Only run on mount
+    
+    // If no sort in URL and default hasn't been set yet, set default to createdAt descending
+    if (!urlSort && formData?.listView && !defaultSortSetRef.current) {
+      const listView = formData.listView || []
+      
+      console.log('Checking for createdAt in listView. Available columns:', listView)
+      
+      // Try to find createdAt in listView (preferred for sorting)
+      // Check for various possible formats: createdAt, createdAt, CreatedAt, etc.
+      const createdAtIndex = listView.findIndex((col: string) => {
+        const normalized = col.toLowerCase().trim()
+        return normalized === "createdat" || normalized === "created_at" || normalized === "created at"
+      })
+      
+      console.log('createdAt index found:', createdAtIndex)
+      
+      if (createdAtIndex >= 0) {
+        // createdAt found in listView, sort by it in descending order
+        // Backend uses 1-based indexing: absIndex - 1 to get field from listView
+        // So if createdAt is at index 0 in listView, we use sort value "1" (which becomes absIndex=1, then listView[1-1]=listView[0])
+        // For descending, we use negative: "-1"
+        const sortValue = `-${createdAtIndex + 1}` // +1 because backend uses 1-based indexing
+        console.log(`Setting default sort: createdAt found at index ${createdAtIndex} in listView, using sort value: ${sortValue}`)
+        console.log(`listView columns:`, listView)
+        console.log(`Column at index ${createdAtIndex}:`, listView[createdAtIndex])
+        defaultSortSetRef.current = true // Mark that default sort has been set
+        // Update URL first, then set sortParam (this will trigger query refetch)
+        const newSearchParams = new URLSearchParams(searchParams.toString())
+        newSearchParams.set("sort", sortValue)
+        router.replace(`${pathname}?${newSearchParams.toString()}`, { scroll: false })
+        setSortParam(sortValue)
+      } else {
+        // createdAt not found in listView
+        // Use _id descending as fallback (backend default)
+        // Try to find _id column or use explicit sort
+        const idIndex = listView.findIndex((col: string) => col.toLowerCase() === "_id" || col.toLowerCase() === "id")
+        if (idIndex >= 0) {
+          const sortValue = `-${idIndex + 1}`
+          console.log(`Setting default sort: _id found at index ${idIndex} in listView, using sort value: ${sortValue}`)
+          defaultSortSetRef.current = true
+          const newSearchParams = new URLSearchParams(searchParams.toString())
+          newSearchParams.set("sort", sortValue)
+          router.replace(`${pathname}?${newSearchParams.toString()}`, { scroll: false })
+          setSortParam(sortValue)
+        } else {
+          // No createdAt or _id found in listView
+          // Backend defaults to _id: -1 when sort is empty
+          // Since _id is always in MongoDB documents, we can rely on backend default
+          // But let's not set any sort param so backend uses its default _id: -1
+          console.log("createdAt/_id not found in listView columns. Backend will use default _id: -1 sort.")
+          console.log("Available listView columns:", listView)
+          console.log("Note: Backend defaults to _id: -1 (newest first) when sort is empty")
+          // Keep sortParam empty so backend uses default _id: -1
+          defaultSortSetRef.current = true // Mark that we've checked
+        }
+      }
+    }
+  }, [formData?.listView, searchParams, pathname, router, sortParam]) // Run when listView or URL changes
+
+  // Refetch query when sortParam changes (to ensure data is sorted correctly)
+  useEffect(() => {
+    if (sortParam && formName && !loading) {
+      // Query will automatically refetch when queryVariables change (which includes sortParam)
+      // But we can also explicitly refetch if needed
+      console.log('Sort param changed to:', sortParam, '- query should refetch automatically')
+    }
+  }, [sortParam, formName, loading])
 
   // Multi-column URL-based sorting handler
   const updateSortInUrl = useCallback((
@@ -163,16 +247,6 @@ export default function Page({ params }: { params: { formName: string } }) {
     setPage(1)
     router.replace(`${pathname}?${newSearchParams.toString()}`, { scroll: false })
   }, [pathname, router, searchParams])
-
-  // our payload now comes back as
-  // { data, pagination, listView, changeView }
-  const formData = data?.getFormValuesByFormName || {}
-  
-  // For now, just use normal data (we'll implement search mode later)
-  const displayData = formData.data || [];
-  const displayPagination = formData.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 };
-  
-  
 
   const formateFields = useMemo(() =>
     updateDependentFields(companyDeptFields || []).find(
@@ -214,50 +288,70 @@ export default function Page({ params }: { params: { formName: string } }) {
     toast({ variant: 'default', title: 'Function executed successfully!' })
   }
 
-  const MoreInfoLead = ({ selectedLeads }: { selectedLeads: any[] }) => {
+  // Memoize query variables to prevent unnecessary refetches
+  // Note: getCompanyFunctionsDefault resolver uses user.companyId from context, not orgId parameter
+  // But the schema requires orgId, so we pass a dummy value (it will be ignored)
+  const orgId = useMemo(() => 'ORG_GEAR', []) // TODO: Make this dynamic - currently ignored by resolver
+  const tagsQueryVariables = useMemo(() => ({ formName }), [formName])
+  const functionsDefaultVariables = useMemo(() => ({ orgId }), [orgId])
+  const functionsAdminVariables = useMemo(() => ({ orgId }), [orgId])
+
+  // Move queries outside MoreInfoLead to prevent unnecessary refetches
+  // These queries should only run once per formName, not on every selectedLeads change
+  const { data: tagsData } = useQuery(deptQueries.GET_TAGS_BY_FORM_NAME, {
+    skip: !formName,
+    variables: tagsQueryVariables,
+  })
+
+  const { data: defaultFn, loading: defaultFnLoading, error: defaultFnError } = useQuery(adminQueries.getCompanyFunctionsDefault, {
+    skip: !formName,
+    variables: functionsDefaultVariables,
+  })
+
+  // Debug: Log the data to see what we're getting
+  useEffect(() => {
+    if (defaultFn) {
+      console.log('getCompanyFunctionsDefault data:', defaultFn)
+      console.log('getCompanyFunctionsDefault functions:', defaultFn?.getCompanyFunctionsDefault)
+    }
+    if (defaultFnError) {
+      console.error('getCompanyFunctionsDefault error:', defaultFnError)
+    }
+  }, [defaultFn, defaultFnError])
+
+  const { data: companyFunctionsData } = useQuery(adminQueries.getCompnayFunctions, { 
+    variables: functionsAdminVariables,
+    skip: !formName 
+  })
+
+  // Memoize filtered functions at page level to prevent recalculation
+  const filteredCompanyFunctions = useMemo(() => {
+    if (!companyFunctionsData?.getCompnayFunctionsAdmin || !formName) return []
+    return companyFunctionsData.getCompnayFunctionsAdmin.filter((fn: any) =>
+      fn.viewName === formName && !fn.individualButton
+    ) || []
+  }, [companyFunctionsData?.getCompnayFunctionsAdmin, formName])
+
+  const filteredIndividualFunctions = useMemo(() => {
+    // Use getCompnayFunctionsAdmin instead of getCompanyFunctionsDefault to match child modal logic
+    // Filter for functions with individualButton: true and functionType is BOTH or BULK
+    if (!companyFunctionsData?.getCompnayFunctionsAdmin || !formName) return []
+    const filtered = companyFunctionsData.getCompnayFunctionsAdmin.filter((fn: any) => 
+      fn.viewName === formName && 
+      fn.individualButton === true && 
+      (fn.functionType === "BOTH" || fn.functionType === "BULK")
+    )
+    console.log('filteredIndividualFunctions:', filtered, 'for formName:', formName)
+    console.log('All functions from getCompnayFunctionsAdmin:', companyFunctionsData.getCompnayFunctionsAdmin)
+    return filtered
+  }, [companyFunctionsData?.getCompnayFunctionsAdmin, formName])
+
+  const prevTags = useMemo(() => tagsData?.getTagsByFormName || [], [tagsData?.getTagsByFormName])
+
+  const MoreInfoLead = memo(({ selectedLeads }: { selectedLeads: any[] }) => {
     const [popoverOpen, setPopoverOpen] = useState(false)
     const [selectedFn, setSelectedFn] = useState<any>(null)
-    const [companyFunctions, setCompanyFunctions] = useState<any[]>([])
-    const [individualCompanyFunctions, setIndividualCompanyFunctions] = useState<any[]>([])
-    const [prevTags, setPrevTags] = useState<string[]>([])
-    const selectedIds = selectedLeads.map(l => l._id)
-
-    useQuery(deptQueries.GET_TAGS_BY_FORM_NAME, {
-      skip: !formName,
-      variables: { formName },
-      onSuccess: ({ data }: { data: any }) => {
-        setPrevTags(data?.getTagsByFormName || [])
-      },
-    })
-
-    const { data: defaultFn } = useQuery(adminQueries.getCompanyFunctionsDefault, {
-      skip: !formName,
-      variables: { orgId: 'ORG_GEAR' }, // TODO: Make this dynamic
-    })
-    useEffect(() => {
-      if (defaultFn?.getCompanyFunctionsDefault && formName) {
-        setIndividualCompanyFunctions(
-          defaultFn.getCompanyFunctionsDefault.filter((fn: any) =>
-            fn.viewName === formName && fn.functionType !== 'INDIVIDUAL'
-          )
-        )
-      }
-    }, [defaultFn, formName])
-
-    const { data: companyFunctionsData } = useQuery(adminQueries.getCompnayFunctions, { 
-      variables: { orgId: 'ORG_GEAR' }, // TODO: Make this dynamic
-      skip: !formName 
-    })
-    
-    useEffect(() => {
-      if (companyFunctionsData?.getCompnayFunctionsAdmin && formName) {
-        setCompanyFunctions(
-          companyFunctionsData.getCompnayFunctionsAdmin.filter((fn: any) =>
-            fn.viewName === formName && !fn.individualButton
-          ) || []
-        )
-      }
-    }, [companyFunctionsData, formName])
+    const selectedIds = useMemo(() => selectedLeads.map(l => l._id), [selectedLeads])
 
     const handleSubmitClick = () => {
       if (!selectedFn) return
@@ -297,7 +391,7 @@ export default function Page({ params }: { params: { formName: string } }) {
               <CommandList>
                 <CommandEmpty>No function found.</CommandEmpty>
                 <CommandGroup>
-                  {companyFunctions.map(fn => (
+                  {filteredCompanyFunctions.map((fn: any) => (
                     <CommandItem
                       key={fn.functionName}
                       value={fn.functionName}
@@ -321,13 +415,28 @@ export default function Page({ params }: { params: { formName: string } }) {
           </PopoverContent>
         </Popover>
 
-        {individualCompanyFunctions.map(fn => (
+        {filteredIndividualFunctions.map((fn: any) => (
           <Button
             key={fn.id}
             variant="default"
             size="sm"
             className="items-center gap-1 whitespace-nowrap"
-            onClick={() => handleFunctionCall(fn, { ids: selectedIds, unselectedIds: [] })}
+            onClick={() => {
+              // Check if function requires user intervention (parameters)
+              if (fn.isUserIntervation) {
+                onOpen("functionParameters", {
+                  id: fn.id,
+                  selectedFnName: fn.functionName,
+                  selectedData: selectedLeads,
+                  selectedFormNameIds: selectedIds,
+                  formName,
+                  formNameIds: selectedIds.slice(0,2),
+                  unselectedFormNameIds: unselectedRows,
+                })
+              } else {
+                handleFunctionCall(fn, { ids: selectedIds, unselectedIds: [] })
+              }
+            }}
           >
             <span className="hidden md:inline">{fn.functionName}</span>
             <span className="md:hidden">{fn.functionName.length > 10 ? fn.functionName.substring(0, 10) + '...' : fn.functionName}</span>
@@ -341,7 +450,8 @@ export default function Page({ params }: { params: { formName: string } }) {
           onClick={() => onOpen("uploadFormModal", {
             formName,
             fields: formateFields,
-            existingTags: prevTags
+            existingTags: prevTags,
+            refetch
           })}
         >
           <UploadIcon size={15} className="flex-shrink-0" />
@@ -353,7 +463,7 @@ export default function Page({ params }: { params: { formName: string } }) {
           variant="default"
           size="sm"
           className="items-center gap-1 whitespace-nowrap"
-          onClick={() => onOpen("submitLead", { fields: formateFields })}
+          onClick={() => onOpen("submitLead", { fields: formateFields, refetch })}
         >
           <PlusCircleIcon size={15} className="flex-shrink-0" /> 
           <span className="hidden md:inline">Add New {formName}</span>
@@ -361,7 +471,9 @@ export default function Page({ params }: { params: { formName: string } }) {
         </Button>
       </div>
     )
-  }
+  })
+  
+  MoreInfoLead.displayName = 'MoreInfoLead'
 
   return (
     <Card className="w-full max-w-7xl mx-auto my-4 px-2 md:px-6">

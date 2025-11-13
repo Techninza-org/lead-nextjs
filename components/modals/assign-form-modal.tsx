@@ -99,15 +99,15 @@ export const AssignFormModal = () => {
         onClose();
     }
 
-    const companyForm = companyDeptFields.map((field: any) => ({
+    const companyForm = (companyDeptFields || []).map((field: any) => ({
         label: field.name,
         value: field.id
-    })) || []
+    }))
 
-    const companyRoles = companyMemberRoles.map((role: any) => ({
+    const companyRoles = (companyMemberRoles || []).map((role: any) => ({
         label: role.name,
         value: role.id
-    })) || []
+    }))
 
     return (
         <Dialog open={isModalOpen} onOpenChange={handleClose}>

@@ -21,7 +21,6 @@ export interface ModalData {
     role?: any;
     data?: any;
     relationships?: any;
-    formName?: string;
     existingTags?: string[];
     id?: string;
     selectedFnName?: string;
@@ -35,6 +34,7 @@ export interface ModalData {
     documentId?: string;
     tableName?: string;
     formName?: string;
+    refetch?: () => Promise<any>;
 }
 
 export const modalTypeAtom = atom<ModalType | null>(null);

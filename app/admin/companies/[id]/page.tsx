@@ -11,16 +11,20 @@ import { adminQueries } from "@/lib/graphql/admin/queries"
 import { useQuery } from "graphql-hooks"
 import { Building2 } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 
 export default function CompanyPage({ params }: { params: { id: string } }) {
 
    const [companyFunctions, setCompanyFunctions] = useState([])
-   const { } = useQuery(adminQueries.getCompnayFunctions, {
+   
+   // Memoize query variables to prevent unnecessary refetches
+   const queryVariables = useMemo(() => ({
+      orgId: params.id
+   }), [params.id])
+
+   const { data } = useQuery(adminQueries.getCompnayFunctions, {
       skip: !params?.id,
-      variables: {
-         orgId: params.id
-      },
+      variables: queryVariables,
       onSuccess: ({ data }) => {
          setCompanyFunctions(data?.getCompnayFunctionsAdmin)
       },

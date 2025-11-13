@@ -3,10 +3,6 @@ const GET_ALL_ROLES = `
     getAllRoles {
       id
       name
-      companyDeptForm{
-        id
-        name
-      }
     }
   }
 `;

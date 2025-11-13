@@ -173,10 +173,10 @@ export default function DynamicFunctionParametersModal({
                         {form.watch(`deptFields.${currIdx}.options.value`)
                             ?.filter(option => option.label.toLowerCase().includes(searchTerm.toLowerCase())) // Search filter
                             .map((option, optIndex) => (
-                                <div key={optIndex} className="flex items-center mb-2 mt-2">
+                                <div key={optIndex} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2 mt-2">
                                     <Input
                                         placeholder="Value"
-                                        className="mr-2"
+                                        className="flex-1"
                                         value={option.label || option.value}
                                         disabled={editingIndex !== optIndex}
                                         onChange={(e) => {
@@ -188,7 +188,7 @@ export default function DynamicFunctionParametersModal({
                                     />
                                     <Input
                                         type="color"
-                                        className="w-10 h-10 p-1 rounded-md mr-2"
+                                        className="w-full sm:w-10 h-10 p-1 rounded-md"
                                         value={option.colorCode || "#000000"}
                                         onChange={(e) => {
                                             const colorCode = e.target.value;
@@ -197,34 +197,39 @@ export default function DynamicFunctionParametersModal({
                                             form.setValue(`deptFields.${currIdx}.options.value`, options);
                                         }}
                                     />
-                                    {editingIndex === optIndex ? (
+                                    <div className="flex gap-2">
+                                        {editingIndex === optIndex ? (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setEditingIndex(null)}
+                                            >
+                                                <Check size={20} color="green" />
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setEditingIndex(optIndex)}
+                                            >
+                                                <PencilIcon size={20} color="blue" />
+                                            </Button>
+                                        )}
                                         <Button
                                             type="button"
                                             variant="ghost"
-                                            onClick={() => setEditingIndex(null)}
+                                            size="sm"
+                                            onClick={() => {
+                                                const options = form.getValues(`deptFields.${currIdx}.options.value`);
+                                                options.splice(optIndex, 1);
+                                                form.setValue(`deptFields.${currIdx}.options.value`, options);
+                                            }}
                                         >
-                                            <Check size={20} color="green" />
+                                            <X size={20} color="red" />
                                         </Button>
-                                    ) : (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={() => setEditingIndex(optIndex)}
-                                        >
-                                            <PencilIcon size={20} color="blue" />
-                                        </Button>
-                                    )}
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        onClick={() => {
-                                            const options = form.getValues(`deptFields.${currIdx}.options.value`);
-                                            options.splice(optIndex, 1);
-                                            form.setValue(`deptFields.${currIdx}.options.value`, options);
-                                        }}
-                                    >
-                                        <X size={20} color="red" />
-                                    </Button>
+                                    </div>
                                 </div>
                             ))}
                     </ScrollArea>
@@ -236,7 +241,7 @@ export default function DynamicFunctionParametersModal({
                             options.push({ label: '', value: '', colorCode: '#000000' });
                             form.setValue(`deptFields.${currIdx}.options.value`, options);
                         }}
-                        className="mt-2 bg-blue-500 text-white"
+                        className="mt-2 bg-blue-500 text-white w-full sm:w-auto"
                     >
                         <PlusIcon size={15} />
                         Add Option
@@ -264,10 +269,10 @@ export default function DynamicFunctionParametersModal({
                         {form.watch(`deptFields.${currIdx}.options.value`)
                             ?.filter(option => option.label.toLowerCase().includes(searchTerm.toLowerCase())) // Search filter
                             .map((option, optIndex) => (
-                                <div key={optIndex} className="flex items-center mb-2 mt-2">
+                                <div key={optIndex} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2 mt-2">
                                     <Input
                                         placeholder="Value"
-                                        className="mr-2"
+                                        className="flex-1"
                                         value={option.label || option.value}
                                         disabled={editingIndex !== optIndex}
                                         onChange={(e) => {
@@ -277,34 +282,39 @@ export default function DynamicFunctionParametersModal({
                                             form.setValue(`deptFields.${currIdx}.options.value`, options);
                                         }}
                                     />
-                                    {editingIndex === optIndex ? (
+                                    <div className="flex gap-2">
+                                        {editingIndex === optIndex ? (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setEditingIndex(null)}
+                                            >
+                                                <Check size={20} color="green" />
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setEditingIndex(optIndex)}
+                                            >
+                                                <PencilIcon size={20} color="blue" />
+                                            </Button>
+                                        )}
                                         <Button
                                             type="button"
                                             variant="ghost"
-                                            onClick={() => setEditingIndex(null)}
+                                            size="sm"
+                                            onClick={() => {
+                                                const options = form.getValues(`deptFields.${currIdx}.options.value`);
+                                                options.splice(optIndex, 1);
+                                                form.setValue(`deptFields.${currIdx}.options.value`, options);
+                                            }}
                                         >
-                                            <Check size={20} color="green" />
+                                            <X size={20} color="red" />
                                         </Button>
-                                    ) : (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={() => setEditingIndex(optIndex)}
-                                        >
-                                            <PencilIcon size={20} color="blue" />
-                                        </Button>
-                                    )}
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        onClick={() => {
-                                            const options = form.getValues(`deptFields.${currIdx}.options.value`);
-                                            options.splice(optIndex, 1);
-                                            form.setValue(`deptFields.${currIdx}.options.value`, options);
-                                        }}
-                                    >
-                                        <X size={20} color="red" />
-                                    </Button>
+                                    </div>
                                 </div>
                             ))}
                     </ScrollArea>
@@ -316,7 +326,7 @@ export default function DynamicFunctionParametersModal({
                             options.push({ label: '', value: '' });
                             form.setValue(`deptFields.${currIdx}.options.value`, options);
                         }}
-                        className="mt-2 bg-blue-500 text-white"
+                        className="mt-2 bg-blue-500 text-white w-full sm:w-auto"
                     >
                         <PlusIcon size={15} />
                         Add Option
@@ -330,8 +340,8 @@ export default function DynamicFunctionParametersModal({
             return (
                 <div className="mt-4">
 
-                    <div className='flex'>
-                        <div>
+                    <div className='flex flex-col sm:flex-row gap-4'>
+                        <div className="w-full sm:w-auto">
                             {form.watch(`deptFields.${currIdx}.ddOptionId`) && grandParentElem && (
                                 <div>
                                     <div className="font-medium text-sm mr-2">Field Label Name ({grandParentElem.name})</div>
@@ -340,7 +350,7 @@ export default function DynamicFunctionParametersModal({
                                         onValueChange={(value) => form.setValue(`deptFields.${currIdx}.grandParentId`, value)}
                                         value={form.watch(`deptFields.${currIdx}.grandParentId`) || undefined}
                                     >
-                                        <SelectTrigger className="w-[300px]">
+                                        <SelectTrigger className="w-full sm:w-[300px]">
                                             <SelectValue placeholder="Select grand parent" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -362,14 +372,14 @@ export default function DynamicFunctionParametersModal({
                             )}
                         </div>
 
-                        <div>
+                        <div className="w-full sm:w-auto">
                             <div className="font-medium text-sm mr-2">Field Label Name ({form.watch(`deptFields.${currIdx}.ddOptionId`)})</div>
                             <FormLabel className="mr-2">Dependent On ({form.watch(`deptFields.${currIdx}.ddOptionId`)})</FormLabel>
                             <Select
                                 onValueChange={(value) => form.setValue(`deptFields.${currIdx}.ddOptionId`, value)}
                                 value={form.watch(`deptFields.${currIdx}.ddOptionId`) || undefined}
                             >
-                                <SelectTrigger className="w-[300px]">
+                                <SelectTrigger className="w-full sm:w-[300px]">
                                     <SelectValue placeholder="Select dependency" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -397,7 +407,7 @@ export default function DynamicFunctionParametersModal({
                                                     variant="outline"
                                                     role="combobox"
                                                     className={cn(
-                                                        "w-[250px] justify-between",
+                                                        "w-full sm:w-[250px] justify-between",
                                                         !field.value && "text-muted-foreground"
                                                     )}
                                                 >
@@ -406,7 +416,7 @@ export default function DynamicFunctionParametersModal({
                                                 </Button>
                                             </FormControl>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[250px] p-0">
+                                        <PopoverContent className="w-[90vw] sm:w-[250px] p-0">
                                             <Command>
                                                 <CommandInput placeholder="Search language..." />
                                                 <CommandList>
@@ -500,7 +510,7 @@ export default function DynamicFunctionParametersModal({
                                 variant="default"
                                 color="primary"
                                 size={"sm"}
-                                className="items-center gap-1"
+                                className="items-center gap-1 w-full sm:w-auto"
                                 onClick={() => fileInputRef?.current?.click()}
                             >
                                 <UploadIcon size={15} /> <span>Upload Options</span>
@@ -509,7 +519,7 @@ export default function DynamicFunctionParametersModal({
                     </div>
 
 
-                    <div className='pl-5'>
+                    <div className='pl-0 sm:pl-5'>
                         <FormLabel className="mr-2 mt-4 block">Options</FormLabel>
                         <div className="relative my-2">
                             <Input
@@ -518,7 +528,7 @@ export default function DynamicFunctionParametersModal({
                                 placeholder="Search options..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
+                                className="pl-10 w-full"
                             />
                             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         </div>
@@ -528,10 +538,10 @@ export default function DynamicFunctionParametersModal({
                                 ?.value
                                 .filter(option => option?.label?.toLowerCase().includes(searchTerm.toLowerCase()))
                                 .map((nestedOption, nestedIndex) => (
-                                    <div key={nestedIndex} className="flex items-center mb-2">
+                                    <div key={nestedIndex} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2">
                                         <Input
                                             placeholder="Nested Value"
-                                            className="mr-2 outline-none focus:outline-none focus:ring-0 focus:border-transparent" // Ensures no outline, ring, or border on focus
+                                            className="flex-1 outline-none focus:outline-none focus:ring-0 focus:border-transparent" // Ensures no outline, ring, or border on focus
                                             value={nestedOption.label}
                                             disabled={editingIndex !== nestedIndex}
                                             onChange={(e) => {
@@ -542,35 +552,40 @@ export default function DynamicFunctionParametersModal({
                                                 form.setValue(`deptFields.${currIdx}.options.value`, options)
                                             }}
                                         />
-                                        {editingIndex === nestedIndex ? (
+                                        <div className="flex gap-2">
+                                            {editingIndex === nestedIndex ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setEditingIndex(null)}
+                                                >
+                                                    <Check size={20} color="green" />
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setEditingIndex(nestedIndex)}
+                                                >
+                                                    <PencilIcon size={20} color="blue" />
+                                                </Button>
+                                            )}
                                             <Button
                                                 type="button"
                                                 variant="ghost"
-                                                onClick={() => setEditingIndex(null)}
+                                                size="sm"
+                                                onClick={() => {
+                                                    const options = form.getValues(`deptFields.${currIdx}.options.value`)
+                                                    const optionIndex = options.findIndex(x => x.label === form.getValues(`deptFields.${currIdx}.linkedFieldValues`))
+                                                    options[optionIndex].value.splice(nestedIndex, 1)
+                                                    form.setValue(`deptFields.${currIdx}.options.value`, options)
+                                                }}
                                             >
-                                                <Check size={20} color="green" />
+                                                <X size={20} color="red" />
                                             </Button>
-                                        ) : (
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                onClick={() => setEditingIndex(nestedIndex)}
-                                            >
-                                                <PencilIcon size={20} color="blue" />
-                                            </Button>
-                                        )}
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={() => {
-                                                const options = form.getValues(`deptFields.${currIdx}.options.value`)
-                                                const optionIndex = options.findIndex(x => x.label === form.getValues(`deptFields.${currIdx}.linkedFieldValues`))
-                                                options[optionIndex].value.splice(nestedIndex, 1)
-                                                form.setValue(`deptFields.${currIdx}.options.value`, options)
-                                            }}
-                                        >
-                                            <X size={20} color="red" />
-                                        </Button>
+                                        </div>
                                     </div>
                                 ))}
                         </ScrollArea>
@@ -585,7 +600,7 @@ export default function DynamicFunctionParametersModal({
                                 options[optionIndex].value.push({ label: '', value: '' })
                                 form.setValue(`deptFields.${currIdx}.options.value`, options)
                             }}
-                            className="mt-2 bg-blue-500 text-white"
+                            className="mt-2 bg-blue-500 text-white w-full sm:w-auto"
                         >
                             <PlusIcon size={15} />
                             Add Nested Option
@@ -603,21 +618,21 @@ export default function DynamicFunctionParametersModal({
     };
     return (
         <Dialog  open={isOpen} onOpenChange={onCancel}>
-        <DialogContent className="text-black max-w-screen-lg">
-            <DialogHeader className="pt-8 px-6">
-                <DialogTitle className="text-2xl text-center font-bold">
+        <DialogContent className="text-black max-w-[95vw] sm:max-w-screen-lg max-h-[95vh] overflow-y-auto">
+            <DialogHeader className="pt-4 sm:pt-8 px-3 sm:px-6">
+                <DialogTitle className="text-xl sm:text-2xl text-center font-bold">
                     Add Parameters
                 </DialogTitle>
             </DialogHeader>
 
 
         <Form {...form}>
-            <div className="grid grid-cols-10 gap-2">
-                <Card className="col-span-7">
-                    <CardHeader>
-                        <CardTitle className="text-2xl text-center font-bold">Function Parameters</CardTitle>
+            <div className="grid grid-cols-1 md:grid-cols-10 gap-2 md:gap-4">
+                <Card className="col-span-1 md:col-span-7">
+                    <CardHeader className="p-3 sm:p-6">
+                        <CardTitle className="text-lg sm:text-2xl text-center font-bold">Function Parameters</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-3 sm:p-6">
                         <form onSubmit={handleSave}>
                             {fields.map((field, index) => {
                                 const isDisabled = form.watch(`deptFields.${index}.isDisabled`);
@@ -630,13 +645,13 @@ export default function DynamicFunctionParametersModal({
                                 return (
                                     <div
                                         key={field.id}
-                                        className={`mb-4 border p-4 rounded-md ${currIdx === index ? 'bg-blue-50' : ''
+                                        className={`mb-4 border p-3 sm:p-4 rounded-md ${currIdx === index ? 'bg-blue-50' : ''
                                             } ${isDisabled || isHardCoded ? 'opacity-50 pointer-events-none' : ''}`}
                                         onClick={() => !isDisabled && !isHardCoded && setCurrIdx(index)}
                                         aria-disabled={isDisabled || isHardCoded || isXIdField}
                                     >
-                                        <div className="grid grid-cols-8 gap-2">
-                                            <div className="col-span-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-8 gap-2">
+                                            <div className="col-span-1 sm:col-span-3">
                                                 <FormField
                                                     control={form.control}
                                                     disabled={isDisabled || isXIdField}
@@ -645,7 +660,7 @@ export default function DynamicFunctionParametersModal({
                                                         <FormItem>
                                                             <FormControl>
                                                                 <Input
-                                                                    className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0"
+                                                                    className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0 w-full"
                                                                     placeholder="Field Name"
                                                                     disabled={isDisabled}
                                                                     {...nameField}
@@ -656,7 +671,7 @@ export default function DynamicFunctionParametersModal({
                                                     )}
                                                 />
                                             </div>
-                                            <div className="col-span-3">
+                                            <div className="col-span-1 sm:col-span-3">
                                                 <FormField
                                                     control={form.control}
                                                     name={`deptFields.${index}.fieldType`}
@@ -675,7 +690,7 @@ export default function DynamicFunctionParametersModal({
                                                                 disabled={isDisabled}
                                                             >
                                                                 <FormControl>
-                                                                    <SelectTrigger className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0">
+                                                                    <SelectTrigger className="bg-zinc-100/50 border-0 dark:bg-zinc-700 dark:text-white focus-visible:ring-slate-500 focus-visible:ring-1 text-black focus-visible:ring-offset-0 w-full">
                                                                         <SelectValue placeholder="Select Field Type" />
                                                                     </SelectTrigger>
                                                                 </FormControl>
@@ -690,10 +705,11 @@ export default function DynamicFunctionParametersModal({
                                                     )}
                                                 />
                                             </div>
-                                            <div className="flex gap-2 col-span-2">
+                                            <div className="flex gap-2 col-span-1 sm:col-span-2 justify-start sm:justify-end">
                                                 <Button
                                                     type="button"
                                                     variant="default"
+                                                    size="sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         if (!isDisabled) moveField(index, -1);
@@ -705,6 +721,7 @@ export default function DynamicFunctionParametersModal({
                                                 <Button
                                                     type="button"
                                                     variant="default"
+                                                    size="sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         if (!isDisabled) moveField(index, 1);
@@ -716,6 +733,7 @@ export default function DynamicFunctionParametersModal({
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
+                                                    size="sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         if (!isDisabled) remove(index);
@@ -726,7 +744,7 @@ export default function DynamicFunctionParametersModal({
                                                 </Button>
                                             </div>
                                         </div>
-                                        <div className="flex gap-6 mt-2">
+                                        <div className="flex flex-wrap gap-4 sm:gap-6 mt-2">
                                             <FormField
                                                 control={form.control}
                                                 name={`deptFields.${index}.isRequired`}
@@ -783,11 +801,13 @@ export default function DynamicFunctionParametersModal({
                                                     </FormItem>
                                                 )}
                                             />
-                                            {form.watch(`deptFields.${index}.isRelation`) && <NestedCombobox
-                                                data={data?.getCompanyDeptFields || []}
-                                                onSelect={(value) => form.setValue(`deptFields.${index}.optionId`, value)}
-                                                className='bg-inherit'
-                                            />}
+                                            {form.watch(`deptFields.${index}.isRelation`) && <div className="w-full sm:w-auto">
+                                                <NestedCombobox
+                                                    data={data?.getCompanyDeptFields || []}
+                                                    onSelect={(value) => form.setValue(`deptFields.${index}.optionId`, value)}
+                                                    className='bg-inherit w-full sm:w-auto'
+                                                />
+                                            </div>}
                                         </div>
                                     </div>
                                 )
@@ -795,15 +815,15 @@ export default function DynamicFunctionParametersModal({
                             <Button
                                 type="button"
                                 onClick={() => append({ name: '', fieldType: '', order: fields.length + 1, isRequired: true, isDisabled: false, ddOptionId: null, isHardCoded: false, })}
-                                className="mt-4 bg-blue-500 text-white"
+                                className="mt-4 bg-blue-500 text-white w-full sm:w-auto"
                             >
                                 Add Parameter
                             </Button>
-                            <div className="mt-6 flex justify-end">
-                            <Button variant={"secondary"} type="button" onClick={onCancel}>
+                            <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
+                            <Button variant={"secondary"} type="button" onClick={onCancel} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" variant={"default"}>
+            <Button type="submit" variant={"default"} className="w-full sm:w-auto">
               Save Parameters
             </Button>
                             </div>
@@ -812,11 +832,11 @@ export default function DynamicFunctionParametersModal({
                     </CardContent>
                 </Card>
 
-                <Card className="col-span-3">
-                    <CardHeader>
-                        <CardTitle className="text-2xl text-center font-bold">Field Options</CardTitle>
+                <Card className="col-span-1 md:col-span-3">
+                    <CardHeader className="p-3 sm:p-6">
+                        <CardTitle className="text-lg sm:text-2xl text-center font-bold">Field Options</CardTitle>
                     </CardHeader>
-                    <CardContent className='p-3'>
+                    <CardContent className='p-3 sm:p-6'>
                         {!form.watch(`deptFields.${currIdx}.isRelation`) && renderFieldOptions()}
                     </CardContent>
                 </Card>

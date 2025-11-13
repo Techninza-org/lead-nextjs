@@ -7,6 +7,7 @@ import { useModal } from '@/hooks/use-modal-store'
 import { userAtom } from '@/lib/atom/userAtom'
 import { deptQueries } from '@/lib/graphql/dept/queries'
 import { LOGIN_USER } from '@/lib/graphql/user/mutations'
+import { DeptMutation } from '@/lib/graphql/dept/mutation'
 import { useQuery } from 'graphql-hooks'
 import { useAtomValue } from 'jotai'
 import { PencilIcon } from 'lucide-react'
@@ -25,9 +26,8 @@ const CompanyDepartmentsRoot = () => {
     },
     skip: !userInfo?.token || !userInfo?.companyId,
     refetchAfterMutations: [
-      {
-        mutation: LOGIN_USER,
-      },
+      LOGIN_USER,
+      DeptMutation.UPDATE_DEPT,
     ],
   });
 
@@ -61,7 +61,7 @@ const CompanyDepartmentsRoot = () => {
       <Card>
         <CardHeader>
           <div className="ml-auto">
-            <Button size="sm" onClick={() => onOpen('addDept')}>Add Form</Button>
+            <Button size="sm" onClick={() => onOpen('addDept', { refetch })}>Add Form</Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

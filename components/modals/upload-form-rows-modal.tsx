@@ -342,6 +342,10 @@ const updateCsvKeys = (
         a.remove()
       } else {
         await res.json()
+        // Refetch the table data after successful upload
+        if (modalData?.refetch) {
+          await modalData.refetch();
+        }
       }
     } catch (err) {
       console.error("Error uploading CSV:", err)

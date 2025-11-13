@@ -6,31 +6,7 @@ const GET_COMPANY_LEADS = `
 
 const GET_PROSPECT_LEADS = `
   query GetCompanyProspects {
-    getCompanyProspects {
-        id
-        name
-        email
-        alternatePhone
-        callStatus
-        paymentStatus
-        phone
-        isLeadConverted
-        via
-        followUps {
-          id
-          nextFollowUpDate
-          remark
-          customerResponse
-          dynamicFieldValues
-          rating
-          leadId
-          followUpBy
-          createdAt
-          updatedAt
-       }
-        createdAt
-        updatedAt
-    }
+    getCompanyProspects
   }
 `;
 

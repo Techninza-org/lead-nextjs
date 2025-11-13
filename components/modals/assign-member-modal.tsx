@@ -36,7 +36,7 @@ import { useState } from "react"
 import { useCompany } from "../providers/CompanyProvider"
 
 export const AssignMemberModal = () => {
-    const { roles: filteredRoles } = useCompany() //companyMemberRoles changed this
+    const { roles: filteredRoles, refetchMembers } = useCompany() //companyMemberRoles changed this
     const { toast } = useToast()
     const user = useAtomValue(userAtom)
     const [addCompanyMember, { loading, error, data }] = useMutation(ADD_COMPANY_MEMBER);
@@ -99,6 +99,8 @@ export const AssignMemberModal = () => {
         //     description: `Password: ${data.name}@123 is set to default, please ask the user to change it`,
         // })
         if (!error) {
+            // Refetch members to update the list
+            refetchMembers();
             handleClose();
         }
     }

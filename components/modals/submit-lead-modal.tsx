@@ -141,6 +141,10 @@ export const SubmitLeadModal = () => {
         toast({ variant: "destructive", title: "Error", description: msg });
       } else {
         toast({ variant: "default", title: "Lead Submitted Successfully!" });
+        // Refetch the table data
+        if (modalData?.refetch) {
+          await modalData.refetch();
+        }
         handleClose();
       }
     } catch (err: any) {

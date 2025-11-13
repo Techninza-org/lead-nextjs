@@ -60,6 +60,7 @@ export const CreateDeptFormModal = () => {
     const userInfo = useAtomValue(userAtom)
 
     const { isOpen, onClose, type, data: modalData } = useModal();
+    const { refetch: refetchDepts } = modalData || {};
 
     const [CreateNUpdateCompanyDeptForm, { loading: assignLoading }] = useMutation(DeptMutation.UPDATE_DEPT)
 
@@ -125,6 +126,10 @@ export const CreateDeptFormModal = () => {
             variant: "default",
             title: "Form Created Successfully!",
         })
+        // Refetch the departments list to show the new form
+        if (refetchDepts) {
+            await refetchDepts();
+        }
         handleClose();
     }
 

@@ -87,10 +87,22 @@ export const ChildDetailsModal = () => {
    const [addChildToParent] = useMutation(DeptMutation.ADD_CHILD_TO_PARENT)
    const [executeDynamicFunction] = useMutation(companyMutation.FUNCTION_EXCUTE);
 
-   // Query to get edit options
+   // Memoize query variables to prevent unnecessary refetches
+   const optionsQueryVariables = useMemo(() => {
+      // Only create variables if both are available, otherwise return empty object
+      if (!editingKey || !modalData?.table?.label) {
+         return { key: "", formName: "" }
+      }
+      return {
+         key: editingKey,
+         formName: modalData.table.label
+      }
+   }, [editingKey, modalData?.table?.label])
+
+   // Query to get edit options - only run when both editingKey and formName are available
    const { data: optionsData, refetch: refetchOptions } = useQuery(deptQueries.GET_OPTIONS, {
-      variables: { key: editingKey, formName: modalData?.table?.label },
-      pause: !editingKey, // Only run when editingKey is set
+      variables: optionsQueryVariables,
+      skip: !editingKey || !modalData?.table?.label, // Use skip instead of pause for better control
    });
 
    useEffect(() => {
@@ -119,11 +131,7 @@ export const ChildDetailsModal = () => {
       }
    }, [modalData?.table?.data]);
 
-   useEffect(() => {
-      if (isOpen && modalData?.table?.label) {
-         fetchCompanyFunctions();
-      }
-   }, [isOpen, modalData?.table?.label])
+   // Functions are now automatically fetched via useQuery when modal opens
 
    const handleEditClick = (key: string, value: string, documentId?: string, tableName?: string) => {
       setEditingKey(key);
@@ -217,28 +225,43 @@ export const ChildDetailsModal = () => {
       },
    });
 
-   // useQuery here but SKIP by default
-   const funcs = useQuery(adminQueries.getCompnayFunctions, {
-      variables: {
-         orgId: 'ORG_GEAR' // Replace with actual org ID or use context
-      }, skip: true, onSuccess: ({ data }: { data: any }) => {
-         const filteredFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === false) || [];
-         setCompanyFunctions(filteredFunctions);
-         const individualButtonFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === true);
-         setIndividualButtonFunctions(individualButtonFunctions);
-      }
+   // Memoize query variables to prevent unnecessary refetches
+   const functionsQueryVariables = useMemo(() => ({
+      orgId: 'ORG_GEAR' // TODO: Replace with actual org ID or use context
+   }), [])
+
+   // Query company functions - only run when modal is open and has table data
+   const { data: funcsData } = useQuery(adminQueries.getCompnayFunctions, {
+      variables: functionsQueryVariables,
+      skip: !isOpen || !modalData?.table?.label,
    })
 
-   const fetchCompanyFunctions = async () => {
-      // Use your GraphQL client directly or useQuery with manual trigger
-      const { data } = await funcs.refetch();
-      if (data?.getCompnayFunctionsAdmin) {
-         const filteredFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === false) || [];
-         setCompanyFunctions(filteredFunctions);
-         const individualButtonFunctions = data?.getCompnayFunctionsAdmin?.filter((fn: any) => fn.viewName === modalData?.table?.label && fn.functionType !== "BULK" && fn.individualButton === true);
-         setIndividualButtonFunctions(individualButtonFunctions);
-      }
-   };
+   // Memoize filtered functions to prevent unnecessary state updates
+   const filteredCompanyFunctionsForModal = useMemo(() => {
+      if (!funcsData?.getCompnayFunctionsAdmin || !modalData?.table?.label) return []
+      return funcsData.getCompnayFunctionsAdmin.filter((fn: any) => 
+         fn.viewName === modalData.table.label && fn.functionType !== "BULK" && fn.individualButton === false
+      ) || []
+   }, [funcsData?.getCompnayFunctionsAdmin, modalData?.table?.label])
+
+   const filteredIndividualFunctionsForModal = useMemo(() => {
+      if (!funcsData?.getCompnayFunctionsAdmin || !modalData?.table?.label) return []
+      // Show functions with individualButton: true and functionType is BOTH or BULK
+      return funcsData.getCompnayFunctionsAdmin.filter((fn: any) => 
+         fn.viewName === modalData.table.label && 
+         fn.individualButton === true && 
+         (fn.functionType === "BOTH" || fn.functionType === "BULK")
+      ) || []
+   }, [funcsData?.getCompnayFunctionsAdmin, modalData?.table?.label])
+
+   // Update state only when filtered results actually change
+   useEffect(() => {
+      setCompanyFunctions(filteredCompanyFunctionsForModal)
+   }, [filteredCompanyFunctionsForModal])
+
+   useEffect(() => {
+      setIndividualButtonFunctions(filteredIndividualFunctionsForModal)
+   }, [filteredIndividualFunctionsForModal]);
 
    const defaultValues = useMemo(() => {
       const fields = formateFields?.fields;
@@ -375,9 +398,7 @@ export const ChildDetailsModal = () => {
    // };
    const handlePopoverChange = (open: boolean) => {
       setPopoverOpen(open)
-      if (open && companyFunctions.length === 0) {
-         fetchCompanyFunctions();
-      }
+      // Functions are now automatically fetched via useQuery when modal opens
    }
 
    const handleShowHistory = (documentId: string, tableName: string, formName: string) => {
@@ -481,10 +502,25 @@ export const ChildDetailsModal = () => {
                                  variant="default"
                                  size="sm"
                                  className="items-center gap-1 flex-1 sm:flex-initial"
-                                 onClick={() => handleFunctionCall(fn, {
-                                    ids: [modalData?.table?.data?._id],
-                                    unselectedIds: []
-                                 })}
+                                 onClick={() => {
+                                    // Check if function requires user intervention (parameters)
+                                    if (fn.isUserIntervation) {
+                                       onOpen("functionParameters", {
+                                          id: fn.id,
+                                          selectedFnName: fn.functionName,
+                                          selectedData: [modalData?.table?.data],
+                                          selectedFormNameIds: [modalData?.table?.data?._id],
+                                          formName: modalData?.table?.label,
+                                          formNameIds: [modalData?.table?.data?._id],
+                                          unselectedFormNameIds: [],
+                                       });
+                                    } else {
+                                       handleFunctionCall(fn, {
+                                          ids: [modalData?.table?.data?._id],
+                                          unselectedIds: []
+                                       });
+                                    }
+                                 }}
                               >
                                  <span className="truncate">{fn.functionName}</span>
                               </Button>

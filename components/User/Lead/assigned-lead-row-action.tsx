@@ -39,8 +39,9 @@ export function AssignedLeadTableRowActions<TData>({
 
   const OptFormNames = optForms?.map((form: any) => form.name)
 
+  // Note: companyDeptForm field doesn't exist in Role schema, using empty array as fallback
   const assignedForms = companyMemberRoles?.find((role: any) => role.name === user?.role.name)?.companyDeptForm || []
-  const assignedFormsName = assignedForms.map((x: any) => x.name)
+  const assignedFormsName = Array.isArray(assignedForms) ? assignedForms.map((x: any) => typeof x === 'string' ? x : x?.name || x) : []
 
   const formFields = companyForm.filter((x: any) => !OptFormNames.includes(x.name) && assignedFormsName.includes(x.name)) || []
   const formateFields = updateDependentFields(companyDeptFields || [])
