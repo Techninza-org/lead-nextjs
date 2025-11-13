@@ -398,16 +398,16 @@ export const ChildDetailsModal = () => {
 
    return (
       <Dialog open={isModalOpen} onOpenChange={handleClose}>
-         <DialogContent className="text-black max-w-[75vw]">
-            <DialogHeader className="pt-6">
-               <DialogTitle className="text-2xl font-bold">
-                  <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-4">
-                        <div>
-                           <Badge variant="outline" className="text-xs text-gray-600 font-medium">
+         <DialogContent className="text-black max-w-[95vw] sm:max-w-[90vw] md:max-w-[75vw] w-full">
+            <DialogHeader className="pt-4 sm:pt-6">
+               <DialogTitle className="text-xl sm:text-2xl font-bold">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                           <Badge variant="outline" className="text-xs text-gray-600 font-medium w-fit">
                               ID: {modalData.table?.data?._id}
                            </Badge>
-                           <h2 className="pl-2 capitalize">{modalData?.table?.label} Details</h2>
+                           <h2 className="capitalize text-lg sm:text-xl">{modalData?.table?.label} Details</h2>
                         </div>
                         <Button
                            variant="outline"
@@ -417,21 +417,21 @@ export const ChildDetailsModal = () => {
                               modalData.table?.label,
                               modalData.table?.label
                            )}
-                           className="flex items-center gap-2"
+                           className="flex items-center gap-2 w-full sm:w-auto"
                         >
                            <History className="h-4 w-4" />
                            History
                         </Button>
                      </div>
-                     <div className='flex gap-3'>
+                     <div className='flex flex-col sm:flex-row gap-2 sm:gap-3'>
                         <Popover open={popoverOpen} onOpenChange={handlePopoverChange}>
                            <PopoverTrigger asChild>
-                              <Button variant="outline" className="w-[200px] justify-between">
-                                 {selectedFn ? selectedFn.functionName : 'Select function...'}
+                              <Button variant="outline" className="w-full sm:w-[200px] justify-between">
+                                 <span className="truncate">{selectedFn ? selectedFn.functionName : 'Select function...'}</span>
                                  <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                               </Button>
                            </PopoverTrigger>
-                           <PopoverContent className="w-[220px] p-0">
+                           <PopoverContent className="w-[90vw] sm:w-[220px] p-0">
                               <div className="p-2 border-b flex justify-end">
                                  <Button size="sm" onClick={handleSubmitClick} disabled={!selectedFn}>
                                     Submit
@@ -474,19 +474,19 @@ export const ChildDetailsModal = () => {
                               </Command>
                            </PopoverContent>
                         </Popover>
-                        <div className='flex gap-3'>
+                        <div className='flex flex-wrap gap-2 sm:gap-3'>
                            {individualButtonFunctions.map((fn: any) => (
                               <Button
                                  key={fn.id}
                                  variant="default"
                                  size="sm"
-                                 className="items-center gap-1"
+                                 className="items-center gap-1 flex-1 sm:flex-initial"
                                  onClick={() => handleFunctionCall(fn, {
                                     ids: [modalData?.table?.data?._id],
                                     unselectedIds: []
                                  })}
                               >
-                                 <span>{fn.functionName}</span>
+                                 <span className="truncate">{fn.functionName}</span>
                               </Button>
                            ))}
                         </div>
@@ -496,26 +496,26 @@ export const ChildDetailsModal = () => {
                </DialogTitle>
                <Separator className="my-4" />
             </DialogHeader>
-            <ScrollArea className="max-h-full w-full rounded-md border">
-               <div className="p-4 space-y-4">
+            <ScrollArea className="max-h-[70vh] sm:max-h-[80vh] w-full rounded-md border">
+               <div className="p-2 sm:p-4 space-y-4">
                   <Card className="overflow-hidden">
-                     <div className="p-4 bg-gray-50">
-                        <h3 className="font-medium text-lg">Main Details</h3>
+                     <div className="p-3 sm:p-4 bg-gray-50">
+                        <h3 className="font-medium text-base sm:text-lg">Main Details</h3>
                      </div>
 
                      <CardContent className="pt-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                            {Object.entries(mainData || {})
                               .filter(([key]) => key !== "children" && key !== "_id")
                               .map(([key, value]) => (
-                                 <div key={key} className="flex justify-between items-center p-2 border rounded">
-                                    <span className="font-medium capitalize">{key}:</span>
-                                    <div className="flex gap-5 items-center">
+                                 <div key={key} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-2 sm:p-3 border rounded gap-2">
+                                    <span className="font-medium capitalize text-sm sm:text-base">{key}:</span>
+                                    <div className="flex gap-2 sm:gap-5 items-center flex-1 sm:flex-initial justify-end sm:justify-start">
                                        {editingKey === key ? (
                                           <>
                                              {Array.isArray(editOptions) && editOptions.length > 0 ? (
                                                 <select
-                                                   className="border px-2 py-1 rounded"
+                                                   className="border px-2 py-1 rounded text-sm flex-1 sm:flex-initial min-w-0"
                                                    value={editedValue}
                                                    onChange={(e) => setEditedValue(e.target.value)}
                                                 >
@@ -529,14 +529,14 @@ export const ChildDetailsModal = () => {
                                              ) : (
                                                 <input
                                                    type="text"
-                                                   className="border px-2 py-1 rounded"
+                                                   className="border px-2 py-1 rounded text-sm flex-1 sm:flex-initial min-w-0"
                                                    value={editedValue}
                                                    onChange={(e) => setEditedValue(e.target.value)}
                                                 />
                                              )}
                                              <button
                                                 onClick={() => handleSave(key)}
-                                                className="text-green-600 font-semibold"
+                                                className="text-green-600 font-semibold text-sm whitespace-nowrap"
                                              >
                                                 Save
                                              </button>
@@ -545,17 +545,17 @@ export const ChildDetailsModal = () => {
                                                    setEditingKey(null);
                                                    setEditOptions([]);
                                                 }}
-                                                className="text-gray-500"
+                                                className="text-gray-500 text-sm whitespace-nowrap"
                                              >
                                                 Cancel
                                              </button>
                                           </>
                                        ) : (
                                           <>
-                                             <span>{value as string}</span>
+                                             <span className="text-sm sm:text-base truncate flex-1 sm:flex-initial">{value as string}</span>
                                              <Pen
                                                 size={18}
-                                                className="cursor-pointer"
+                                                className="cursor-pointer shrink-0"
                                                 onClick={() => handleEditClick(key, value as string, modalData?.table?.data?._id, modalData?.table?.label)}
                                              />
                                           </>
@@ -575,17 +575,17 @@ export const ChildDetailsModal = () => {
                      return (
                         <Card key={formName} className="overflow-hidden">
                            <div
-                              className="flex items-center justify-between p-4 cursor-pointer bg-gray-50"
+                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 cursor-pointer bg-gray-50 gap-3 sm:gap-0"
                               onClick={() => toggleSection(formName)}
                            >
                               <div className="flex items-center space-x-2">
                                  {expandedSections[formName] ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                                 <h3 className="font-medium text-lg capitalize">{formName}</h3>
+                                 <h3 className="font-medium text-base sm:text-lg capitalize">{formName}</h3>
                                  <Badge variant="secondary" className="ml-2">
                                     {(tableData[formName] || []).length}
                                  </Badge>
                               </div>
-                              <div className="flex gap-2">
+                              <div className="flex flex-col sm:flex-row gap-2" onClick={(e) => e.stopPropagation()}>
                                  <Button
                                     variant="outline"
                                     size="sm"
@@ -597,10 +597,11 @@ export const ChildDetailsModal = () => {
                                           formName
                                        );
                                     }}
-                                    className="flex items-center gap-2"
+                                    className="flex items-center gap-2 w-full sm:w-auto"
                                  >
                                     <History className="h-4 w-4" />
-                                    Table History
+                                    <span className="hidden sm:inline">Table History</span>
+                                    <span className="sm:hidden">History</span>
                                  </Button>
                                  <Button
                                     variant="outline"
@@ -609,9 +610,11 @@ export const ChildDetailsModal = () => {
                                        e.stopPropagation();
                                        setActiveForm(activeForm === formName ? null : formName);
                                     }}
+                                    className="w-full sm:w-auto"
                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add Row
+                                    <Plus className="h-4 w-4 sm:mr-2" />
+                                    <span className="hidden sm:inline">Add Row</span>
+                                    <span className="sm:hidden">Add</span>
                                  </Button>
                               </div>
                            </div>
@@ -619,94 +622,96 @@ export const ChildDetailsModal = () => {
                            {expandedSections[formName] && (
                               <CardContent className="pt-4">
                                  {(rows.length || 0) > 0 ? (
-                                    <Table>
-                                       <TableHeader>
-                                          <TableRow>
-                                             {fields.map((field: any) => (
-                                                <TableHead className='font-bold' key={field.name}>{field.name}</TableHead>
-                                             ))}
-                                             <TableHead className='font-bold'>Actions</TableHead>
-                                          </TableRow>
-                                       </TableHeader>
-                                       <TableBody>
-                                          {rows.map((row, idx) => (
-                                             <TableRow key={row._id?.$oid ?? idx}>
-                                                {fields.map((f: { name: React.Key | null | undefined; }) => (
-                                                   //@ts-ignore
-                                                   // <TableCell key={f.name}>{row[f.name]}</TableCell>
-                                                   <TableCell key={f.name}>
-                                                      <div className="flex gap-5 items-center">
-                                                         {editingKey === f.name ? (
-                                                            <>
-                                                               {Array.isArray(editOptions) && editOptions.length > 0 ? (
-                                                                  <select
-                                                                     className="border px-2 py-1 rounded"
-                                                                     value={editedValue}
-                                                                     onChange={(e) => setEditedValue(e.target.value)}
-                                                                  >
-                                                                     <option value="" disabled>Select {f.name}</option>
-                                                                     {editOptions.map((option: any) => (
-                                                                        <option key={option.value} value={option.value}>
-                                                                           {option.label}
-                                                                        </option>
-                                                                     ))}
-                                                                  </select>
-                                                               ) : (
-                                                                  <input
-                                                                     type="text"
-                                                                     className="border px-2 py-1 rounded"
-                                                                     value={editedValue}
-                                                                     onChange={(e) => setEditedValue(e.target.value)}
-                                                                  />
-                                                               )}
-                                                               <button
-                                                                  onClick={() => handleSave(f.name as string)}
-                                                                  className="text-green-600 font-semibold"
-                                                               >
-                                                                  Save
-                                                               </button>
-                                                               <button
-                                                                  onClick={() => {
-                                                                     setEditingKey(null);
-                                                                     setEditOptions([]);
-                                                                  }}
-                                                                  className="text-gray-500"
-                                                               >
-                                                                  Cancel
-                                                               </button>
-                                                            </>
-                                                         ) : (
-                                                            <>
-                                                               <span>{f.name ? row[f.name as string] : ''}</span>
-                                                               <Pen
-                                                               size={18}
-                                                                  className="cursor-pointer"
-                                                                  onClick={() => f.name && handleEditClick(f.name as string, f.name ? row[f.name as string] : '', row._id?.$oid || row._id, formName)}
-                                                               />
-                                                            </>
-                                                         )}
-                                                      </div>
-                                                   </TableCell>
+                                    <div className="overflow-x-auto">
+                                       <Table>
+                                          <TableHeader>
+                                             <TableRow>
+                                                {fields.map((field: any) => (
+                                                   <TableHead className='font-bold whitespace-nowrap' key={field.name}>{field.name}</TableHead>
                                                 ))}
-                                                <TableCell>
-                                                   <Button
-                                                      variant="outline"
-                                                      size="sm"
-                                                      onClick={() => handleShowHistory(
-                                                         row._id?.$oid || row._id,
-                                                         formName,
-                                                         formName
-                                                      )}
-                                                      className="flex items-center gap-1"
-                                                   >
-                                                      <History className="h-3 w-3" />
-                                                      History
-                                                   </Button>
-                                                </TableCell>
+                                                <TableHead className='font-bold whitespace-nowrap'>Actions</TableHead>
                                              </TableRow>
-                                          ))}
-                                       </TableBody>
-                                    </Table>
+                                          </TableHeader>
+                                          <TableBody>
+                                             {rows.map((row, idx) => (
+                                                <TableRow key={row._id?.$oid ?? idx}>
+                                                   {fields.map((f: { name: React.Key | null | undefined; }) => (
+                                                      //@ts-ignore
+                                                      // <TableCell key={f.name}>{row[f.name]}</TableCell>
+                                                      <TableCell key={f.name} className="min-w-[150px]">
+                                                         <div className="flex gap-2 sm:gap-5 items-center">
+                                                            {editingKey === f.name ? (
+                                                               <>
+                                                                  {Array.isArray(editOptions) && editOptions.length > 0 ? (
+                                                                     <select
+                                                                        className="border px-2 py-1 rounded text-sm flex-1 min-w-0"
+                                                                        value={editedValue}
+                                                                        onChange={(e) => setEditedValue(e.target.value)}
+                                                                     >
+                                                                        <option value="" disabled>Select {f.name}</option>
+                                                                        {editOptions.map((option: any) => (
+                                                                           <option key={option.value} value={option.value}>
+                                                                              {option.label}
+                                                                           </option>
+                                                                        ))}
+                                                                     </select>
+                                                                  ) : (
+                                                                     <input
+                                                                        type="text"
+                                                                        className="border px-2 py-1 rounded text-sm flex-1 min-w-0"
+                                                                        value={editedValue}
+                                                                        onChange={(e) => setEditedValue(e.target.value)}
+                                                                     />
+                                                                  )}
+                                                                  <button
+                                                                     onClick={() => handleSave(f.name as string)}
+                                                                     className="text-green-600 font-semibold text-sm whitespace-nowrap shrink-0"
+                                                                  >
+                                                                     Save
+                                                                  </button>
+                                                                  <button
+                                                                     onClick={() => {
+                                                                        setEditingKey(null);
+                                                                        setEditOptions([]);
+                                                                     }}
+                                                                     className="text-gray-500 text-sm whitespace-nowrap shrink-0"
+                                                                  >
+                                                                     Cancel
+                                                                  </button>
+                                                               </>
+                                                            ) : (
+                                                               <>
+                                                                  <span className="text-sm sm:text-base truncate flex-1">{f.name ? row[f.name as string] : ''}</span>
+                                                                  <Pen
+                                                                  size={18}
+                                                                     className="cursor-pointer shrink-0"
+                                                                     onClick={() => f.name && handleEditClick(f.name as string, f.name ? row[f.name as string] : '', row._id?.$oid || row._id, formName)}
+                                                                  />
+                                                               </>
+                                                            )}
+                                                         </div>
+                                                      </TableCell>
+                                                   ))}
+                                                   <TableCell className="whitespace-nowrap">
+                                                      <Button
+                                                         variant="outline"
+                                                         size="sm"
+                                                         onClick={() => handleShowHistory(
+                                                            row._id?.$oid || row._id,
+                                                            formName,
+                                                            formName
+                                                         )}
+                                                         className="flex items-center gap-1"
+                                                      >
+                                                         <History className="h-3 w-3" />
+                                                         <span className="hidden sm:inline">History</span>
+                                                      </Button>
+                                                   </TableCell>
+                                                </TableRow>
+                                             ))}
+                                          </TableBody>
+                                       </Table>
+                                    </div>
                                  ) : (
                                     <div className="text-center py-4 text-gray-500">
                                        No data available
@@ -714,7 +719,7 @@ export const ChildDetailsModal = () => {
                                  )}
 
                                  {activeForm === formName && (
-                                    <div className="mt-4 border rounded-lg p-4 relative">
+                                    <div className="mt-4 border rounded-lg p-3 sm:p-4 relative">
                                        <Button
                                           variant="ghost"
                                           size="icon"
@@ -724,7 +729,7 @@ export const ChildDetailsModal = () => {
                                           <X className="h-4 w-4" />
                                        </Button>
                                        <Form {...form}>
-                                          <form className="space-y-4">
+                                          <form className="space-y-3 sm:space-y-4">
                                              {fields.map((field: any) => (
                                                 <FormField
                                                    key={field.name}
@@ -732,12 +737,13 @@ export const ChildDetailsModal = () => {
                                                    name={`${formName}.${field.name}`}
                                                    render={({ field: formField }) => (
                                                       <FormItem>
-                                                         <FormLabel>{field.name}</FormLabel>
+                                                         <FormLabel className="text-sm sm:text-base">{field.name}</FormLabel>
                                                          <FormControl>
                                                             <Input
                                                                {...formField}
                                                                placeholder={field.name}
                                                                required={field.isRequired}
+                                                               className="text-sm sm:text-base"
                                                             />
                                                          </FormControl>
                                                       </FormItem>
