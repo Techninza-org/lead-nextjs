@@ -417,20 +417,20 @@ export default function LogsPage() {
                 </div>
               ) : (
                 <>
-                  <div className="rounded-md border">
-                    <ScrollArea className="h-[600px]">
+                  <div className="rounded-md border overflow-hidden">
+                    <div className="overflow-auto h-[600px]">
                       <Table>
                         <TableHeader className="sticky top-0 bg-background z-10">
                           <TableRow>
-                            <TableHead>Timestamp</TableHead>
-                            <TableHead>Method</TableHead>
-                            <TableHead>URL</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>User ID</TableHead>
-                            <TableHead>Org ID</TableHead>
-                            <TableHead className="text-right">Time (ms)</TableHead>
-                            <TableHead className="text-right">Bandwidth</TableHead>
-                            <TableHead>Description</TableHead>
+                            <TableHead className="whitespace-nowrap">Timestamp</TableHead>
+                            <TableHead className="whitespace-nowrap">Method</TableHead>
+                            <TableHead className="whitespace-nowrap min-w-[200px]">URL</TableHead>
+                            <TableHead className="whitespace-nowrap">Status</TableHead>
+                            <TableHead className="whitespace-nowrap">User ID</TableHead>
+                            <TableHead className="whitespace-nowrap">Org ID</TableHead>
+                            <TableHead className="text-right whitespace-nowrap">Time (ms)</TableHead>
+                            <TableHead className="text-right whitespace-nowrap">Bandwidth</TableHead>
+                            <TableHead className="whitespace-nowrap min-w-[150px]">Description</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -449,20 +449,20 @@ export default function LogsPage() {
                                   log.isError && "bg-red-50 dark:bg-red-900/10 border-l-4 border-l-red-500"
                                 )}
                               >
-                                <TableCell className="font-mono text-xs">
+                                <TableCell className="font-mono text-xs whitespace-nowrap">
                                   {format(new Date(log.timestamp), "MMM dd, yyyy HH:mm:ss")}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="whitespace-nowrap">
                                   <Badge variant="outline">{log.method}</Badge>
                                 </TableCell>
                                 <TableCell className="max-w-[300px] truncate" title={log.url}>
                                   {log.url}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="whitespace-nowrap">
                                   <span className={getHttpCodeColor(log.httpCode)}>{log.httpCode}</span>
                                   {log.isError && <AlertCircle className="inline ml-1 h-4 w-4 text-red-600" />}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="whitespace-nowrap">
                                   <Button
                                     variant="link"
                                     className="h-auto p-0 font-mono text-xs"
@@ -471,9 +471,9 @@ export default function LogsPage() {
                                     {log.userId}
                                   </Button>
                                 </TableCell>
-                                <TableCell className="font-mono text-xs">{log.orgId}</TableCell>
-                                <TableCell className="text-right">{log.elapsedTimeMs.toFixed(2)}</TableCell>
-                                <TableCell className="text-right">{formatBandwidth(log.bandwidthKB)}</TableCell>
+                                <TableCell className="font-mono text-xs whitespace-nowrap">{log.orgId}</TableCell>
+                                <TableCell className="text-right whitespace-nowrap">{log.elapsedTimeMs.toFixed(2)}</TableCell>
+                                <TableCell className="text-right whitespace-nowrap">{formatBandwidth(log.bandwidthKB)}</TableCell>
                                 <TableCell className="max-w-[200px] truncate" title={log.description}>
                                   {log.description || "-"}
                                 </TableCell>
@@ -482,7 +482,7 @@ export default function LogsPage() {
                           )}
                         </TableBody>
                       </Table>
-                    </ScrollArea>
+                    </div>
                   </div>
 
                   {/* Pagination */}
