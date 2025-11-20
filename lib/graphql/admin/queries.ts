@@ -97,6 +97,7 @@ const GET_LOGS_STATS = `
         orgName
         users {
           userId
+          userName
           totalErrors
           totalRequests
           totalBandwidth
@@ -140,6 +141,7 @@ const GET_DETAILED_LOGS = `
         ip
         orgId
         userId
+        userName
         rate
         bandwidthKB
         userAgent

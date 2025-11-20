@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { MultiSelect } from "../multi-select-new"
+import { validateEmail } from "@/lib/utils"
 
 interface FormFieldProps {
     field: any;
@@ -54,11 +55,29 @@ export const IFormField: React.FC<FormFieldProps> = ({ field, fieldName, validat
                 />
             )
         case 'EMAIL':
+            // Merge email validation with existing validation rules
+            const emailValidationRules = {
+                ...validationRules,
+                validate: (value: string) => {
+                    // If there's existing validate function, call it first
+                    if (validationRules?.validate) {
+                        const existingResult = typeof validationRules.validate === 'function' 
+                            ? validationRules.validate(value)
+                            : true;
+                        if (existingResult !== true) {
+                            return existingResult;
+                        }
+                    }
+                    // Add email validation
+                    return validateEmail(value);
+                }
+            };
+            
             return (
                 <FormFieldUI
                     control={form.control}
                     name={fieldName}
-                    rules={validationRules}
+                    rules={emailValidationRules}
                     render={({ field: formField }) => (
                         <FormItem>
                             <FormLabel className="font-semibold text-primary dark:text-secondary/70">{field.name}</FormLabel>

@@ -398,3 +398,60 @@ export const formatPermissions = (permissions: any[]): any[] => {
 
   return Array.from(resourceMap.values());
 };
+
+/**
+ * Validates email format
+ * Checks for:
+ * - Presence of @ symbol
+ * - @ symbol must come before . (dot)
+ * - Presence of . (dot) after @
+ * - Valid email format (local@domain.extension)
+ */
+export const validateEmail = (email: string): boolean | string => {
+  if (!email) return true; // Let required validation handle empty values
+  
+  // Check for @ symbol
+  const atIndex = email.indexOf('@');
+  if (atIndex === -1) {
+    return 'Email must contain @ symbol';
+  }
+  
+  // Check that @ is not at the start or end
+  if (atIndex === 0 || atIndex === email.length - 1) {
+    return 'Invalid email format';
+  }
+  
+  // Get the part after @
+  const domainPart = email.substring(atIndex + 1);
+  
+  // Check for . (dot) after @
+  const dotIndex = domainPart.indexOf('.');
+  if (dotIndex === -1) {
+    return 'Email must contain a dot (.) after @ symbol';
+  }
+  
+  // Check that dot is not immediately after @
+  if (dotIndex === 0) {
+    return 'Invalid email format: dot cannot immediately follow @';
+  }
+  
+  // Check that there's at least one character after the last dot
+  const lastDotIndex = email.lastIndexOf('.');
+  if (lastDotIndex === email.length - 1) {
+    return 'Invalid email format: must have characters after the dot';
+  }
+  
+  // Check that there's at least one character before @
+  const localPart = email.substring(0, atIndex);
+  if (localPart.length === 0) {
+    return 'Invalid email format: must have characters before @';
+  }
+  
+  // More comprehensive email regex validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return 'Invalid email format';
+  }
+  
+  return true;
+};

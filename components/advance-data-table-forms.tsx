@@ -569,8 +569,8 @@ export default function AdvancedDataTableForms({
           {/* Info Bar: Rows/page, Total Rows, Select All */}
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2">
             <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" size="sm">Rows/page: {rowsPerPage}</Button>
               <Button variant="secondary" size="sm">Total Rows: {pagination.total}</Button>
+              <Button variant="secondary" size="sm">Rows/page: {rowsPerPage}</Button>
             </div>
             {pagination.total > rowsPerPage && (
               <Button

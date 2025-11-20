@@ -117,6 +117,9 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
             {
                 mutation: LOGIN_USER,
             },
+            {
+                mutation: DeptMutation.UPDATE_DEPT,
+            },
         ],
         onSuccess: ({ data }) => {
             if (data?.getCompanyDepts?.[0]?.companyForms?.length > 0) {
